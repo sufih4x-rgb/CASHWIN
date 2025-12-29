@@ -2,94 +2,160 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Register - CASHWIN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-red: #ff6b6b;
-            --gradient-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%);
-            --bg-light: #f8f9fe;
-            --text-dark: #333;
-            --placeholder: #b5b5b5;
-        }
+        :root { --p-red: #ff6b6b; --g-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: var(--bg-light); color: var(--text-dark); }
+        
+        body { background-color: #f8f9fe; padding-bottom: 50px; }
 
-        .header { background: var(--gradient-red); height: 180px; padding: 20px; color: white; position: relative; }
-        .top-icons { display: flex; justify-content: space-between; align-items: center; }
-        .logo-text { font-size: 24px; font-weight: 900; color: #ffeb3b; font-style: italic; }
-        .register-title { font-size: 22px; font-weight: bold; margin-top: 15px; }
+        .header { background: var(--g-red); height: 150px; padding: 20px; color: white; text-align: center; }
+        .logo-text { font-size: 28px; font-weight: 900; color: #ffeb3b; font-style: italic; margin-bottom: 5px; }
         
-        .container { background: white; margin-top: -30px; border-radius: 30px 30px 0 0; padding: 30px 20px; min-height: calc(100vh - 150px); }
-        .tab-icon { text-align: center; margin-bottom: 25px; }
-        .tab-icon i { font-size: 30px; color: var(--primary-red); }
+        .container { 
+            background: white; 
+            margin: -30px 15px 0 15px; 
+            border-radius: 20px; 
+            padding: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        /* Tab Navigation - Fixed Click Issue */
+        .reg-tabs { 
+            display: flex; 
+            background: #eee; 
+            border-radius: 10px; 
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .tab-btn { 
+            flex: 1; 
+            padding: 12px; 
+            border: none; 
+            background: none; 
+            font-weight: bold; 
+            color: #666;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .tab-btn.active { 
+            background: white; 
+            color: var(--p-red); 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        }
 
-        .input-label { display: flex; align-items: center; font-size: 14px; margin-bottom: 10px; color: #666; }
-        .input-label i { margin-right: 10px; color: var(--primary-red); font-size: 18px; }
-        .input-group { display: flex; background: #fff; border-bottom: 1px solid #eee; margin-bottom: 25px; align-items: center; padding: 5px 0; }
-        
-        input { flex: 1; border: none; padding: 12px; outline: none; font-size: 15px; }
-        .otp-btn { background: var(--gradient-red); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap; }
-        .btn-main { background: var(--gradient-red); color: white; width: 100%; padding: 15px; border: none; border-radius: 30px; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; }
-        .btn-outline { color: var(--primary-red); width: 100%; padding: 13px; text-decoration: none; display: block; text-align: center; font-weight: bold; margin-top: 10px; }
-        
-        #recaptcha-container { margin-top: 10px; }
+        /* Form Styling */
+        .input-box {
+            display: flex;
+            align-items: center;
+            background: #fdfdfd;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 5px 15px;
+            margin-bottom: 15px;
+        }
+        .input-box i { color: var(--p-red); width: 20px; }
+        input {
+            flex: 1;
+            border: none;
+            padding: 12px;
+            outline: none;
+            font-size: 15px;
+            background: transparent;
+        }
+
+        .otp-btn {
+            background: var(--g-red);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .btn-register {
+            background: var(--g-red);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(255,107,107,0.3);
+        }
+
+        #emailInputSection { display: none; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="top-icons">
-            <i class="fas fa-chevron-left" onclick="history.back()"></i>
-            <div class="logo-text">CASHWIN</div>
-            <div style="font-size: 12px;"><i class="fas fa-globe"></i> EN</div>
-        </div>
-        <div class="register-title">Register</div>
-        <p style="font-size: 12px; opacity: 0.8;">Join the most trusted color prediction game</p>
+        <div class="logo-text">CASHWIN</div>
+        <p>Create your professional account</p>
     </div>
 
     <div class="container">
-        <div class="tab-icon">
-            <i class="fas fa-mobile-alt"></i>
-            <span style="display:block; color:var(--primary-red); font-size:14px;">Register your phone</span>
+        <div class="reg-tabs">
+            <button class="tab-btn active" id="btnPhone">Phone</button>
+            <button class="tab-btn" id="btnEmail">Email</button>
         </div>
 
-        <div class="input-label"><i class="fas fa-mobile-screen"></i> Phone number</div>
-        <div class="input-group">
-            <div style="padding: 0 10px; font-weight: bold;">+91</div>
-            <input type="number" id="regPhone" placeholder="Enter mobile number">
+        <div id="phoneInputSection">
+            <div class="input-box">
+                <i class="fas fa-phone-alt"></i>
+                <span style="font-weight:bold; margin:0 10px;">+91</span>
+                <input type="number" id="regPhone" placeholder="Mobile number">
+            </div>
         </div>
 
-        <div class="input-label"><i class="fas fa-comment-dots"></i> SMS verification code</div>
-        <div class="input-group">
-            <input type="number" id="otpInp" placeholder="Enter 6-digit code">
-            <button class="otp-btn" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+        <div id="emailInputSection">
+            <div class="input-box">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="regEmail" placeholder="Enter Email Address">
+            </div>
+        </div>
+
+        <div class="input-box">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="regPass" placeholder="Set Password">
+        </div>
+
+        <div class="input-box">
+            <i class="fas fa-user-plus"></i>
+            <input type="text" id="inviteCode" placeholder="Invite Code (Optional)">
+        </div>
+
+        <div class="input-box">
+            <i class="fas fa-shield-alt"></i>
+            <input type="number" id="otpInp" placeholder="Verification Code">
+            <button class="otp-btn" id="sendOtpBtn">Send</button>
         </div>
 
         <div id="recaptcha-container"></div>
 
-        <div class="input-label"><i class="fas fa-lock"></i> Set password</div>
-        <div class="input-group">
-            <input type="password" id="regPass" placeholder="Set your password">
-        </div>
-
-        <button class="btn-main" onclick="verifyAndRegister()">Register</button>
-        <a href="index.html" class="btn-outline">I have an account Login</a>
+        <button class="btn-register" id="finalRegBtn">Register Now</button>
+        
+        <p style="text-align:center; margin-top:20px; font-size:14px;">
+            Already have an account? <a href="login.html" style="color:var(--p-red); text-decoration:none; font-weight:bold;">Login</a>
+        </p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
             authDomain: "testing-26b8c.firebaseapp.com",
             databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
             projectId: "testing-26b8c",
-            storageBucket: "testing-26b8c.firebasestorage.app",
-            messagingSenderId: "546674600784",
             appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
         };
 
@@ -97,63 +163,86 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
+        let mode = 'phone';
         let confirmationResult;
 
-        // 1. Setup Recaptcha
-        window.setupRecaptcha = () => {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible'
-            });
-        };
+        // TAB SWITCHING LOGIC - FIXED
+        const btnPhone = document.getElementById('btnPhone');
+        const btnEmail = document.getElementById('btnEmail');
+        const phoneSection = document.getElementById('phoneInputSection');
+        const emailSection = document.getElementById('emailInputSection');
 
-        // 2. Send OTP Function
-        window.sendOTP = () => {
-            const phone = "+91" + document.getElementById('regPhone').value;
-            if(phone.length < 13) return alert("Enter 10 digit number!");
+        btnPhone.addEventListener('click', () => {
+            mode = 'phone';
+            btnPhone.classList.add('active');
+            btnEmail.classList.remove('active');
+            phoneSection.style.display = 'block';
+            emailSection.style.display = 'none';
+        });
 
-            setupRecaptcha();
-            const appVerifier = window.recaptchaVerifier;
+        btnEmail.addEventListener('click', () => {
+            mode = 'email';
+            btnEmail.classList.add('active');
+            btnPhone.classList.remove('active');
+            phoneSection.style.display = 'none';
+            emailSection.style.display = 'block';
+        });
 
-            signInWithPhoneNumber(auth, phone, appVerifier)
-                .then((result) => {
-                    confirmationResult = result;
-                    alert("OTP Sent to " + phone);
-                    document.getElementById('sendOtpBtn').innerText = "Resend";
-                }).catch((error) => {
-                    alert("Error: " + error.message);
-                });
-        };
+        // OTP LOGIC
+        document.getElementById('sendOtpBtn').addEventListener('click', async () => {
+            if (mode === 'phone') {
+                const phone = document.getElementById('regPhone').value;
+                if(phone.length !== 10) return alert("Enter 10 digit phone!");
+                
+                const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+                signInWithPhoneNumber(auth, "+91" + phone, verifier)
+                    .then(res => { confirmationResult = res; alert("SMS Sent!"); })
+                    .catch(err => alert("Error: SMS Limit/Network Issue"));
+            } else {
+                const email = document.getElementById('regEmail').value;
+                if(!email.includes('@')) return alert("Enter valid email!");
+                const otp = Math.floor(100000 + Math.random() * 900000);
+                localStorage.setItem('emailOTP', otp);
+                alert("Email OTP: " + otp); // For testing, connect EmailJS later
+            }
+        });
 
-        // 3. Verify OTP and Register in Database
-        window.verifyAndRegister = () => {
-            const code = document.getElementById('otpInp').value;
-            const phone = document.getElementById('regPhone').value;
+        // REGISTER LOGIC
+        document.getElementById('finalRegBtn').addEventListener('click', async () => {
+            const otp = document.getElementById('otpInp').value;
             const pass = document.getElementById('regPass').value;
+            const phone = document.getElementById('regPhone').value;
+            const email = document.getElementById('regEmail').value;
 
-            if(!code) return alert("Enter OTP!");
-            if(!pass) return alert("Set a password!");
+            if(!otp || pass.length < 6) return alert("Enter all details correctly!");
 
-            confirmationResult.confirm(code).then((result) => {
-                // OTP Sahi hai! Ab database mein save karo
-                const user = result.user;
-                set(ref(db, 'users/' + phone), {
-                    phone: phone,
-                    password: pass,
-                    uid: user.uid,
-                    balance: 0,
-                    vault: 0,
-                    status: 'active',
-                    luck: 'normal',
-                    vip: 1,
-                    joinDate: new Date().toLocaleDateString()
-                }).then(() => {
-                    alert("Registration Successful!");
-                    window.location.href = "index.html";
-                });
-            }).catch((error) => {
-                alert("Invalid OTP or Timeout!");
+            if (mode === 'phone') {
+                confirmationResult.confirm(otp)
+                .then(() => doRegister(phone))
+                .catch(() => alert("Wrong SMS OTP"));
+            } else {
+                if(otp === localStorage.getItem('emailOTP')) {
+                    doRegister(email.replace(/[.@]/g, "_"));
+                } else {
+                    alert("Wrong Email OTP");
+                }
+            }
+        });
+
+        async function doRegister(userId) {
+            await set(ref(db, 'users/' + userId), {
+                phone: mode === 'phone' ? userId : "N/A",
+                email: mode === 'email' ? userId : "N/A",
+                password: document.getElementById('regPass').value,
+                balance: 0,
+                status: 'active',
+                referredBy: document.getElementById('inviteCode').value || "Direct",
+                joinDate: new Date().toLocaleDateString()
             });
-        };
+            alert("Success!");
+            localStorage.setItem('userPhone', userId);
+            window.location.href = "login.html";
+        }
     </script>
 </body>
 </html>
