@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Promotion & Activities</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --p-red: #ff6b6b; --gradient: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); }
+        body { background: #f8f9fe; font-family: Arial; padding-bottom: 80px; }
+        .header { background: var(--gradient); padding: 40px 20px; color: white; border-radius: 0 0 20px 20px; }
+        .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: white; margin: -20px 15px 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .grid-item { text-align: center; font-size: 11px; cursor: pointer; }
+        .grid-item i { display: block; font-size: 24px; color: var(--p-red); margin-bottom: 5px; }
+        
+        .promo-banner { background: white; margin: 15px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; }
+        .promo-banner img { width: 100%; height: 140px; object-fit: cover; }
+        .promo-content { padding: 15px; }
+        
+        /* Modal Style */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-box { background: white; width: 85%; padding: 25px; border-radius: 20px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 10px; text-align: center; font-size: 16px; }
+        .btn-claim { background: var(--gradient); color: white; border: none; padding: 12px 30px; border-radius: 25px; width: 100%; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>CASHWIN</h1>
+        <p>Participate in activities and win big rewards!</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="grid-item"><i class="fas fa-tasks"></i>Tasks</div>
+        <div class="grid-item" onclick="openGift()"><i class="fas fa-gift"></i>Gifts</div>
+        <div class="grid-item"><i class="fas fa-coins"></i>Rebate</div>
+        <div class="grid-item" onclick="claimAttendance()"><i class="fas fa-calendar-check"></i>Check-in</div>
+    </div>
+
+    <div class="promo-banner" onclick="openGift()">
+        <img src="https://i.ibb.co/pPzBqjL/banner.jpg">
+        <div class="promo-content">
+            <h3>Redeem Gift Code</h3>
+            <p>Enter your secret code to get instant cash.</p>
+        </div>
+    </div>
+
+    <div class="modal" id="giftModal">
+        <div class="modal-box">
+            <h3>Enter Gift Code</h3>
+            <input type="text" id="giftCodeInput" placeholder="Ex: CASHWIN777">
+            <button class="btn-claim" onclick="processRedeem()">REDEEM NOW</button>
+            <p onclick="closeModal()" style="margin-top:15px; color:#999; cursor:pointer;">Cancel</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = { /* Aapka Config */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const userPhone = localStorage.getItem('userPhone');
+
+        window.openGift = () => document.getElementById('giftModal').style.display = 'flex';
+        window.closeModal = () => document.getElementById('giftModal').style.display = 'none';
+
+        window.processRedeem = async () => {
+            const code = document.getElementById('giftCodeInput').value;
+            if(!code) return alert("Enter code!");
+
+            // 1. Check if code exists in Admin Settings
+            const codeRef = ref(db, 'admin/gift_codes/' + code);
+            const snap = await get(codeRef);
+
+            if(snap.exists()) {
+                const reward = snap.val().amount;
+                const userRef = ref(db, 'users/' + userPhone);
+                const userSnap = await get(userRef);
+                
+                // 2. Add Balance
+                await update(userRef, { balance: userSnap.val().balance + reward });
+                alert(`Success! ₹${reward} added to your wallet.`);
+                closeModal();
+            } else {
+                alert("Invalid or Expired Code!");
+            }
+        };
+
+        window.claimAttendance = async () => {
+            // Simple logic: Admin sets daily check-in amount
+            const settings = await get(ref(db, 'admin/settings'));
+            const amt = settings.val().dailyBonus || 5;
+            const userRef = ref(db, 'users/' + userPhone);
+            const userSnap = await get(userRef);
+            
+            await update(userRef, { balance: userSnap.val().balance + amt });
+            alert(`Check-in Successful! ₹${amt} received.`);
+        };
+    </script>
+</body>
+</html>
