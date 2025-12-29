@@ -10,41 +10,52 @@
     
     <style>
         :root { --primary: #6366f1; --surface: #1e293b; --bg: #0f172a; --success: #10b981; --danger: #ef4444; --accent: #fbbf24; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; color: white; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; color: white; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         .game-shell { width: 100%; max-width: 450px; min-height: 100vh; background: #111827; padding: 15px; box-sizing: border-box; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .back-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; text-decoration: none; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); gap: 10px; }
         .balance-chip { font-weight: 800; color: var(--accent); font-size: 18px; }
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; }
-        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid #334155; transition: 0.1s; }
+        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid #334155; }
+        .slot.revealed { cursor: default; }
         .slot.diamond { background: radial-gradient(circle, #06b6d4, #083344); border-color: #22d3ee; }
         .slot.bomb { background: radial-gradient(circle, #ef4444, #7f1d1d); border-color: #f87171; }
-        .slot.revealed-diamond { opacity: 0.4; border-color: var(--success); }
-        .slot.revealed-bomb { opacity: 0.4; border-color: var(--danger); }
         .lvl-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
         .lvl-btn { padding: 12px; border: 1px solid #334155; border-radius: 12px; background: #1e293b; color: #94a3b8; font-weight: 700; cursor: pointer; font-size: 11px; }
-        .lvl-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .lvl-btn.active { background: var(--primary); color: white; }
         .bet-area { background: #1e293b; padding: 18px; border-radius: 20px; text-align: center; }
         input { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; margin: 10px 0; font-size: 18px; font-weight: bold; text-align: center; }
         .main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; }
         .btn-start { background: var(--primary); color: white; box-shadow: 0 4px 0 #4338ca; }
         .btn-cashout { background: var(--success); color: white; display: none; box-shadow: 0 4px 0 #059669; }
-        .overlay { display: none; position: fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center; }
-        .modal { background:#1e293b; padding:30px; border-radius:24px; text-align:center; width:85%; border: 1px solid rgba(255,255,255,0.1); }
+        .history-card { background: var(--surface); border-radius: 20px; padding: 15px; margin-top: 20px; }
+        .hist-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        .overlay { display: none; position: fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center; }
+        .modal { background:#1e293b; padding:30px; border-radius:24px; text-align:center; width:85%; }
     </style>
 </head>
 <body>
 
 <div class="game-shell">
     <div class="header">
-        <span style="font-weight:900;">MINES <span style="color:var(--primary)">MASTER</span></span>
+        <a href="dashboard.html" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div style="flex-grow: 1;">
+            <div style="font-size: 10px; color: #94a3b8;">VIP PLAYER</div>
+            <span style="font-weight:900; font-size: 16px;">MINES <span style="color:var(--primary)">MASTER</span></span>
+        </div>
         <div class="balance-chip">₹<span id="balanceDisplay">0.00</span></div>
     </div>
+
     <div class="lvl-box">
         <button class="lvl-btn active" id="btn-easy" onclick="changeLvl('easy')">3 MINES</button>
         <button class="lvl-btn" id="btn-medium" onclick="changeLvl('medium')">10 MINES</button>
         <button class="lvl-btn" id="btn-hard" onclick="changeLvl('hard')">24 MINES</button>
     </div>
+
     <div class="grid" id="gameGrid"></div>
+
     <div class="bet-area">
         <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;">
             <span>MULT: <span id="multText" style="color:var(--accent)">1.00x</span></span>
@@ -53,6 +64,11 @@
         <input type="number" id="betInput" value="10">
         <button id="startBtn" class="main-btn btn-start" onclick="startGame()">START GAME</button>
         <button id="cashBtn" class="main-btn btn-cashout" onclick="cashout()">CASHOUT</button>
+    </div>
+
+    <div class="history-card">
+        <h4 style="margin: 0 0 10px 0; color: #94a3b8;">Recent Games</h4>
+        <div id="historyList"></div>
     </div>
 </div>
 
@@ -66,7 +82,6 @@
 </div>
 
 <script>
-    // --- UPDATED CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
         authDomain: "testing-26b8c.firebaseapp.com",
@@ -74,20 +89,15 @@
         projectId: "testing-26b8c",
         storageBucket: "testing-26b8c.firebasestorage.app",
         messagingSenderId: "546674600784",
-        appId: "1:546674600784:web:4b316bb716eda5f3b7da55",
-        measurementId: "G-BJ4CZ5Z6PW"
+        appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
     };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
 
-    let balance = 0, currentLvl = 'easy', isPlaying = false, mines = [], diamondsFound = 0, activeBet = 0;
-    const mTable = { 
-        easy: [1.2, 1.8, 2.5, 3.5, 5.0, 8.0, 12.0, 20.0, 45.0], 
-        medium: [3.8, 14.0, 40.0, 110.0, 300.0], 
-        hard: [24.0, 999.0] 
-    };
+    let balance = 0, currentLvl = 'easy', isPlaying = false, mines = [], diamondsFound = 0, activeBet = 0, userTotalDeposit = 0;
+    const mTable = { easy: [1.2, 1.8, 2.5, 3.5, 7.0, 11.0], medium: [4.0, 7.0, 15.0], hard: [6.0, 10.0] };
 
     function initGrid() {
         const grid = document.getElementById("gameGrid");
@@ -108,10 +118,12 @@
                 const data = snap.val();
                 if(data) {
                     balance = data.balance || 0;
+                    userTotalDeposit = data.totalDeposit || 100; // Default 100 for safety
                     document.getElementById("balanceDisplay").innerText = balance.toFixed(2);
-                    window.rigData = data; // Rigging Status Sync
+                    window.rigData = data;
                 }
             });
+            loadHistory(user.uid);
         }
     });
 
@@ -124,10 +136,14 @@
 
     window.startGame = async () => {
         if(!auth.currentUser) return alert("Login First!");
-        activeBet = parseFloat(document.getElementById("betInput").value);
-        if(isNaN(activeBet) || activeBet < 10 || activeBet > balance) return alert("Check Bet/Balance!");
+        if (window.lastBetTime && Date.now() - window.lastBetTime < 8000) return alert("Wait 8s between rounds!");
 
+        activeBet = parseFloat(document.getElementById("betInput").value);
+        if(activeBet < 10 || activeBet > balance) return alert("Low Balance!");
+
+        window.lastBetTime = Date.now();
         isPlaying = true; diamondsFound = 0; mines = [];
+        
         await db.ref(`users/${auth.currentUser.uid}`).update({ balance: firebase.database.ServerValue.increment(-activeBet) });
 
         let mCount = (currentLvl === 'easy') ? 3 : (currentLvl === 'medium' ? 10 : 24);
@@ -146,20 +162,20 @@
         const el = document.getElementById("s-" + idx);
         if(el.classList.contains('revealed')) return;
 
-        // --- RIGGING SYSTEM ---
-        let isRiggedLoss = window.rigData?.forceLoss || false;
-        let isRiggedWin = window.rigData?.forceWin || false;
+        let forceLoss = window.rigData?.forceLoss || false;
+        let forceWin = window.rigData?.forceWin || false;
+        
+        // --- PROFIT RIGGING: 200rs BANANE MEI TIME LAGEGA ---
+        let targetProfit = userTotalDeposit * 2;
+        let slowDown = (balance > targetProfit) && (Math.random() < 0.5);
 
-        if(isRiggedLoss && !mines.includes(idx)) {
-            mines.pop(); mines.push(idx); // Bomb Shift Logic
-        }
-        if(isRiggedWin && mines.includes(idx)) {
-            mines = mines.filter(m => m !== idx); // Bomb Remove Logic
-        }
+        if((forceLoss || slowDown) && !mines.includes(idx)) { mines.pop(); mines.push(idx); }
+        if(forceWin && mines.includes(idx)) { mines = mines.filter(m => m !== idx); }
 
         if(mines.includes(idx)) {
+            saveHistory(activeBet, 0, "Loss");
             finishGame(false);
-            showModal("BOOM!", "Mine Exploded!", "💥");
+            showModal("BOOM!", "Try again!", "💥");
         } else {
             diamondsFound++;
             el.innerText = "💎";
@@ -180,26 +196,39 @@
         const mult = mTable[currentLvl][diamondsFound-1] || 1;
         const win = activeBet * mult;
         await db.ref(`users/${auth.currentUser.uid}`).update({ balance: firebase.database.ServerValue.increment(win) });
+        saveHistory(activeBet, win, "Win");
         finishGame(true);
-        showModal("WINNER!", `Profit: ₹${win.toFixed(2)}`, "🏆");
+        showModal("WINNER!", `Won: ₹${win.toFixed(2)}`, "🏆");
     };
 
     function finishGame(won) {
         isPlaying = false;
         for(let i=0; i<25; i++) {
             const s = document.getElementById("s-" + i);
-            if(mines.includes(i)) {
-                s.innerText = "💣";
-                s.classList.add(won ? "revealed-bomb" : "bomb");
-            } else if(!s.classList.contains('revealed')) {
-                s.innerText = "💎";
-                s.classList.add("revealed-diamond");
-            }
+            if(mines.includes(i)) { s.innerText = "💣"; s.classList.add(won ? "revealed-bomb" : "bomb"); }
         }
         setTimeout(() => {
             document.getElementById("startBtn").style.display = "block";
             document.getElementById("cashBtn").style.display = "none";
-        }, 3000);
+        }, 2000);
+    }
+
+    async function saveHistory(bet, win, status) {
+        const time = new Date().toLocaleTimeString();
+        db.ref(`users/${auth.currentUser.uid}/minesHistory`).push({ bet, win, status, time, multiplier: (win/bet || 0).toFixed(2) });
+    }
+
+    function loadHistory(uid) {
+        db.ref(`users/${uid}/minesHistory`).limitToLast(5).on('value', snap => {
+            const list = document.getElementById("historyList");
+            list.innerHTML = "";
+            const data = snap.val();
+            if(!data) { list.innerHTML = "<div style='text-align:center; padding:10px;'>No history</div>"; return; }
+            Object.values(data).reverse().forEach(h => {
+                const color = h.status === "Win" ? "var(--success)" : "var(--danger)";
+                list.innerHTML += `<div class="hist-item"><span>${h.time}</span><span style="color:${color}; font-weight:bold;">${h.status === "Win" ? "+" : "-"}₹${h.status === "Win" ? h.win : h.bet}</span></div>`;
+            });
+        });
     }
 
     function showModal(t, d, i) {
