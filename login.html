@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Login - CASHWIN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -10,144 +10,79 @@
             --primary-red: #ff6b6b;
             --gradient-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%);
             --bg-light: #f8f9fe;
-            --text-dark: #333;
             --gray-text: #999;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: var(--bg-light); color: var(--text-dark); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-light); color: #333; overflow-x: hidden; }
 
-        /* Header UI from Screenshot */
-        .header {
-            background: var(--gradient-red);
-            height: 160px;
-            padding: 20px;
-            color: white;
-            position: relative;
-        }
-        .top-nav { display: flex; justify-content: space-between; align-items: center; }
-        .logo-text { font-size: 24px; font-weight: 900; color: #ffeb3b; font-style: italic; }
+        .header { background: var(--gradient-red); height: 160px; padding: 25px; color: white; position: relative; }
+        .logo-text { font-size: 26px; font-weight: 900; color: #ffeb3b; font-style: italic; }
         .login-title { font-size: 24px; font-weight: bold; margin-top: 15px; }
-        .login-sub { font-size: 11px; opacity: 0.9; margin-top: 5px; line-height: 1.4; }
+        
+        .container { background: white; margin-top: -30px; border-radius: 30px 35px 0 0; padding: 30px 20px; min-height: calc(100vh - 130px); }
 
-        /* Container & Tabs */
-        .container {
-            background: white;
-            margin-top: -25px;
-            border-radius: 25px 25px 0 0;
-            padding: 25px 20px;
-            min-height: calc(100vh - 135px);
-        }
-
-        .tabs { display: flex; border-bottom: 1px solid #eee; margin-bottom: 30px; }
-        .tab { flex: 1; text-align: center; padding-bottom: 15px; cursor: pointer; color: var(--gray-text); font-size: 15px; }
-        .tab.active { color: var(--primary-red); border-bottom: 2px solid var(--primary-red); font-weight: bold; }
-        .tab i { display: block; font-size: 24px; margin-bottom: 8px; }
+        /* Tabs Logic */
+        .tabs { display: flex; background: #f0f0f5; border-radius: 15px; padding: 5px; margin-bottom: 25px; }
+        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; color: #777; font-weight: bold; border-radius: 12px; transition: 0.3s; }
+        .tab.active { background: white; color: var(--primary-red); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
         /* Input Styles */
-        .input-label { display: flex; align-items: center; font-size: 14px; margin-bottom: 10px; color: #444; margin-top: 20px; }
-        .input-label i { margin-right: 10px; color: var(--primary-red); font-size: 18px; }
+        .input-label { display: flex; align-items: center; font-size: 14px; margin-bottom: 10px; color: #444; margin-top: 15px; }
+        .input-label i { margin-right: 10px; color: var(--primary-red); }
 
-        .input-group {
-            display: flex;
-            background: #f9f9f9;
-            border-radius: 8px;
-            margin-bottom: 5px;
-            align-items: center;
-            padding: 5px 12px;
+        .input-group { display: flex; background: #f9f9f9; border-radius: 12px; border: 1px solid #eee; align-items: center; padding: 2px 15px; margin-bottom: 15px; }
+        input { flex: 1; border: none; background: transparent; padding: 14px 5px; outline: none; font-size: 15px; }
+
+        .btn-login { 
+            background: #ccc; color: white; width: 100%; padding: 16px; border: none; border-radius: 35px; 
+            font-size: 18px; font-weight: bold; margin-top: 30px; cursor: pointer; transition: 0.3s;
         }
+        .btn-login.ready { background: var(--gradient-red); box-shadow: 0 5px 15px rgba(255,107,107,0.4); }
 
-        .country-code { padding-right: 15px; border-right: 1px solid #ddd; font-weight: bold; margin-right: 15px; }
-        input { flex: 1; border: none; background: transparent; padding: 12px 0; outline: none; font-size: 15px; }
+        .btn-reg { display: block; text-align: center; margin-top: 20px; color: var(--primary-red); text-decoration: none; font-weight: bold; }
 
-        /* Utilities */
-        .options { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 13px; }
-        .remember { display: flex; align-items: center; color: var(--gray-text); }
-        .remember input { width: auto; margin-right: 8px; }
-        .forgot { color: var(--primary-red); text-decoration: none; }
-
-        /* Buttons */
-        .btn-login {
-            background: #d1d1d1; /* Disabled color by default */
-            color: white;
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 40px;
-            cursor: pointer;
-        }
-        .btn-login.ready { background: var(--gradient-red); box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); }
-
-        .btn-reg {
-            background: white;
-            color: var(--primary-red);
-            width: 100%;
-            padding: 13px;
-            border: 1px solid var(--primary-red);
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .login-section { display: none; }
-        .login-section.active { display: block; }
+        #phoneSection, #emailSection { display: none; }
+        .active-section { display: block !important; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="top-nav">
-            <i class="fas fa-chevron-left" onclick="history.back()"></i>
-            <div class="logo-text">CASHWIN</div>
-            <div style="font-size: 12px; display:flex; align-items:center;">
-                <img src="https://flagcdn.com/w20/us.png" style="margin-right:5px;"> EN
-            </div>
-        </div>
+        <div class="logo-text">CASHWIN</div>
         <div class="login-title">Log in</div>
-        <div class="login-sub">Please log in with your phone number or email<br>If you forget your password, please contact customer service</div>
+        <p style="font-size: 12px; opacity: 0.8;">Enter your credentials to continue</p>
     </div>
 
     <div class="container">
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('phone', this)"><i class="fas fa-mobile-alt"></i> Log in with phone</div>
-            <div class="tab" onclick="switchTab('email', this)"><i class="fas fa-envelope"></i> Email login</div>
+            <div class="tab active" id="tabPhone" onclick="toggleMode('phone')">Phone Login</div>
+            <div class="tab" id="tabEmail" onclick="toggleMode('email')">Email Login</div>
         </div>
 
-        <div id="phoneSection" class="login-section active">
-            <div class="input-label"><i class="fas fa-mobile-screen"></i> Phone number</div>
+        <div id="phoneSection" class="active-section">
+            <div class="input-label"><i class="fas fa-mobile-alt"></i> Phone Number</div>
             <div class="input-group">
-                <div class="country-code">+91</div>
-                <input type="number" id="loginPhone" placeholder="Please enter the phone number" oninput="checkInput()">
+                <span style="font-weight:bold; margin-right:10px;">+91</span>
+                <input type="number" id="loginPhone" placeholder="Enter mobile number" oninput="validate()">
             </div>
         </div>
 
-        <div id="emailSection" class="login-section">
-            <div class="input-label"><i class="fas fa-envelope"></i> Mail</div>
+        <div id="emailSection">
+            <div class="input-label"><i class="fas fa-envelope"></i> Email Address</div>
             <div class="input-group">
-                <input type="email" id="loginEmail" placeholder="Please enter the email" oninput="checkInput()">
+                <input type="email" id="loginEmail" placeholder="Enter your email" oninput="validate()">
             </div>
         </div>
 
         <div class="input-label"><i class="fas fa-lock"></i> Password</div>
         <div class="input-group">
-            <input type="password" id="loginPass" placeholder="Please enter password" oninput="checkInput()">
-            <i class="far fa-eye-slash" style="color:#ccc; cursor:pointer;" onclick="togglePass()"></i>
-        </div>
-
-        <div class="options">
-            <label class="remember"><input type="checkbox"> Remember password</label>
-            <a href="#" class="forgot">Forgot password</a>
+            <input type="password" id="loginPass" placeholder="Enter password" oninput="validate()">
+            <i class="far fa-eye" id="toggleIcon" style="color:#ccc; cursor:pointer;" onclick="viewPass()"></i>
         </div>
 
         <button class="btn-login" id="loginBtn" onclick="handleLogin()">Log in</button>
-        <a href="register.html" class="btn-reg">Register</a>
+        <a href="register.html" class="btn-reg">Create an account</a>
     </div>
 
     <script type="module">
@@ -159,80 +94,100 @@
             authDomain: "testing-26b8c.firebaseapp.com",
             databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
             projectId: "testing-26b8c",
-            storageBucket: "testing-26b8c.firebasestorage.app",
-            messagingSenderId: "546674600784",
             appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // UI Logic
-        window.switchTab = (type, el) => {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.login-section').forEach(s => s.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById(type + 'Section').classList.add('active');
-            checkInput();
+        let currentMode = 'phone';
+
+        // Tab Switch Fix
+        window.toggleMode = (mode) => {
+            currentMode = mode;
+            document.getElementById('tabPhone').classList.toggle('active', mode === 'phone');
+            document.getElementById('tabEmail').classList.toggle('active', mode === 'email');
+            document.getElementById('phoneSection').classList.toggle('active-section', mode === 'phone');
+            document.getElementById('emailSection').classList.toggle('active-section', mode === 'email');
+            validate();
         };
 
-        window.checkInput = () => {
+        window.viewPass = () => {
+            const p = document.getElementById('loginPass');
+            const icon = document.getElementById('toggleIcon');
+            if(p.type === "password") {
+                p.type = "text";
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                p.type = "password";
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        };
+
+        window.validate = () => {
             const phone = document.getElementById('loginPhone').value;
             const email = document.getElementById('loginEmail').value;
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('loginBtn');
-            
-            const isPhoneTab = document.getElementById('phoneSection').classList.contains('active');
-            if((isPhoneTab && phone.length >= 10 && pass.length > 0) || (!isPhoneTab && email.includes('@') && pass.length > 0)) {
+
+            const isPhoneValid = currentMode === 'phone' && phone.length === 10;
+            const isEmailValid = currentMode === 'email' && email.includes('@');
+
+            if((isPhoneValid || isEmailValid) && pass.length >= 6) {
                 btn.classList.add('ready');
             } else {
                 btn.classList.remove('ready');
             }
         };
 
-        window.togglePass = () => {
-            const p = document.getElementById('loginPass');
-            p.type = p.type === "password" ? "text" : "password";
-        };
-
-        // --- Core Tracking & Blacklist Logic ---
+        // Core Login Logic with Admin Features
         window.handleLogin = async () => {
-            const phone = document.getElementById('loginPhone').value;
-            const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('loginBtn');
-
             if(!btn.classList.contains('ready')) return;
 
-            // Database Check
-            const userRef = ref(db, 'users/' + phone);
-            const snapshot = await get(userRef);
+            const phone = document.getElementById('loginPhone').value;
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
 
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
+            // ID selection: Phone ya Email (Firebase keys safe format)
+            const userId = currentMode === 'phone' ? phone : email.replace(/[.@]/g, "_");
+            
+            btn.innerText = "Verifying...";
+            const userRef = ref(db, 'users/' + userId);
+            
+            try {
+                const snapshot = await get(userRef);
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
 
-                // 1. Blacklist System Check
-                if (userData.status === 'banned') {
-                    alert("Your account has been blacklisted. Contact support.");
-                    return;
-                }
+                    // 1. Admin Blacklist/Ban Check
+                    if (userData.status === 'banned') {
+                        alert("🚨 Access Denied! Your account is blacklisted.");
+                        btn.innerText = "Log in";
+                        return;
+                    }
 
-                // 2. Password Match
-                if (userData.password === pass) {
-                    // 3. Tracking System for Admin
-                    await update(userRef, {
-                        lastLogin: new Date().toLocaleString(),
-                        onlineStatus: 'Online'
-                    });
+                    // 2. Password Check
+                    if (userData.password === pass) {
+                        // 3. Update Admin Real-time Tracking
+                        await update(userRef, {
+                            lastLogin: new Date().toLocaleString(),
+                            onlineStatus: 'Online'
+                        });
 
-                    localStorage.setItem('userPhone', phone);
-                    alert("Login Successful!");
-                    window.location.href = "wingo.html"; // Game page
+                        localStorage.setItem('userPhone', userId); // Session save
+                        alert("Login Successful! Welcome back.");
+                        window.location.href = "dashbaord.html"; 
+                    } else {
+                        alert("Incorrect Password!");
+                    }
                 } else {
-                    alert("Incorrect Password!");
+                    alert("User not found! Please check your credentials.");
                 }
-            } else {
-                alert("User not found! Please register.");
+            } catch (error) {
+                alert("Database Error!");
             }
+            btn.innerText = "Log in";
         };
     </script>
 </body>
