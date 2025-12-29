@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN Admin - Full Control</title>
+    <title>CASHWIN Admin - Fixed Control</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -13,17 +13,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--dark-bg); color: white; display: flex; min-height: 100vh; overflow-x: hidden; }
 
-        /* Lock Screen */
-        #adminLock { position: fixed; inset: 0; background: var(--dark-bg); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .lock-box { background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--neon-red); box-shadow: 0 0 20px var(--neon-red); }
+        #adminLock { position: fixed; inset: 0; background: var(--dark-bg); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .lock-box { background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--neon-red); box-shadow: 0 0 20px var(--neon-red); width: 320px; }
 
-        /* Sidebar */
         .sidebar { width: 260px; height: 100vh; background: var(--card-bg); position: fixed; border-right: 1px solid #30363d; padding: 20px; z-index: 100; }
         .logo { font-size: 26px; font-weight: 900; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); margin-bottom: 40px; text-align: center; }
         .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-gray); transition: 0.3s; }
         .nav-item.active { background: rgba(255, 49, 49, 0.1); color: white; border-left: 4px solid var(--neon-red); }
 
-        /* Main Content */
         .main { margin-left: 260px; width: 100%; padding: 30px; }
         .page-section { display: none; animation: fadeIn 0.3s ease; }
         .page-section.active { display: block; }
@@ -32,22 +29,17 @@
         .section-card { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid #30363d; margin-bottom: 25px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid #30363d; border-bottom: 3px solid var(--neon-blue); }
-        .val { font-size: 22px; font-weight: bold; color: var(--neon-green); margin-top: 5px; }
+        .val { font-size: 20px; font-weight: bold; color: var(--neon-green); margin-top: 5px; }
 
-        /* Inputs & Buttons */
-        input[type="text"], input[type="number"], input[type="password"] { 
-            background: #0b0e14; border: 1px solid #30363d; color: white; padding: 10px; border-radius: 5px;
-        }
-        .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; text-transform: uppercase; margin: 4px; transition: 0.2s; }
-        .btn-red { background: var(--neon-red); box-shadow: 0 0 10px rgba(255,49,49,0.3); }
+        input[type="text"], input[type="number"], input[type="password"] { background: #0b0e14; border: 1px solid #30363d; color: white; padding: 10px; border-radius: 5px; margin: 5px 0; }
+        .btn { padding: 8px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; margin: 4px; transition: 0.2s; font-size: 12px; }
+        .btn-red { background: var(--neon-red); }
         .btn-green { background: var(--neon-green); color: black; }
-        .n-btn { background: #21262d; border: 1px solid #30363d; color: white; width: 45px; height: 45px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-
-        /* Tables */
+        .btn-blue { background: var(--neon-blue); color: black; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 14px; }
-        th { color: var(--text-gray); background: #0b0e14; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border:none; cursor:pointer; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 13px; }
+        .badge { padding: 5px 10px; border-radius: 5px; cursor: pointer; border: none; font-size: 10px; font-weight: bold; margin-right: 2px; }
     </style>
 </head>
 <body>
@@ -55,87 +47,68 @@
 <div id="adminLock">
     <div class="lock-box">
         <div class="logo">CASHWIN</div>
-        <input type="password" id="adminPass" style="width: 100%; margin-bottom:15px;" placeholder="Admin Key">
-        <button class="btn btn-red" style="width:100%" onclick="unlock()">Unlock Panel</button>
+        <input type="password" id="adminPass" style="width: 100%;" placeholder="Admin Key">
+        <button class="btn btn-red" style="width:100%; margin-top: 10px;" id="unlockBtn">Unlock Panel</button>
+        <p onclick="forgotPass()" style="font-size: 11px; color: var(--text-gray); margin-top: 15px; cursor: pointer;">Forgot Password? (Email Link)</p>
     </div>
 </div>
 
 <div class="sidebar">
     <div class="logo">CASHWIN</div>
-    <div class="nav-item active" onclick="showPage('dash', this)"><i class="fas fa-chart-line"></i> Dashboard</div>
-    <div class="nav-item" onclick="showPage('wingo', this)"><i class="fas fa-dice"></i> Wingo Control</div>
-    <div class="nav-item" onclick="showPage('users', this)"><i class="fas fa-users-cog"></i> User Hub</div>
-    <div class="nav-item" onclick="showPage('deposits', this)"><i class="fas fa-plus-circle"></i> Deposits</div>
-    <div class="nav-item" onclick="showPage('withdraws', this)"><i class="fas fa-minus-circle"></i> Withdraws</div>
-    <div class="nav-item" onclick="showPage('chat', this)"><i class="fas fa-comments"></i> Live Chat</div>
-    <div class="nav-item" onclick="showPage('settings', this)"><i class="fas fa-tools"></i> Settings</div>
+    <div class="nav-item active" id="nav-dash"><i class="fas fa-chart-line"></i> Dashboard</div>
+    <div class="nav-item" id="nav-wingo"><i class="fas fa-dice"></i> Wingo Control</div>
+    <div class="nav-item" id="nav-users"><i class="fas fa-users-cog"></i> User Hub</div>
+    <div class="nav-item" id="nav-deposits"><i class="fas fa-plus-circle"></i> Deposits</div>
+    <div class="nav-item" id="nav-withdraws"><i class="fas fa-minus-circle"></i> Withdraws</div>
+    <div class="nav-item" id="nav-settings"><i class="fas fa-tools"></i> Settings</div>
 </div>
 
 <div class="main">
     <div id="dash" class="page-section active">
         <h1>Dashboard Overview</h1>
         <div class="stats-grid">
-            <div class="stat-card">Live Users<div class="val" id="countUsers">0</div></div>
-            <div class="stat-card">Pending Withdraws<div class="val" id="countWith" style="color:var(--neon-red)">0</div></div>
-            <div class="stat-card">Pending Deposits<div class="val" id="countDepo">0</div></div>
+            <div class="stat-card">Total Users<div class="val" id="countUsers">0</div></div>
             <div class="stat-card">Total Balance<div class="val" id="totalWallet">₹0</div></div>
+            <div class="stat-card">Admin Net Profit<div class="val" id="adminProfit" style="color:var(--neon-green)">₹0</div></div>
+            <div class="stat-card">Pending Req.<div class="val" id="pendingReq" style="color:var(--neon-red)">0</div></div>
         </div>
     </div>
 
     <div id="wingo" class="page-section">
         <div class="section-card">
-            <h2>Wingo Prediction Master</h2>
+            <h2>Wingo/Mines Prediction Master</h2>
             <div style="margin: 15px 0;">
-                Select Timer: <select id="gameTimer" style="background:#0b0e14; color:white; padding:8px; border-radius:5px;">
+                Timer: <select id="gameTimer" style="background:#0b0e14; color:white; padding:8px;">
                     <option value="1">1 Minute</option><option value="3">3 Minute</option><option value="5">5 Minute</option>
                 </select>
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="btn btn-green" onclick="force('green')">Green</button>
-                <button class="btn" style="background:violet" onclick="force('violet')">Violet</button>
-                <button class="btn btn-red" onclick="force('red')">Red</button>
-                <button class="btn" style="background:orange" onclick="force('big')">Big</button>
-                <button class="btn" style="background:orange" onclick="force('small')">Small</button>
-                <button class="btn" style="background:gray" onclick="force('auto')">Reset Auto</button>
-            </div>
-            <div style="margin-top:20px; display:grid; grid-template-columns: repeat(5, 50px); gap:10px;">
-                <button class="n-btn" onclick="forceNum(0)">0</button><button class="n-btn" onclick="forceNum(1)">1</button>
-                <button class="n-btn" onclick="forceNum(2)">2</button><button class="n-btn" onclick="forceNum(3)">3</button>
-                <button class="n-btn" onclick="forceNum(4)">4</button><button class="n-btn" onclick="forceNum(5)">5</button>
-                <button class="n-btn" onclick="forceNum(6)">6</button><button class="n-btn" onclick="forceNum(7)">7</button>
-                <button class="n-btn" onclick="forceNum(8)">8</button><button class="n-btn" onclick="forceNum(9)">9</button>
+                <button class="btn btn-green" id="forceGreen">Green</button>
+                <button class="btn btn-red" id="forceRed">Red</button>
+                <button class="btn" style="background:orange" id="forceBig">Big</button>
+                <button class="btn" style="background:orange" id="forceSmall">Small</button>
+                <button class="btn" style="background:gray" id="forceAuto">Reset Auto</button>
             </div>
         </div>
     </div>
 
     <div id="users" class="page-section">
         <div class="section-card">
-            <h2>User Management</h2>
-            <table>
-                <thead><tr><th>User Info</th><th>Balance</th><th>Luck Control</th><th>Status</th><th>Action</th></tr></thead>
-                <tbody id="userList"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="chat" class="page-section">
-        <div class="section-card">
-            <h2>Live Support Center</h2>
-            <div id="chatWindow" style="height:400px; overflow-y:auto; background:#0b0e14; padding:15px; border-radius:10px; border:1px solid #333;">
-                <p style="color:#666; text-align:center;">Select a user to start chatting</p>
-            </div>
-            <div style="margin-top:15px; display:flex; gap:10px;">
-                <input type="text" id="chatMsg" style="flex:1" placeholder="Type reply...">
-                <button class="btn btn-blue" style="background:var(--neon-blue)" onclick="sendChat()">Send</button>
+            <h2>User Management (Rigging Control)</h2>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>User Info</th><th>Balance</th><th>Mines/Wingo Luck</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody id="userList"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <div id="deposits" class="page-section">
         <div class="section-card">
-            <h2>Verify Deposits (UTR)</h2>
+            <h2>Deposit Requests</h2>
             <table>
-                <thead><tr><th>Phone</th><th>Amount</th><th>UTR/Ref</th><th>Action</th></tr></thead>
+                <thead><tr><th>Phone</th><th>Amount</th><th>UTR</th><th>Action</th></tr></thead>
                 <tbody id="depList"></tbody>
             </table>
         </div>
@@ -145,7 +118,7 @@
         <div class="section-card">
             <h2>Withdrawal Requests</h2>
             <table>
-                <thead><tr><th>Phone</th><th>Amount</th><th>UPI/Bank</th><th>Action</th></tr></thead>
+                <thead><tr><th>Phone</th><th>Amount</th><th>Details</th><th>Action</th></tr></thead>
                 <tbody id="withList"></tbody>
             </table>
         </div>
@@ -153,38 +126,24 @@
 
     <div id="settings" class="page-section">
         <div class="section-card">
-            <h2>Promotion & Reward Control</h2>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                <div style="border-right:1px solid #333; padding-right:20px;">
-                    <h4>Create Redeem Code</h4>
-                    <input type="text" id="giftCode" placeholder="Code (e.g. FREE100)" style="width:100%; margin:10px 0;">
-                    <input type="number" id="giftAmt" placeholder="Reward Amount" style="width:100%; margin-bottom:10px;">
-                    <button class="btn btn-green" onclick="createGift()">Generate Code</button>
+            <h2>Payment QR & UPI Config</h2>
+            <div style="display:flex; gap:20px; align-items:center; flex-wrap: wrap;">
+                <div id="qrBox" style="width:120px; height:120px; border:1px solid #333; background:white;">
+                    <img id="qrImg" style="width:100%; height:100%; object-fit: contain;">
                 </div>
                 <div>
-                    <h4>Daily Bonus Setting</h4>
-                    <input type="number" id="dailyBonusVal" placeholder="Amount (e.g. 10)" style="width:100%; margin:10px 0;">
-                    <button class="btn btn-red" onclick="setDailyBonus()">Update Daily Reward</button>
+                    <input type="file" id="qrInp" accept="image/*"><br>
+                    <input type="text" id="upiInp" placeholder="Admin UPI ID" style="width:250px;">
                 </div>
             </div>
-        </div>
-        <div class="section-card">
-            <h2>Payment & QR Config</h2>
-            <div style="display:flex; gap:20px; align-items:center;">
-                <div id="qrBox" style="width:120px; height:120px; border:1px solid #333; background:white;"><img id="qrImg" style="width:100%"></div>
-                <div>
-                    <input type="file" id="qrInp" style="margin-bottom:10px;"><br>
-                    <input type="text" id="upiInp" placeholder="Enter Admin UPI ID" style="width:250px;">
-                </div>
-            </div>
-            <button class="btn btn-green" style="margin-top:20px;" onclick="saveSettings()">Save Payment Config</button>
+            <button class="btn btn-green" style="margin-top:20px;" id="savePayBtn">Save Payment Config</button>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, update, onValue, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, update, onValue, get, set, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
@@ -197,94 +156,168 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // --- Unlock Logic ---
-    window.unlock = () => {
+    // --- Auth & Navigation ---
+    document.getElementById('unlockBtn').onclick = () => {
         if(document.getElementById('adminPass').value === "CASHWIN786") {
             document.getElementById('adminLock').style.display = 'none';
         } else { alert("Access Denied!"); }
     };
 
-    // --- Navigation ---
-    window.showPage = (id, el) => {
-        document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        el.classList.add('active');
+    window.forgotPass = () => {
+        alert("Reset link sent to: sufih4x@gmail.com. Please check your inbox.");
     };
 
-    // --- User & Balance Management ---
-    onValue(ref(db, 'users'), (snap) => {
-        const list = document.getElementById('userList');
-        let total = 0; let count = 0;
-        list.innerHTML = "";
-        snap.forEach(child => {
-            const u = child.val();
-            count++; total += (u.balance || 0);
-            list.innerHTML += `<tr>
-                <td>${u.phone}<br><small>UID: ${child.key}</small></td>
-                <td>
-                    <b>₹${u.balance || 0}</b><br>
-                    <button class="badge" style="background:var(--neon-blue); color:black" onclick="editBal('${child.key}', ${u.balance || 0})">EDIT</button>
-                </td>
-                <td>
-                    <button class="badge" style="background:${u.luck === 'win' ? 'green' : '#333'}" onclick="rig('${child.key}', 'win')">WIN</button>
-                    <button class="badge" style="background:${u.luck === 'lose' ? 'red' : '#333'}" onclick="rig('${child.key}', 'lose')">LOSS</button>
-                    <button class="badge" style="background:#555" onclick="rig('${child.key}', 'normal')">RESET</button>
-                </td>
-                <td>${u.status === 'banned' ? '❌ Banned' : '✅ Active'}</td>
-                <td><button onclick="ban('${child.key}', '${u.status}')" class="btn" style="background:#444; font-size:10px">BAN/UNBAN</button></td>
-            </tr>`;
-        });
-        document.getElementById('countUsers').innerText = count;
-        document.getElementById('totalWallet').innerText = "₹ " + total.toLocaleString();
+    const navs = ['dash', 'wingo', 'users', 'deposits', 'withdraws', 'settings'];
+    navs.forEach(id => {
+        document.getElementById('nav-' + id).onclick = () => {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('nav-' + id).classList.add('active');
+        };
     });
 
-    window.editBal = (uid, old) => {
-        const amt = prompt("Enter New Balance for User:", old);
-        if(amt !== null) update(ref(db, `users/${uid}`), { balance: parseInt(amt) });
+    // --- Dashboard Stats & Profit Calculation ---
+    onValue(ref(db, '/'), (snap) => {
+        const data = snap.val();
+        if(!data) return;
+
+        let uCount = 0, uBal = 0, totalDep = 0, totalWith = 0;
+        
+        // Users Info
+        if(data.users) {
+            Object.values(data.users).forEach(u => {
+                uCount++;
+                uBal += (u.balance || 0);
+                if(u.totalDeposit) totalDep += u.totalDeposit;
+                if(u.totalWithdraw) totalWith += u.totalWithdraw;
+            });
+        }
+
+        document.getElementById('countUsers').innerText = uCount;
+        document.getElementById('totalWallet').innerText = "₹" + uBal.toLocaleString();
+        document.getElementById('adminProfit').innerText = "₹" + (totalDep - totalWith).toLocaleString();
+        
+        // Render Users
+        const userList = document.getElementById('userList');
+        userList.innerHTML = "";
+        for(let uid in data.users) {
+            let u = data.users[uid];
+            let row = `<tr>
+                <td>${u.phone}<br><small>${uid}</small></td>
+                <td>₹${u.balance || 0} <button class="badge btn-blue" onclick="editBalance('${uid}', ${u.balance || 0})">EDIT</button></td>
+                <td>
+                    <button class="badge" style="background:${u.forceWin ? 'green' : '#333'}" onclick="setRig('${uid}', 'win')">WIN</button>
+                    <button class="badge" style="background:${u.forceLoss ? 'red' : '#333'}" onclick="setRig('${uid}', 'loss')">LOSS</button>
+                    <button class="badge" style="background:#555" onclick="setRig('${uid}', 'reset')">RESET</button>
+                </td>
+                <td>${u.status === 'banned' ? '❌ Banned' : '✅ Active'}</td>
+                <td><button onclick="toggleBan('${uid}', '${u.status}')" class="btn btn-red">BAN/UNBAN</button></td>
+            </tr>`;
+            userList.insertAdjacentHTML('beforeend', row);
+        }
+
+        // Render Deposits
+        const depList = document.getElementById('depList');
+        depList.innerHTML = "";
+        let pDep = 0;
+        if(data.requests && data.requests.deposits) {
+            for(let rid in data.requests.deposits) {
+                let d = data.requests.deposits[rid];
+                if(d.status === 'pending') {
+                    pDep++;
+                    depList.insertAdjacentHTML('beforeend', `<tr>
+                        <td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td>
+                        <td>
+                            <button class="badge btn-green" onclick="handleDeposit('${rid}', '${d.uid}', ${d.amount}, 'approve')">APPROVE</button>
+                            <button class="badge btn-red" onclick="handleDeposit('${rid}', '${d.uid}', 0, 'reject')">REJECT</button>
+                        </td>
+                    </tr>`);
+                }
+            }
+        }
+
+        // Render Withdraws
+        const withList = document.getElementById('withList');
+        withList.innerHTML = "";
+        let pWith = 0;
+        if(data.requests && data.requests.withdraws) {
+            for(let rid in data.requests.withdraws) {
+                let w = data.requests.withdraws[rid];
+                if(w.status === 'pending') {
+                    pWith++;
+                    withList.insertAdjacentHTML('beforeend', `<tr>
+                        <td>${w.phone}</td><td>₹${w.amount}</td><td>${w.upi || w.bank}</td>
+                        <td>
+                            <button class="badge btn-green" onclick="handleWithdraw('${rid}', '${w.uid}', 'paid')">PAID</button>
+                            <button class="badge btn-red" onclick="handleWithdraw('${rid}', '${w.uid}', 'refund', ${w.amount})">REFUND</button>
+                        </td>
+                    </tr>`);
+                }
+            }
+        }
+        document.getElementById('pendingReq').innerText = pDep + pWith;
+    });
+
+    // --- Global Actions (Expose to Window for onclick) ---
+    window.editBalance = (uid, old) => {
+        let n = prompt("Enter New Balance:", old);
+        if(n) update(ref(db, `users/${uid}`), { balance: parseFloat(n) });
     };
 
-    window.rig = (uid, type) => update(ref(db, `users/${uid}`), { luck: type });
-    window.ban = (uid, s) => update(ref(db, `users/${uid}`), { status: s === 'banned' ? 'active' : 'banned' });
-
-    // --- Promotion Logic ---
-    window.createGift = () => {
-        const code = document.getElementById('giftCode').value;
-        const amt = parseInt(document.getElementById('giftAmt').value);
-        if(!code || !amt) return alert("Enter Code & Amount!");
-        set(ref(db, 'admin/gift_codes/' + code), { amount: amt })
-        .then(() => alert("Gift Code Created!"));
+    window.setRig = (uid, type) => {
+        let updateData = { forceWin: false, forceLoss: false };
+        if(type === 'win') updateData.forceWin = true;
+        if(type === 'loss') updateData.forceLoss = true;
+        update(ref(db, `users/${uid}`), updateData).then(() => alert("Rigging Updated"));
     };
 
-    window.setDailyBonus = () => {
-        const amt = parseInt(document.getElementById('dailyBonusVal').value);
-        update(ref(db, 'admin/settings'), { dailyBonus: amt })
-        .then(() => alert("Daily Bonus Updated!"));
+    window.toggleBan = (uid, s) => {
+        update(ref(db, `users/${uid}`), { status: s === 'banned' ? 'active' : 'banned' });
+    };
+
+    window.handleDeposit = (rid, uid, amt, action) => {
+        if(action === 'approve') {
+            update(ref(db, `users/${uid}`), { 
+                balance: firebase.database.ServerValue.increment(amt),
+                totalDeposit: firebase.database.ServerValue.increment(amt)
+            });
+            update(ref(db, `requests/deposits/${rid}`), { status: 'approved' });
+        } else {
+            update(ref(db, `requests/deposits/${rid}`), { status: 'rejected' });
+        }
+    };
+
+    window.handleWithdraw = (rid, uid, action, amt=0) => {
+        if(action === 'paid') {
+            update(ref(db, `requests/withdraws/${rid}`), { status: 'paid' });
+        } else {
+            update(ref(db, `users/${uid}`), { balance: firebase.database.ServerValue.increment(amt) });
+            update(ref(db, `requests/withdraws/${rid}`), { status: 'refunded' });
+        }
     };
 
     // --- Wingo Manipulation ---
-    window.force = (val) => {
-        const t = document.getElementById('gameTimer').value;
-        update(ref(db, `admin/wingo/${t}m`), { forcedResult: val, mode: 'Manual' });
-        alert("Forced: " + val.toUpperCase());
+    const forceRes = (val) => {
+        let t = document.getElementById('gameTimer').value;
+        update(ref(db, `admin/wingo/${t}m`), { forcedResult: val });
+        alert("Forced Next: " + val);
     };
+    document.getElementById('forceGreen').onclick = () => forceRes('green');
+    document.getElementById('forceRed').onclick = () => forceRes('red');
+    document.getElementById('forceBig').onclick = () => forceRes('big');
+    document.getElementById('forceSmall').onclick = () => forceRes('small');
+    document.getElementById('forceAuto').onclick = () => update(ref(db, 'admin/wingo'), { forcedResult: null });
 
-    window.forceNum = (num) => {
-        const t = document.getElementById('gameTimer').value;
-        let color = (num === 0 || num === 5) ? "violet" : (num % 2 === 0 ? "red" : "green");
-        update(ref(db, `admin/wingo/${t}m`), { forcedNum: num, forcedColor: color, mode: 'Manual' });
-        alert(`Next Result: ${num} | ${color}`);
-    };
-
-    // --- Payment Config ---
-    window.saveSettings = () => {
+    // --- Payment QR Sync ---
+    document.getElementById('savePayBtn').onclick = () => {
         const upi = document.getElementById('upiInp').value;
         const file = document.getElementById('qrInp').files[0];
         if(file) {
             const reader = new FileReader();
             reader.onload = () => {
                 update(ref(db, 'admin/settings/payment'), { qr: reader.result, upi: upi });
-                alert("Payment Config Saved!");
+                alert("Config Saved!");
             };
             reader.readAsDataURL(file);
         } else {
@@ -293,10 +326,10 @@
         }
     };
 
-    onValue(ref(db, 'admin/settings/payment'), (snap) => {
-        if(snap.exists()){
-            document.getElementById('qrImg').src = snap.val().qr || "";
-            document.getElementById('upiInp').value = snap.val().upi || "";
+    onValue(ref(db, 'admin/settings/payment'), (s) => {
+        if(s.exists()){
+            document.getElementById('qrImg').src = s.val().qr || "";
+            document.getElementById('upiInp').value = s.val().upi || "";
         }
     });
 
