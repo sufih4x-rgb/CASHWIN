@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN Admin - Fixed Control</title>
+    <title>CASHWIN Admin - Multi-Game Control</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -17,7 +17,11 @@
         .lock-box { background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--neon-red); box-shadow: 0 0 20px var(--neon-red); width: 320px; }
 
         .sidebar { width: 260px; height: 100vh; background: var(--card-bg); position: fixed; border-right: 1px solid #30363d; padding: 20px; z-index: 100; overflow-y: auto; }
-        .logo { font-size: 26px; font-weight: 900; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); margin-bottom: 40px; text-align: center; }
+        .logo { font-size: 26px; font-weight: 900; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); margin-bottom: 20px; text-align: center; }
+        
+        .admin-status { background: #0b0e14; padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid #333; }
+        #statusDot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
         .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-gray); transition: 0.3s; }
         .nav-item.active { background: rgba(255, 49, 49, 0.1); color: white; border-left: 4px solid var(--neon-red); }
 
@@ -41,6 +45,13 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 13px; }
         .badge { padding: 5px 10px; border-radius: 5px; cursor: pointer; border: none; font-size: 10px; font-weight: bold; margin-right: 2px; }
         
+        #chatBox { position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; background: var(--card-bg); border: 1px solid var(--neon-blue); border-radius: 15px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .chat-head { background: var(--neon-blue); padding: 10px; color: black; font-weight: bold; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; }
+        #chatMsgs { flex: 1; overflow-y: auto; padding: 10px; font-size: 12px; }
+        .msg { margin-bottom: 10px; padding: 8px; border-radius: 8px; max-width: 80%; }
+        .msg.admin { background: var(--neon-blue); color: black; align-self: flex-end; margin-left: auto; }
+        .msg.user { background: #333; color: white; }
+        
         .history-title { margin-top: 40px; color: var(--text-gray); border-bottom: 1px solid #333; padding-bottom: 10px; }
     </style>
 </head>
@@ -57,13 +68,24 @@
 
 <div class="sidebar">
     <div class="logo">CASHWIN</div>
+    
+    <div class="admin-status">
+        <span id="statusDot" style="background: grey;"></span>
+        <span id="statusText">Status: Checking...</span>
+        <div style="margin-top: 5px;">
+            <button class="badge btn-green" onclick="setAdminStatus('online')">Go Online</button>
+            <button class="badge btn-red" onclick="setAdminStatus('offline')">Go Offline</button>
+        </div>
+    </div>
+
     <div class="nav-item active" id="nav-dash"><i class="fas fa-chart-line"></i> Dashboard</div>
     <div class="nav-item" id="nav-wingo"><i class="fas fa-dice"></i> Wingo Control</div>
-    <div class="nav-item" id="nav-users"><i class="fas fa-users-cog"></i> User Hub</div>
+    <div class="nav-item" id="nav-users"><i class="fas fa-users-cog"></i> User Hub (Rigging)</div>
     <div class="nav-item" id="nav-refer"><i class="fas fa-share-nodes"></i> Referral Track</div>
     <div class="nav-item" id="nav-deposits"><i class="fas fa-plus-circle"></i> Deposits</div>
     <div class="nav-item" id="nav-withdraws"><i class="fas fa-minus-circle"></i> Withdraws</div>
     <div class="nav-item" id="nav-settings"><i class="fas fa-tools"></i> Settings</div>
+    <div class="nav-item" onclick="toggleChat()"><i class="fas fa-comments"></i> User Support Chat</div>
 </div>
 
 <div class="main">
@@ -97,10 +119,10 @@
 
     <div id="users" class="page-section">
         <div class="section-card">
-            <h2>User Management (Rigging Control)</h2>
+            <h2>User Hub (Global Rigging Control)</h2>
             <div style="overflow-x:auto;">
                 <table>
-                    <thead><tr><th>User Info</th><th>Balance</th><th>Mines/Wingo Luck</th><th>Status</th><th>Action</th></tr></thead>
+                    <thead><tr><th>User Info</th><th>Balance</th><th>Global Luck Control</th><th>Status</th><th>Action</th></tr></thead>
                     <tbody id="userList"></tbody>
                 </table>
             </div>
@@ -111,7 +133,7 @@
         <div class="section-card">
             <h2>Referral & Commission Tracking</h2>
             <table>
-                <thead><tr><th>User</th><th>Referral Code</th><th>Total Referrals</th><th>Commission Earned</th></tr></thead>
+                <thead><tr><th>User</th><th>Referral Code</th><th>Total Referrals</th><th>Commission</th></tr></thead>
                 <tbody id="referList"></tbody>
             </table>
         </div>
@@ -124,8 +146,7 @@
                 <thead><tr><th>Phone</th><th>Amount</th><th>UTR</th><th>Action</th></tr></thead>
                 <tbody id="depList"></tbody>
             </table>
-
-            <h3 class="history-title">Deposit History (Last 50)</h3>
+            <h3 class="history-title">Deposit History</h3>
             <table>
                 <thead><tr><th>Phone</th><th>Amount</th><th>UTR/Time</th><th>Status</th></tr></thead>
                 <tbody id="depHistoryList"></tbody>
@@ -140,8 +161,7 @@
                 <thead><tr><th>Phone</th><th>Amount</th><th>Details</th><th>Action</th></tr></thead>
                 <tbody id="withList"></tbody>
             </table>
-
-            <h3 class="history-title">Withdrawal History (Last 50)</h3>
+            <h3 class="history-title">Withdrawal History</h3>
             <table>
                 <thead><tr><th>Phone</th><th>Amount</th><th>Details/Time</th><th>Status</th></tr></thead>
                 <tbody id="withHistoryList"></tbody>
@@ -153,22 +173,26 @@
         <div class="section-card">
             <h2>Payment QR & UPI Config</h2>
             <div style="display:flex; gap:20px; align-items:center; flex-wrap: wrap;">
-                <div id="qrBox" style="width:120px; height:120px; border:1px solid #333; background:white;">
-                    <img id="qrImg" style="width:100%; height:100%; object-fit: contain;">
-                </div>
-                <div>
-                    <input type="file" id="qrInp" accept="image/*"><br>
-                    <input type="text" id="upiInp" placeholder="Admin UPI ID" style="width:250px;">
-                </div>
+                <div id="qrBox" style="width:120px; height:120px; border:1px solid #333; background:white;"><img id="qrImg" src="" style="width:100%; height:100%; object-fit: contain;"></div>
+                <div><input type="file" id="qrInp" accept="image/*"><br><input type="text" id="upiInp" placeholder="Admin UPI ID" style="width:250px;"></div>
             </div>
             <button class="btn btn-green" style="margin-top:20px;" id="savePayBtn">Save Payment Config</button>
         </div>
     </div>
 </div>
 
+<div id="chatBox">
+    <div class="chat-head"><span>User Support</span> <i class="fas fa-times" onclick="toggleChat()" style="cursor:pointer"></i></div>
+    <div id="chatMsgs"></div>
+    <div style="padding: 10px; display: flex; gap: 5px;">
+        <input type="text" id="chatInput" placeholder="Reply..." style="flex:1; margin:0;">
+        <button class="btn-blue btn" onclick="sendChat()">Send</button>
+    </div>
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, update, onValue, get, set, remove, push, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, update, onValue, get, set, remove, push, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
@@ -181,15 +205,15 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // --- Auth & Navigation ---
+    // --- Auth ---
     document.getElementById('unlockBtn').onclick = () => {
         if(document.getElementById('adminPass').value === "CASHWIN786") {
             document.getElementById('adminLock').style.display = 'none';
         } else { alert("Access Denied!"); }
     };
-
     window.forgotPass = () => { alert("Reset link sent to: sufih4x@gmail.com"); };
 
+    // --- Navigation ---
     const navs = ['dash', 'wingo', 'users', 'refer', 'deposits', 'withdraws', 'settings'];
     navs.forEach(id => {
         document.getElementById('nav-' + id).onclick = () => {
@@ -200,14 +224,22 @@
         };
     });
 
-    // --- MAIN DATA SYNC ---
+    // --- Online Status ---
+    window.setAdminStatus = (status) => {
+        update(ref(db, 'admin/status'), { current: status, lastSeen: serverTimestamp() });
+    };
+    onValue(ref(db, 'admin/status'), (s) => {
+        const val = s.val()?.current || 'offline';
+        document.getElementById('statusDot').style.background = val === 'online' ? 'var(--neon-green)' : 'var(--neon-red)';
+        document.getElementById('statusText').innerText = "Status: " + val.toUpperCase();
+    });
+
+    // --- Data Sync ---
     onValue(ref(db, '/'), (snap) => {
         const data = snap.val();
         if(!data) return;
 
         let uCount = 0, uBal = 0, totalDep = 0, totalWith = 0;
-        
-        // 1. Users & Referral Rendering
         const userList = document.getElementById('userList');
         const referList = document.getElementById('referList');
         userList.innerHTML = ""; referList.innerHTML = "";
@@ -219,144 +251,106 @@
                 if(u.totalDeposit) totalDep += u.totalDeposit;
                 if(u.totalWithdraw) totalWith += u.totalWithdraw;
 
-                // User Hub Row
                 userList.insertAdjacentHTML('beforeend', `<tr>
                     <td>${u.phone}<br><small>${uid}</small></td>
                     <td>₹${(u.balance || 0).toFixed(2)} <button class="badge btn-blue" onclick="editBalance('${uid}', ${u.balance || 0})">EDIT</button></td>
                     <td>
                         <button class="badge" style="background:${u.forceWin ? 'green' : '#333'}" onclick="setRig('${uid}', 'win')">WIN</button>
                         <button class="badge" style="background:${u.forceLoss ? 'red' : '#333'}" onclick="setRig('${uid}', 'loss')">LOSS</button>
+                        <button class="badge" style="background:#555" onclick="setRig('${uid}', 'normal')">NORMAL</button>
                     </td>
                     <td>${u.status === 'banned' ? '❌ Banned' : '✅ Active'}</td>
-                    <td><button onclick="toggleBan('${uid}', '${u.status}')" class="btn btn-red">BAN/UNBAN</button></td>
+                    <td><button onclick="toggleBan('${uid}', '${u.status}')" class="btn btn-red">BAN</button></td>
                 </tr>`);
 
-                // Referral Row
-                referList.insertAdjacentHTML('beforeend', `<tr>
-                    <td>${u.phone}</td>
-                    <td>${u.referCode || 'N/A'}</td>
-                    <td>${u.referCount || 0}</td>
-                    <td style="color:var(--neon-green)">₹${(u.commission || 0).toFixed(2)}</td>
-                </tr>`);
+                referList.insertAdjacentHTML('beforeend', `<tr><td>${u.phone}</td><td>${u.referCode || 'N/A'}</td><td>${u.referCount || 0}</td><td>₹${(u.commission || 0).toFixed(2)}</td></tr>`);
             }
         }
 
-        // 2. Dashboard Stats
         document.getElementById('countUsers').innerText = uCount;
         document.getElementById('totalWallet').innerText = "₹" + uBal.toLocaleString();
         document.getElementById('adminProfit').innerText = "₹" + (totalDep - totalWith).toLocaleString();
 
-        // 3. Deposits (Pending + History)
-        const depList = document.getElementById('depList');
-        const depHist = document.getElementById('depHistoryList');
-        depList.innerHTML = ""; depHist.innerHTML = "";
-        let pDep = 0;
-
-        if(data.requests && data.requests.deposits) {
-            let depArray = Object.keys(data.requests.deposits).map(k => ({...data.requests.deposits[k], rid: k}));
-            depArray.sort((a,b) => b.timestamp - a.timestamp);
-
-            depArray.forEach(d => {
-                if(d.status === 'pending') {
-                    pDep++;
-                    depList.insertAdjacentHTML('beforeend', `<tr>
-                        <td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td>
-                        <td>
-                            <button class="badge btn-green" onclick="handleDeposit('${d.rid}', '${d.uid}', ${d.amount}, 'approve')">APPROVE</button>
-                            <button class="badge btn-red" onclick="handleDeposit('${d.rid}', '${d.uid}', 0, 'reject')">REJECT</button>
-                        </td>
-                    </tr>`);
-                } else {
-                    let color = d.status === 'approved' ? 'var(--neon-green)' : 'var(--neon-red)';
-                    depHist.insertAdjacentHTML('beforeend', `<tr>
-                        <td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}<br><small>${d.time}</small></td>
-                        <td style="color:${color}; font-weight:bold;">${d.status.toUpperCase()}</td>
-                    </tr>`);
-                }
-            });
+        renderRequests(data.requests);
+        
+        // --- QR Persist Fix ---
+        if(data.admin?.settings?.payment?.qr) {
+            document.getElementById('qrImg').src = data.admin.settings.payment.qr;
         }
-
-        // 4. Withdrawals (Pending + History)
-        const withList = document.getElementById('withList');
-        const withHist = document.getElementById('withHistoryList');
-        withList.innerHTML = ""; withHist.innerHTML = "";
-        let pWith = 0;
-
-        if(data.requests && data.requests.withdraws) {
-            let withArray = Object.keys(data.requests.withdraws).map(k => ({...data.requests.withdraws[k], rid: k}));
-            withArray.sort((a,b) => b.timestamp - a.timestamp);
-
-            withArray.forEach(w => {
-                if(w.status === 'pending') {
-                    pWith++;
-                    withList.insertAdjacentHTML('beforeend', `<tr>
-                        <td>${w.phone}</td><td>₹${w.amount}</td><td>${w.upi || w.bank || 'No Details'}</td>
-                        <td>
-                            <button class="badge btn-green" onclick="handleWithdraw('${w.rid}', '${w.uid}', 'paid')">PAID</button>
-                            <button class="badge btn-red" onclick="handleWithdraw('${w.rid}', '${w.uid}', 'refund', ${w.amount})">REFUND</button>
-                        </td>
-                    </tr>`);
-                } else {
-                    let color = w.status === 'paid' ? 'var(--neon-green)' : 'var(--neon-red)';
-                    withHist.insertAdjacentHTML('beforeend', `<tr>
-                        <td>${w.phone}</td><td>₹${w.amount}</td><td>${w.upi || 'Bank'}<br><small>${w.time}</small></td>
-                        <td style="color:${color}; font-weight:bold;">${w.status.toUpperCase()}</td>
-                    </tr>`);
-                }
-            });
+        if(data.admin?.settings?.payment?.upi) {
+            document.getElementById('upiInp').value = data.admin.settings.payment.upi;
         }
-        document.getElementById('pendingReq').innerText = pDep + pWith;
     });
 
-    // --- FUNCTIONS ---
-    window.editBalance = (uid, old) => {
-        let n = prompt("Enter New Balance:", old);
-        if(n !== null) update(ref(db, `users/${uid}`), { balance: parseFloat(n) });
-    };
+    function renderRequests(reqs) {
+        const dL = document.getElementById('depList'); const dH = document.getElementById('depHistoryList');
+        const wL = document.getElementById('withList'); const wH = document.getElementById('withHistoryList');
+        dL.innerHTML = ""; dH.innerHTML = ""; wL.innerHTML = ""; wH.innerHTML = "";
+        let pCount = 0;
 
+        if(reqs?.deposits) {
+            Object.keys(reqs.deposits).forEach(rid => {
+                let d = reqs.deposits[rid];
+                if(d.status === 'pending') {
+                    pCount++;
+                    dL.insertAdjacentHTML('beforeend', `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td><td><button class="badge btn-green" onclick="handleDeposit('${rid}', '${d.uid}', ${d.amount}, 'approve')">APPROVE</button> <button class="badge btn-red" onclick="handleDeposit('${rid}', '${d.uid}', 0, 'reject')">REJECT</button></td></tr>`);
+                } else {
+                    dH.insertAdjacentHTML('beforeend', `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td><td>${d.status.toUpperCase()}</td></tr>`);
+                }
+            });
+        }
+        if(reqs?.withdraws) {
+            Object.keys(reqs.withdraws).forEach(rid => {
+                let w = reqs.withdraws[rid];
+                if(w.status === 'pending') {
+                    pCount++;
+                    wL.insertAdjacentHTML('beforeend', `<tr><td>${w.phone}</td><td>₹${w.amount}</td><td>${w.upi || w.bank}</td>
+                    <td>
+                        <button class="badge btn-green" onclick="handleWithdraw('${rid}', '${w.uid}', 'paid')">PAID</button>
+                        <button class="badge btn-blue" onclick="handleWithdraw('${rid}', '${w.uid}', 'refund', ${w.amount})">REFUND</button>
+                        <button class="badge btn-red" onclick="handleWithdraw('${rid}', '${w.uid}', 'reject')">REJECT</button>
+                    </td></tr>`);
+                } else {
+                    wH.insertAdjacentHTML('beforeend', `<tr><td>${w.phone}</td><td>₹${w.amount}</td><td>${w.status.toUpperCase()}</td></tr>`);
+                }
+            });
+        }
+        document.getElementById('pendingReq').innerText = pCount;
+    }
+
+    // --- Actions ---
     window.setRig = (uid, type) => {
         let updateData = { forceWin: type === 'win', forceLoss: type === 'loss' };
-        update(ref(db, `users/${uid}`), updateData).then(() => alert("Rigging Updated"));
+        if(type === 'normal') updateData = { forceWin: false, forceLoss: false };
+        update(ref(db, `users/${uid}`), updateData).then(() => alert("Luck set to: " + type));
+    };
+
+    window.editBalance = (uid, old) => {
+        let n = prompt("New Balance:", old);
+        if(n !== null) update(ref(db, `users/${uid}`), { balance: parseFloat(n) });
     };
 
     window.toggleBan = (uid, s) => {
         update(ref(db, `users/${uid}`), { status: s === 'banned' ? 'active' : 'banned' });
     };
 
-    window.handleDeposit = (rid, uid, amt, action) => {
-        if(action === 'approve') {
-            update(ref(db, `users/${uid}`), { 
-                balance: increment(amt),
-                totalDeposit: increment(amt)
-            });
+    window.handleDeposit = (rid, uid, amt, act) => {
+        if(act === 'approve') {
+            update(ref(db, `users/${uid}`), { balance: increment(amt), totalDeposit: increment(amt) });
             update(ref(db, `requests/deposits/${rid}`), { status: 'approved' });
-        } else {
-            update(ref(db, `requests/deposits/${rid}`), { status: 'rejected' });
+        } else { update(ref(db, `requests/deposits/${rid}`), { status: 'rejected' }); }
+    };
+
+    window.handleWithdraw = (rid, uid, act, amt=0) => {
+        if(act === 'paid') { update(ref(db, `requests/withdraws/${rid}`), { status: 'paid' }); }
+        else if(act === 'refund') { 
+            update(ref(db, `users/${uid}`), { balance: increment(amt) }); 
+            update(ref(db, `requests/withdraws/${rid}`), { status: 'refunded' }); 
         }
+        else { update(ref(db, `requests/withdraws/${rid}`), { status: 'rejected' }); }
     };
 
-    window.handleWithdraw = (rid, uid, action, amt=0) => {
-        if(action === 'paid') {
-            update(ref(db, `requests/withdraws/${rid}`), { status: 'paid' });
-        } else {
-            update(ref(db, `users/${uid}`), { balance: increment(amt) });
-            update(ref(db, `requests/withdraws/${rid}`), { status: 'refunded' });
-        }
-    };
-
-    // --- Wingo result forcing ---
-    const forceRes = (val) => {
-        let t = document.getElementById('gameTimer').value;
-        update(ref(db, `admin/wingo/${t}m`), { forcedResult: val });
-        alert("Forced Next: " + val);
-    };
-    document.getElementById('forceGreen').onclick = () => forceRes('green');
-    document.getElementById('forceRed').onclick = () => forceRes('red');
-    document.getElementById('forceBig').onclick = () => forceRes('big');
-    document.getElementById('forceSmall').onclick = () => forceRes('small');
-    document.getElementById('forceAuto').onclick = () => update(ref(db, 'admin/wingo'), { forcedResult: null });
-
-    // --- Config Save ---
+    // --- Payment Config Save ---
     document.getElementById('savePayBtn').onclick = () => {
         const upi = document.getElementById('upiInp').value;
         const file = document.getElementById('qrInp').files[0];
@@ -364,7 +358,7 @@
             const reader = new FileReader();
             reader.onload = () => {
                 update(ref(db, 'admin/settings/payment'), { qr: reader.result, upi: upi });
-                alert("Config Saved!");
+                alert("QR & UPI Saved!");
             };
             reader.readAsDataURL(file);
         } else {
@@ -373,12 +367,27 @@
         }
     };
 
-    onValue(ref(db, 'admin/settings/payment'), (s) => {
-        if(s.exists()){
-            document.getElementById('qrImg').src = s.val().qr || "";
-            document.getElementById('upiInp').value = s.val().upi || "";
+    // --- Chat ---
+    window.toggleChat = () => {
+        const box = document.getElementById('chatBox');
+        box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+    };
+    onValue(ref(db, 'admin/chats'), (snap) => {
+        const container = document.getElementById('chatMsgs');
+        container.innerHTML = "";
+        if(snap.val()) {
+            Object.values(snap.val()).forEach(m => {
+                container.insertAdjacentHTML('beforeend', `<div class="msg ${m.sender === 'admin' ? 'admin' : 'user'}"><b>${m.phone || 'User'}:</b><br>${m.text}</div>`);
+            });
+            container.scrollTop = container.scrollHeight;
         }
     });
+    window.sendChat = () => {
+        const text = document.getElementById('chatInput').value;
+        if(!text) return;
+        push(ref(db, 'admin/chats'), { sender: 'admin', text: text, timestamp: serverTimestamp() });
+        document.getElementById('chatInput').value = "";
+    };
 
 </script>
 </body>
