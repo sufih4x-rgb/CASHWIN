@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Account - CASHWIN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --p-red: #ff6b6b; --bg: #f8f9fe; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; }
+        
+        /* Header image_5f91c1.jpg */
+        .profile-header { background: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); padding: 40px 20px 65px; color: white; border-radius: 0 0 35px 35px; position: relative; }
+        .user-flex { display: flex; align-items: center; gap: 15px; }
+        .avatar { width: 70px; height: 70px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); object-fit: cover; }
+        .vip-badge { width: 55px; vertical-align: middle; cursor: pointer; transition: 0.2s; }
+        .vip-badge:active { transform: scale(0.9); }
+        .uid-tag { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 15px; font-size: 12px; display: inline-block; margin-top: 8px; }
+
+        /* Wallet Card image_5f91c1.jpg */
+        .wallet-card { background: white; margin: -45px 15px 15px; border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .main-tools { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; margin-bottom: 20px; }
+        .tool-item { cursor: pointer; text-decoration: none; color: inherit; }
+        .tool-item img { width: 42px; margin-bottom: 6px; }
+        .tool-item span { display: block; font-size: 13px; color: #444; font-weight: 500; }
+
+        .balance-row { display: flex; justify-content: space-around; border-top: 1px solid #f8f8f8; padding-top: 15px; text-align: center; }
+        .bal-box p { font-size: 12px; color: #888; margin: 0; }
+        .bal-box h3 { margin: 5px 0; font-size: 20px; color: #333; font-weight: bold; }
+
+        /* Sub Services Grid image_6ad7aa.png */
+        .sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 15px; margin-bottom: 15px; }
+        .sub-box { background: white; padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; border: 1px solid #f0f0f0; transition: 0.2s; }
+        .sub-box:active { background: #fdfdfd; transform: translateY(2px); }
+        .sub-box i { font-size: 24px; }
+        .sub-box div b { font-size: 14px; display: block; color: #333; }
+        .sub-box div small { color: #999; font-size: 11px; }
+
+        /* Menu Groups image_6ad7cc.png */
+        .menu-group { background: white; margin: 15px; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .menu-item { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #f9f9f9; cursor: pointer; }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item i:first-child { width: 30px; font-size: 18px; text-align: center; }
+        .menu-item span { flex: 1; font-size: 14px; color: #333; margin-left: 10px; }
+
+        /* Service Center image_6ad7cc.png */
+        .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px; text-align: center; }
+        .service-item { background: white; padding: 15px 5px; border-radius: 12px; cursor: pointer; border: 1px solid #f9f9f9; }
+        .service-item i { font-size: 22px; color: #ff8e8e; margin-bottom: 8px; display: block; }
+        .service-item span { font-size: 12px; color: #666; }
+
+        /* Logout Button */
+        .logout-btn { background: white; color: #ff5252; border: 1px solid #eee; width: 90%; margin: 25px auto; padding: 14px; border-radius: 30px; display: block; text-align: center; font-weight: bold; cursor: pointer; font-size: 16px; }
+
+        /* Bottom Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
+        .nav-link { text-align: center; color: #aaa; text-decoration: none; font-size: 11px; flex: 1; }
+        .nav-link.active { color: var(--p-red); }
+        .nav-link i { display: block; font-size: 22px; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="profile-header">
+        <div class="user-flex">
+            <img src="https://i.ibb.co/m099v7m/avatar.png" class="avatar">
+            <div class="user-info">
+                <h2 style="margin:0;"><span id="uName">MemberF8Y11</span> <img id="vipIcon" src="https://i.postimg.cc/mD3mX6zK/vip0.png" class="vip-badge" onclick="location.href='vip.html'"></h2>
+                <div class="uid-tag">UID | <span id="uID">146588</span> <i class="far fa-copy" onclick="copyID()" style="margin-left:5px; cursor:pointer;"></i></div>
+                <p style="font-size: 10px; margin-top:5px; opacity:0.8;">Last login: <span id="timeShow">2025-12-29 18:07:04</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="wallet-card">
+        <div class="main-tools">
+            <div class="tool-item" onclick="location.href='wallet.html'"><img src="https://i.ibb.co/6P0S9N8/chip.png"><span>Wallet</span></div>
+            <div class="tool-item" onclick="location.href='deposit.html'"><img src="https://cdn-icons-png.flaticon.com/512/2721/2721118.png"><span>Deposit</span></div>
+            <div class="tool-item" onclick="location.href='withdraw.html'"><img src="https://cdn-icons-png.flaticon.com/512/4359/4359591.png"><span>Withdraw</span></div>
+            <div class="tool-item" onclick="location.href='vip.html'"><img src="https://cdn-icons-png.flaticon.com/512/1043/1043424.png"><span>VIP</span></div>
+        </div>
+        <div class="balance-row">
+            <div class="bal-box" style="border-right: 1px solid #f0f0f0; width:50%;">
+                <p>Available balance</p>
+                <h3>₹<span id="uBalance">0.00</span> <i class="fas fa-sync-alt" style="font-size:12px; color:var(--p-red); cursor:pointer;" onclick="location.reload()"></i></h3>
+            </div>
+            <div class="bal-box" style="width:50%;">
+                <p>Freeze balance <i class="far fa-question-circle" style="font-size:11px;"></i></p>
+                <h3>₹0.00 <span style="font-size:12px; color:#999; font-weight:normal; margin-left:5px;">Detail</span></h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="sub-grid">
+        <div class="sub-box" onclick="location.href='game-history.html'"><i class="fas fa-file-invoice-dollar" style="color:#4d94ff"></i> <div><b>Game history</b><small>My game records</small></div></div>
+        <div class="sub-box" onclick="location.href='transaction-history.html'"><i class="fas fa-list-ul" style="color:#2ecc71"></i> <div><b>Transaction</b><small>Money movements</small></div></div>
+        <div class="sub-box" onclick="location.href='deposit-history.html'"><i class="fas fa-university" style="color:#ff6b6b"></i> <div><b>Deposit</b><small>My deposit history</small></div></div>
+        <div class="sub-box" onclick="location.href='withdraw-history.html'"><i class="fas fa-wallet" style="color:#ffb84d"></i> <div><b>Withdraw</b><small>My withdraw history</small></div></div>
+    </div>
+
+    <div class="menu-group">
+        <div class="menu-item" onclick="location.href='notifications.html'"><i class="fas fa-envelope-open-text" style="color:#ffb84d"></i><span>Notification Center</span><i class="fas fa-chevron-right" style="color:#ddd; font-size:12px;"></i></div>
+        <div class="menu-item" onclick="location.href='bgcash.html'"><i class="fas fa-shield-virus" style="color:#2ecc71"></i><span>BGCash Security</span><i class="fas fa-chevron-right" style="color:#ddd; font-size:12px;"></i></div>
+        <div class="menu-item" onclick="location.href='safe.html'"><i class="fas fa-vault" style="color:#f1c40f"></i><span>Safe (Vault)</span><i class="fas fa-chevron-right" style="color:#ddd; font-size:12px;"></i></div>
+    </div>
+
+    <h4 style="margin: 20px 20px 12px; color:#555; font-size:15px; font-weight:600;">Service center</h4>
+    <div class="service-grid">
+        <div class="service-item" onclick="location.href='settings.html'"><i class="fas fa-cog"></i><span>Settings</span></div>
+        <div class="service-item" onclick="location.href='feedback.html'"><i class="fas fa-comment-dots"></i><span>Feedback</span></div>
+        <div class="service-item" onclick="location.href='promotion.html'"><i class="fas fa-bullhorn"></i><span>Promotion</span></div>
+        <div class="service-item" onclick="location.href='support.html'"><i class="fas fa-headset"></i><span>24/7 Service</span></div>
+        <div class="service-item" onclick="location.href='guide.html'"><i class="fas fa-book-open"></i><span>Guide</span></div>
+        <div class="service-item" onclick="location.href='about.html'"><i class="fas fa-info-circle"></i><span>About us</span></div>
+    </div>
+
+    <div class="logout-btn" onclick="logout()">Log out</div>
+
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-link"><i class="fas fa-home"></i>Home</a>
+        <a href="promotion.html" class="nav-link"><i class="fas fa-gift"></i>Promotion</a>
+        <a href="agent.html" class="nav-link"><i class="fas fa-users-cog"></i>Agent</a>
+        <a href="account.html" class="nav-link active"><i class="fas fa-user-circle"></i>Account</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Firebase Configuration [cite: 2025-12-28]
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
+            databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
+            projectId: "testing-26b8c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const userPhone = localStorage.getItem('userPhone') || '9117748052';
+
+        // 1. Sync User Data & VIP Level [cite: 2025-12-28]
+        onValue(ref(db, `users/${userPhone}`), (snap) => {
+            const u = snap.val();
+            if(u) {
+                document.getElementById('uName').innerText = u.username || "MemberF8Y11";
+                document.getElementById('uID').innerText = u.uid || "146588";
+                document.getElementById('uBalance').innerText = (u.balance || 0).toFixed(2);
+                
+                // Automatic VIP Icon Update [cite: 2025-12-28]
+                let vLevel = u.vip || 0;
+                document.getElementById('vipIcon').src = `https://i.postimg.cc/mD3mX6zK/vip${vLevel}.png`;
+            }
+        });
+
+        // 2. Logout Logic
+        window.logout = () => {
+            if(confirm("Bhai, kya aap sach mein logout karna chahte hain?")) {
+                localStorage.removeItem('userPhone');
+                location.href = 'login.html';
+            }
+        };
+
+        // 3. Copy UID
+        window.copyID = () => {
+            const id = document.getElementById('uID').innerText;
+            navigator.clipboard.writeText(id).then(() => {
+                alert("UID Copied to Clipboard!");
+            });
+        };
+    </script>
+</body>
+</html>
