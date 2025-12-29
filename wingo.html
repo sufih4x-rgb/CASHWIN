@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>WinGo Ultimate - Multi-Mode</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --p-red: #ff4d4d; --p-green: #4cd964; --p-violet: #b666d2; 
+            --glow-red: 0 0 15px rgba(255, 77, 77, 0.6);
+            --glow-green: 0 0 15px rgba(76, 217, 100, 0.6);
+            --theme-grad: linear-gradient(90deg, #ff4d4d, #ff8e8e);
+        }
+        body { background: #f8f9fa; font-family: 'Segoe UI', sans-serif; margin: 0; user-select: none; overflow-x: hidden; }
+
+        /* Anti-Cheat Overlay */
+        #cheatDetector { position: fixed; top:0; left:0; width:100%; height:100%; background: white; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+
+        /* Header & Tabs */
+        .header { background: var(--theme-grad); padding: 15px; color: white; display: flex; align-items: center; justify-content: space-between; }
+        .mode-tabs { display: flex; background: white; margin: 10px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .mode-tab { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 600; color: #666; cursor: pointer; border-bottom: 3px solid transparent; }
+        .mode-tab.active { color: var(--p-red); border-bottom: 3px solid var(--p-red); background: rgba(255,77,77,0.05); }
+
+        /* Wallet & Cards */
+        .wallet-card { background: white; margin: 15px; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        
+        /* Prediction Buttons */
+        .n-btn { height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; cursor: pointer; transition: 0.3s; font-size: 18px; }
+        .n-red { background: var(--p-red); box-shadow: var(--glow-red); }
+        .n-green { background: var(--p-green); box-shadow: var(--glow-green); }
+        .n-0 { background: linear-gradient(135deg, var(--p-violet) 50%, var(--p-red) 50%); }
+        .n-5 { background: linear-gradient(135deg, var(--p-violet) 50%, var(--p-green) 50%); }
+
+        /* Betting Panel */
+        #bettingPanel { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 2000; border-radius: 25px 25px 0 0; transition: 0.4s; padding: 20px; box-shadow: 0 -10px 40px rgba(0,0,0,0.15); box-sizing: border-box; }
+        #bettingPanel.show { bottom: 0; }
+        .qty-box { display: flex; align-items: center; gap: 15px; background: #f1f1f1; padding: 8px 15px; border-radius: 20px; }
+        
+        /* Table Style */
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border-radius: 15px; overflow: hidden; }
+        .history-table th { background: #f8f9fa; color: #888; font-size: 12px; padding: 12px; }
+        .history-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f1f1f1; font-size: 13px; }
+
+        #lockOverlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.8); z-index: 1500; display: none; align-items: center; justify-content: center; font-weight: bold; color: var(--p-red); border-radius: 15px; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <div id="cheatDetector">
+        <i class="fas fa-shield-virus" style="font-size: 50px; color: var(--p-red);"></i>
+        <h2>SECURITY ALERT</h2>
+        <p>Floating apps or Debugging detected.<br>Close all hacks to continue.</p>
+    </div>
+
+    <div class="header">
+        <i class="fas fa-chevron-left"></i>
+        <span>Win Go Multi-Mode</span>
+        <i class="fas fa-wallet"></i>
+    </div>
+
+    <div class="mode-tabs">
+        <div class="mode-tab active" onclick="switchMode(1, this)">Win Go 1Min</div>
+        <div class="mode-tab" onclick="switchMode(3, this)">Win Go 3Min</div>
+        <div class="mode-tab" onclick="switchMode(5, this)">Win Go 5Min</div>
+    </div>
+
+    <div class="wallet-card">
+        <small style="color:#999;">Available Balance</small>
+        <h2 id="uBalance">₹0.00</h2>
+        <button onclick="location.href='deposit.html'" style="padding:10px 40px; border-radius:25px; border:none; background:var(--theme-grad); color:white; font-weight:bold;">Recharge</button>
+    </div>
+
+    <div style="position:relative; margin:15px;">
+        <div id="lockOverlay">WAITING FOR NEXT ROUND</div>
+        <div style="background:white; padding:15px; border-radius:15px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+            <div><small style="color:#999;">Period</small><br><b id="periodId" style="font-size:16px;">20251229001</b></div>
+            <div style="text-align:right;">
+                <small style="color:#999;">Time Remaining</small>
+                <div style="display:flex; gap:5px; margin-top:5px;" id="timerDisplay">
+                    <span id="m1" style="background:#333; color:white; padding:5px 8px; border-radius:4px;">0</span>:
+                    <span id="s1" style="background:#333; color:white; padding:5px 8px; border-radius:4px;">0</span>
+                    <span id="s2" style="background:#333; color:white; padding:5px 8px; border-radius:4px;">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin:15px; background:white; padding:15px; border-radius:15px;">
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px;">
+            <div onclick="openBet(0)" class="n-btn n-0">0</div>
+            <div onclick="openBet(1)" class="n-btn n-green">1</div>
+            <div onclick="openBet(2)" class="n-btn n-red">2</div>
+            <div onclick="openBet(3)" class="n-btn n-green">3</div>
+            <div onclick="openBet(4)" class="n-btn n-red">4</div>
+            <div onclick="openBet(5)" class="n-btn n-5">5</div>
+            <div onclick="openBet(6)" class="n-btn n-red">6</div>
+            <div onclick="openBet(7)" class="n-btn n-green">7</div>
+            <div onclick="openBet(8)" class="n-btn n-red">8</div>
+            <div onclick="openBet(9)" class="n-btn n-green">9</div>
+        </div>
+    </div>
+
+    <div style="margin:15px;">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Number</th>
+                    <th>Big/Small</th>
+                    <th>Color</th>
+                </tr>
+            </thead>
+            <tbody id="historyList"></tbody>
+        </table>
+    </div>
+
+    <div id="bettingPanel">
+        <h3 style="text-align:center; margin:0 0 20px 0;">Select <span id="targetName" style="color:var(--p-red);">Red</span></h3>
+        <div style="display:flex; justify-content:space-around; margin-bottom:20px;">
+            <button onclick="setX(1)" class="x-btn">1x</button>
+            <button onclick="setX(5)" class="x-btn">5x</button>
+            <button onclick="setX(10)" class="x-btn">10x</button>
+            <button onclick="setX(50)" class="x-btn">50x</button>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <span>Quantity</span>
+            <div class="qty-box">
+                <i class="fas fa-minus" onclick="adjQty(-1)"></i>
+                <b id="qtyVal">1</b>
+                <i class="fas fa-plus" onclick="adjQty(1)"></i>
+            </div>
+        </div>
+        <button onclick="confirmBet()" style="width:100%; padding:15px; border-radius:30px; border:none; background:var(--theme-grad); color:white; font-weight:bold; font-size:16px;">
+            Total Amount ₹<span id="totalPrice">10</span>
+        </button>
+        <p onclick="closeBet()" style="text-align:center; color:#999; margin-top:15px; cursor:pointer;">Cancel</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const fbConfig = { apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8", databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com", projectId: "testing-26b8c" };
+        const app = initializeApp(fbConfig);
+        const db = getDatabase(app);
+        const userPhone = localStorage.getItem('userPhone') || '9117748052';
+
+        let currentMode = 1, currentBalance = 0, qty = 1, multiplier = 1, selected = "";
+
+        // 1. Anti-Cheat
+        setInterval(() => {
+            if (window.outerHeight - window.innerHeight > 160) document.getElementById('cheatDetector').style.display = 'flex';
+        }, 1000);
+
+        // 2. Mode Switcher
+        window.switchMode = (m, el) => {
+            currentMode = m;
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            loadHistory();
+        };
+
+        // 3. Timer & Smart Result Engine
+        setInterval(() => {
+            const now = new Date();
+            const totalSec = (currentMode * 60) - (now.getMinutes() % currentMode * 60 + now.getSeconds());
+            
+            const min = Math.floor(totalSec / 60);
+            const sec = totalSec % 60;
+
+            document.getElementById('m1').innerText = min;
+            document.getElementById('s1').innerText = Math.floor(sec / 10);
+            document.getElementById('s2').innerText = sec % 10;
+
+            if(totalSec <= 5) { 
+                document.getElementById('lockOverlay').style.display = 'flex';
+                closeBet();
+            } else {
+                document.getElementById('lockOverlay').style.display = 'none';
+            }
+
+            if(totalSec === (currentMode * 60)) runSmartMath();
+        }, 1000);
+
+        // 4. Admin Profit & Result Math
+        async function runSmartMath() {
+            const betsSnap = await get(ref(db, `activeBets/${currentMode}`));
+            const adminRig = await get(ref(db, `adminControl/forceResult/${currentMode}`));
+            
+            let pool = { red:0, green:0, violet:0, n: Array(10).fill(0) };
+            if(betsSnap.exists()) {
+                betsSnap.forEach(snap => {
+                    const b = snap.val();
+                    if(typeof b.type === 'number') pool.n[b.type] += b.amount;
+                    else pool[b.type.toLowerCase()] += b.amount;
+                });
+            }
+
+            // Payout Minimization Logic
+            let bestNumber = 0; let minPayout = Infinity;
+            for(let i=0; i<=9; i++) {
+                let payout = pool.n[i] * 9;
+                payout += (i%2===0 ? pool.red*2 : pool.green*2);
+                if(i===0 || i===5) payout += pool.violet*2.5;
+                if(payout < minPayout) { minPayout = payout; bestNumber = i; }
+            }
+
+            if(adminRig.exists() && adminRig.val() !== "") bestNumber = parseInt(adminRig.val());
+
+            const period = document.getElementById('periodId').innerText;
+            push(ref(db, `wingoHistory/${currentMode}`), {
+                period, number: bestNumber, color: (bestNumber===0?'Red-Violet':(bestNumber===5?'Green-Violet':(bestNumber%2===0?'Red':'Green')))
+            });
+            set(ref(db, `activeBets/${currentMode}`), null); // Clear bets
+            document.getElementById('periodId').innerText = parseInt(period) + 1;
+        }
+
+        // 5. Betting System
+        window.openBet = (t) => { selected = t; document.getElementById('targetName').innerText = t; document.getElementById('bettingPanel').classList.add('show'); updatePrice(); };
+        window.closeBet = () => document.getElementById('bettingPanel').classList.remove('show');
+        window.setX = (x) => { multiplier = x; updatePrice(); };
+        window.adjQty = (v) => { qty = Math.max(1, qty + v); updatePrice(); };
+        function updatePrice() { document.getElementById('totalPrice').innerText = 10 * multiplier * qty; }
+
+        window.confirmBet = () => {
+            const total = 10 * multiplier * qty;
+            if(total > currentBalance) return alert("Insufficient Balance");
+            set(ref(db, `users/${userPhone}/balance`), currentBalance - total);
+            push(ref(db, `activeBets/${currentMode}`), { user: userPhone, amount: total, type: selected });
+            closeBet();
+            alert("Bet Placed!");
+        };
+
+        // 6. History Table Render
+        function loadHistory() {
+            onValue(ref(db, `wingoHistory/${currentMode}`), (snap) => {
+                const list = document.getElementById('historyList');
+                list.innerHTML = "";
+                let data = [];
+                snap.forEach(c => data.push(c.val()));
+                data.reverse().slice(0,10).forEach(item => {
+                    const isBig = item.number >= 5 ? "Big" : "Small";
+                    const colorStyle = getGlow(item.number);
+                    list.innerHTML += `<tr>
+                        <td>${item.period}</td>
+                        <td><span style="padding:5px 10px; border-radius:50%; color:white; ${colorStyle}">${item.number}</span></td>
+                        <td style="color:${isBig==='Big'?'#ffa500':'#5d83ff'}; font-weight:bold;">${isBig}</td>
+                        <td><div style="width:12px; height:12px; border-radius:50%; margin:auto; ${colorStyle}"></div></td>
+                    </tr>`;
+                });
+            });
+        }
+
+        function getGlow(n) {
+            if(n===0) return "background:linear-gradient(to right,var(--p-violet),var(--p-red));";
+            if(n===5) return "background:linear-gradient(to right,var(--p-violet),var(--p-green));";
+            return n%2===0 ? "background:var(--p-red);" : "background:var(--p-green);";
+        }
+
+        onValue(ref(db, `users/${userPhone}`), s => {
+            currentBalance = s.val()?.balance || 0;
+            document.getElementById('uBalance').innerText = `₹${currentBalance.toFixed(2)}`;
+        });
+        loadHistory();
+    </script>
+</body>
+</html>
