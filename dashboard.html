@@ -108,7 +108,7 @@
 
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item active"><i class="fas fa-home"></i>Home</a>
-        <a href="invite.html" class="nav-item"><i class="fas fa-gift"></i>Promotion</a>
+        <a href="promotion.html" class="nav-item"><i class="fas fa-gift"></i>Promotion</a>
         <a href="invite.html" class="center-btn"><i class="fas fa-coins fa-lg"></i></a>
         <a href="invite.html" class="nav-item"><i class="fas fa-users"></i>Agent</a>
         <a href="profile.html" class="nav-item"><i class="fas fa-user"></i>Account</a>
@@ -161,7 +161,7 @@
         });
 
         // 3. Load Games Logic (Remains Same)
-        const games = [{ name: "Wingo", img: "https://i.ibb.co/3mNf6X4/wingo.png" }, { name: "Aviator", img: "https://i.ibb.co/mRT8X0t/aviator.png" }, { name: "Mines Pro", img: "https://i.ibb.co/XW9pX8f/mines.png" }];
+        const games = [{ name: "Wingo", img: "https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/wingo.jpg?alt=media&token=c1bf7bf4-f4ef-4309-9ab5-425f89b292db" }, { name: "Aviator", img: "https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/download%20(3).jpg?alt=media&token=dca1049c-cc03-48b4-9fea-81c71f435139" }, { name: "Mines Pro", img: "https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/mines%20pro.jpg?alt=media&token=60e4ad33-e80d-4b11-a8e6-0a4723e5d178" }];
         const grid = document.getElementById('gameGrid');
         for(let i=0; i<21; i++) {
             const game = games[i % games.length];
