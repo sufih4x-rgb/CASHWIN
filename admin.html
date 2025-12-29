@@ -16,7 +16,7 @@
         #adminLock { position: fixed; inset: 0; background: var(--dark-bg); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
         .lock-box { background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--neon-red); box-shadow: 0 0 20px var(--neon-red); width: 320px; }
 
-        .sidebar { width: 260px; height: 100vh; background: var(--card-bg); position: fixed; border-right: 1px solid #30363d; padding: 20px; z-index: 100; }
+        .sidebar { width: 260px; height: 100vh; background: var(--card-bg); position: fixed; border-right: 1px solid #30363d; padding: 20px; z-index: 100; overflow-y: auto; }
         .logo { font-size: 26px; font-weight: 900; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); margin-bottom: 40px; text-align: center; }
         .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-gray); transition: 0.3s; }
         .nav-item.active { background: rgba(255, 49, 49, 0.1); color: white; border-left: 4px solid var(--neon-red); }
@@ -40,6 +40,8 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 13px; }
         .badge { padding: 5px 10px; border-radius: 5px; cursor: pointer; border: none; font-size: 10px; font-weight: bold; margin-right: 2px; }
+        
+        .history-title { margin-top: 40px; color: var(--text-gray); border-bottom: 1px solid #333; padding-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -58,6 +60,7 @@
     <div class="nav-item active" id="nav-dash"><i class="fas fa-chart-line"></i> Dashboard</div>
     <div class="nav-item" id="nav-wingo"><i class="fas fa-dice"></i> Wingo Control</div>
     <div class="nav-item" id="nav-users"><i class="fas fa-users-cog"></i> User Hub</div>
+    <div class="nav-item" id="nav-refer"><i class="fas fa-share-nodes"></i> Referral Track</div>
     <div class="nav-item" id="nav-deposits"><i class="fas fa-plus-circle"></i> Deposits</div>
     <div class="nav-item" id="nav-withdraws"><i class="fas fa-minus-circle"></i> Withdraws</div>
     <div class="nav-item" id="nav-settings"><i class="fas fa-tools"></i> Settings</div>
@@ -76,7 +79,7 @@
 
     <div id="wingo" class="page-section">
         <div class="section-card">
-            <h2>Wingo/Mines Prediction Master</h2>
+            <h2>Wingo Manipulation</h2>
             <div style="margin: 15px 0;">
                 Timer: <select id="gameTimer" style="background:#0b0e14; color:white; padding:8px;">
                     <option value="1">1 Minute</option><option value="3">3 Minute</option><option value="5">5 Minute</option>
@@ -104,22 +107,44 @@
         </div>
     </div>
 
+    <div id="refer" class="page-section">
+        <div class="section-card">
+            <h2>Referral & Commission Tracking</h2>
+            <table>
+                <thead><tr><th>User</th><th>Referral Code</th><th>Total Referrals</th><th>Commission Earned</th></tr></thead>
+                <tbody id="referList"></tbody>
+            </table>
+        </div>
+    </div>
+
     <div id="deposits" class="page-section">
         <div class="section-card">
-            <h2>Deposit Requests</h2>
+            <h2>Pending Deposits</h2>
             <table>
                 <thead><tr><th>Phone</th><th>Amount</th><th>UTR</th><th>Action</th></tr></thead>
                 <tbody id="depList"></tbody>
+            </table>
+
+            <h3 class="history-title">Deposit History (Last 50)</h3>
+            <table>
+                <thead><tr><th>Phone</th><th>Amount</th><th>UTR/Time</th><th>Status</th></tr></thead>
+                <tbody id="depHistoryList"></tbody>
             </table>
         </div>
     </div>
 
     <div id="withdraws" class="page-section">
         <div class="section-card">
-            <h2>Withdrawal Requests</h2>
+            <h2>Pending Withdrawals</h2>
             <table>
                 <thead><tr><th>Phone</th><th>Amount</th><th>Details</th><th>Action</th></tr></thead>
                 <tbody id="withList"></tbody>
+            </table>
+
+            <h3 class="history-title">Withdrawal History (Last 50)</h3>
+            <table>
+                <thead><tr><th>Phone</th><th>Amount</th><th>Details/Time</th><th>Status</th></tr></thead>
+                <tbody id="withHistoryList"></tbody>
             </table>
         </div>
     </div>
@@ -143,7 +168,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, update, onValue, get, set, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, update, onValue, get, set, remove, push, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
@@ -163,11 +188,9 @@
         } else { alert("Access Denied!"); }
     };
 
-    window.forgotPass = () => {
-        alert("Reset link sent to: sufih4x@gmail.com. Please check your inbox.");
-    };
+    window.forgotPass = () => { alert("Reset link sent to: sufih4x@gmail.com"); };
 
-    const navs = ['dash', 'wingo', 'users', 'deposits', 'withdraws', 'settings'];
+    const navs = ['dash', 'wingo', 'users', 'refer', 'deposits', 'withdraws', 'settings'];
     navs.forEach(id => {
         document.getElementById('nav-' + id).onclick = () => {
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
@@ -177,98 +200,122 @@
         };
     });
 
-    // --- Dashboard Stats & Profit Calculation ---
+    // --- MAIN DATA SYNC ---
     onValue(ref(db, '/'), (snap) => {
         const data = snap.val();
         if(!data) return;
 
         let uCount = 0, uBal = 0, totalDep = 0, totalWith = 0;
         
-        // Users Info
+        // 1. Users & Referral Rendering
+        const userList = document.getElementById('userList');
+        const referList = document.getElementById('referList');
+        userList.innerHTML = ""; referList.innerHTML = "";
+
         if(data.users) {
-            Object.values(data.users).forEach(u => {
-                uCount++;
-                uBal += (u.balance || 0);
+            for(let uid in data.users) {
+                let u = data.users[uid];
+                uCount++; uBal += (u.balance || 0);
                 if(u.totalDeposit) totalDep += u.totalDeposit;
                 if(u.totalWithdraw) totalWith += u.totalWithdraw;
-            });
+
+                // User Hub Row
+                userList.insertAdjacentHTML('beforeend', `<tr>
+                    <td>${u.phone}<br><small>${uid}</small></td>
+                    <td>₹${(u.balance || 0).toFixed(2)} <button class="badge btn-blue" onclick="editBalance('${uid}', ${u.balance || 0})">EDIT</button></td>
+                    <td>
+                        <button class="badge" style="background:${u.forceWin ? 'green' : '#333'}" onclick="setRig('${uid}', 'win')">WIN</button>
+                        <button class="badge" style="background:${u.forceLoss ? 'red' : '#333'}" onclick="setRig('${uid}', 'loss')">LOSS</button>
+                    </td>
+                    <td>${u.status === 'banned' ? '❌ Banned' : '✅ Active'}</td>
+                    <td><button onclick="toggleBan('${uid}', '${u.status}')" class="btn btn-red">BAN/UNBAN</button></td>
+                </tr>`);
+
+                // Referral Row
+                referList.insertAdjacentHTML('beforeend', `<tr>
+                    <td>${u.phone}</td>
+                    <td>${u.referCode || 'N/A'}</td>
+                    <td>${u.referCount || 0}</td>
+                    <td style="color:var(--neon-green)">₹${(u.commission || 0).toFixed(2)}</td>
+                </tr>`);
+            }
         }
 
+        // 2. Dashboard Stats
         document.getElementById('countUsers').innerText = uCount;
         document.getElementById('totalWallet').innerText = "₹" + uBal.toLocaleString();
         document.getElementById('adminProfit').innerText = "₹" + (totalDep - totalWith).toLocaleString();
-        
-        // Render Users
-        const userList = document.getElementById('userList');
-        userList.innerHTML = "";
-        for(let uid in data.users) {
-            let u = data.users[uid];
-            let row = `<tr>
-                <td>${u.phone}<br><small>${uid}</small></td>
-                <td>₹${u.balance || 0} <button class="badge btn-blue" onclick="editBalance('${uid}', ${u.balance || 0})">EDIT</button></td>
-                <td>
-                    <button class="badge" style="background:${u.forceWin ? 'green' : '#333'}" onclick="setRig('${uid}', 'win')">WIN</button>
-                    <button class="badge" style="background:${u.forceLoss ? 'red' : '#333'}" onclick="setRig('${uid}', 'loss')">LOSS</button>
-                    <button class="badge" style="background:#555" onclick="setRig('${uid}', 'reset')">RESET</button>
-                </td>
-                <td>${u.status === 'banned' ? '❌ Banned' : '✅ Active'}</td>
-                <td><button onclick="toggleBan('${uid}', '${u.status}')" class="btn btn-red">BAN/UNBAN</button></td>
-            </tr>`;
-            userList.insertAdjacentHTML('beforeend', row);
-        }
 
-        // Render Deposits
+        // 3. Deposits (Pending + History)
         const depList = document.getElementById('depList');
-        depList.innerHTML = "";
+        const depHist = document.getElementById('depHistoryList');
+        depList.innerHTML = ""; depHist.innerHTML = "";
         let pDep = 0;
+
         if(data.requests && data.requests.deposits) {
-            for(let rid in data.requests.deposits) {
-                let d = data.requests.deposits[rid];
+            let depArray = Object.keys(data.requests.deposits).map(k => ({...data.requests.deposits[k], rid: k}));
+            depArray.sort((a,b) => b.timestamp - a.timestamp);
+
+            depArray.forEach(d => {
                 if(d.status === 'pending') {
                     pDep++;
                     depList.insertAdjacentHTML('beforeend', `<tr>
                         <td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td>
                         <td>
-                            <button class="badge btn-green" onclick="handleDeposit('${rid}', '${d.uid}', ${d.amount}, 'approve')">APPROVE</button>
-                            <button class="badge btn-red" onclick="handleDeposit('${rid}', '${d.uid}', 0, 'reject')">REJECT</button>
+                            <button class="badge btn-green" onclick="handleDeposit('${d.rid}', '${d.uid}', ${d.amount}, 'approve')">APPROVE</button>
+                            <button class="badge btn-red" onclick="handleDeposit('${d.rid}', '${d.uid}', 0, 'reject')">REJECT</button>
                         </td>
                     </tr>`);
+                } else {
+                    let color = d.status === 'approved' ? 'var(--neon-green)' : 'var(--neon-red)';
+                    depHist.insertAdjacentHTML('beforeend', `<tr>
+                        <td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}<br><small>${d.time}</small></td>
+                        <td style="color:${color}; font-weight:bold;">${d.status.toUpperCase()}</td>
+                    </tr>`);
                 }
-            }
+            });
         }
 
-        // Render Withdraws
+        // 4. Withdrawals (Pending + History)
         const withList = document.getElementById('withList');
-        withList.innerHTML = "";
+        const withHist = document.getElementById('withHistoryList');
+        withList.innerHTML = ""; withHist.innerHTML = "";
         let pWith = 0;
+
         if(data.requests && data.requests.withdraws) {
-            for(let rid in data.requests.withdraws) {
-                let w = data.requests.withdraws[rid];
+            let withArray = Object.keys(data.requests.withdraws).map(k => ({...data.requests.withdraws[k], rid: k}));
+            withArray.sort((a,b) => b.timestamp - a.timestamp);
+
+            withArray.forEach(w => {
                 if(w.status === 'pending') {
                     pWith++;
                     withList.insertAdjacentHTML('beforeend', `<tr>
-                        <td>${w.phone}</td><td>₹${w.amount}</td><td>${w.upi || w.bank}</td>
+                        <td>${w.phone}</td><td>₹${w.amount}</td><td>${w.upi || w.bank || 'No Details'}</td>
                         <td>
-                            <button class="badge btn-green" onclick="handleWithdraw('${rid}', '${w.uid}', 'paid')">PAID</button>
-                            <button class="badge btn-red" onclick="handleWithdraw('${rid}', '${w.uid}', 'refund', ${w.amount})">REFUND</button>
+                            <button class="badge btn-green" onclick="handleWithdraw('${w.rid}', '${w.uid}', 'paid')">PAID</button>
+                            <button class="badge btn-red" onclick="handleWithdraw('${w.rid}', '${w.uid}', 'refund', ${w.amount})">REFUND</button>
                         </td>
                     </tr>`);
+                } else {
+                    let color = w.status === 'paid' ? 'var(--neon-green)' : 'var(--neon-red)';
+                    withHist.insertAdjacentHTML('beforeend', `<tr>
+                        <td>${w.phone}</td><td>₹${w.amount}</td><td>${w.upi || 'Bank'}<br><small>${w.time}</small></td>
+                        <td style="color:${color}; font-weight:bold;">${w.status.toUpperCase()}</td>
+                    </tr>`);
                 }
-            }
+            });
         }
         document.getElementById('pendingReq').innerText = pDep + pWith;
     });
 
-    // --- Global Actions (Expose to Window for onclick) ---
+    // --- FUNCTIONS ---
     window.editBalance = (uid, old) => {
         let n = prompt("Enter New Balance:", old);
-        if(n) update(ref(db, `users/${uid}`), { balance: parseFloat(n) });
+        if(n !== null) update(ref(db, `users/${uid}`), { balance: parseFloat(n) });
     };
 
     window.setRig = (uid, type) => {
-        let updateData = { forceWin: false, forceLoss: false };
-        if(type === 'win') updateData.forceWin = true;
-        if(type === 'loss') updateData.forceLoss = true;
+        let updateData = { forceWin: type === 'win', forceLoss: type === 'loss' };
         update(ref(db, `users/${uid}`), updateData).then(() => alert("Rigging Updated"));
     };
 
@@ -279,8 +326,8 @@
     window.handleDeposit = (rid, uid, amt, action) => {
         if(action === 'approve') {
             update(ref(db, `users/${uid}`), { 
-                balance: firebase.database.ServerValue.increment(amt),
-                totalDeposit: firebase.database.ServerValue.increment(amt)
+                balance: increment(amt),
+                totalDeposit: increment(amt)
             });
             update(ref(db, `requests/deposits/${rid}`), { status: 'approved' });
         } else {
@@ -292,12 +339,12 @@
         if(action === 'paid') {
             update(ref(db, `requests/withdraws/${rid}`), { status: 'paid' });
         } else {
-            update(ref(db, `users/${uid}`), { balance: firebase.database.ServerValue.increment(amt) });
+            update(ref(db, `users/${uid}`), { balance: increment(amt) });
             update(ref(db, `requests/withdraws/${rid}`), { status: 'refunded' });
         }
     };
 
-    // --- Wingo Manipulation ---
+    // --- Wingo result forcing ---
     const forceRes = (val) => {
         let t = document.getElementById('gameTimer').value;
         update(ref(db, `admin/wingo/${t}m`), { forcedResult: val });
@@ -309,7 +356,7 @@
     document.getElementById('forceSmall').onclick = () => forceRes('small');
     document.getElementById('forceAuto').onclick = () => update(ref(db, 'admin/wingo'), { forcedResult: null });
 
-    // --- Payment QR Sync ---
+    // --- Config Save ---
     document.getElementById('savePayBtn').onclick = () => {
         const upi = document.getElementById('upiInp').value;
         const file = document.getElementById('qrInp').files[0];
