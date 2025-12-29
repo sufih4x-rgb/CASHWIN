@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Agency Center - CASHWIN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --p-red: #ff6b6b; --g-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); --bg: #f8f9fe; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background-color: var(--bg); padding-bottom: 80px; }
+
+        /* Agency Header */
+        .agency-header {
+            background: var(--g-red);
+            padding: 30px 20px 60px;
+            text-align: center;
+            color: white;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+        }
+        .commission-amt { font-size: 36px; font-weight: 900; margin: 10px 0; }
+        .sub-text { font-size: 13px; opacity: 0.9; }
+
+        /* Stats Card */
+        .stats-container {
+            margin: -40px 15px 15px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .stat-box { flex: 1; padding: 15px; text-align: center; border-right: 1px solid #f0f0f0; }
+        .stat-box:last-child { border: none; }
+        .stat-title { font-size: 12px; color: #666; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .stat-val { font-size: 16px; font-weight: bold; color: #333; }
+        .stat-detail { font-size: 10px; color: #999; margin-top: 5px; }
+
+        /* Invite Section */
+        .invite-card { background: white; margin: 0 15px 15px; padding: 15px; border-radius: 15px; }
+        .invite-btn { 
+            background: var(--g-red); color: white; width: 100%; border: none; 
+            padding: 12px; border-radius: 25px; font-weight: bold; font-size: 16px;
+            box-shadow: 0 4px 10px rgba(255,107,107,0.3); cursor: pointer;
+        }
+        .copy-box {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 15px; padding: 10px 15px; background: #f9f9f9; border-radius: 10px;
+            font-size: 14px; color: #444; border: 1px dashed #ddd;
+        }
+
+        /* Menu List */
+        .menu-list { background: white; margin: 0 15px; border-radius: 15px; overflow: hidden; }
+        .menu-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; border-bottom: 1px solid #f5f5f5; text-decoration: none; color: #333;
+        }
+        .menu-left { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+        .menu-left i { font-size: 18px; color: var(--p-red); width: 25px; }
+        .menu-item i.fa-chevron-right { font-size: 12px; color: #ccc; }
+
+        /* Bottom Nav (Same as Index) */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; }
+        .nav-item { text-align: center; color: #999; text-decoration: none; font-size: 11px; flex: 1; }
+        .nav-item.active { color: var(--p-red); }
+        .nav-item i { display: block; font-size: 20px; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="agency-header">
+        <p class="sub-text">Yesterday's total commission</p>
+        <div class="commission-amt">₹<span id="yesterdayComm">0.00</span></div>
+        <p class="sub-text">Upgrade the level to increase commission income</p>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="stat-title"><i class="fas fa-user-friends"></i> Direct</div>
+            <div class="stat-val" id="directCount">0</div>
+            <div class="stat-detail">Deposit: <span id="directDep">0</span></div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-title"><i class="fas fa-users"></i> Team</div>
+            <div class="stat-val" id="teamCount">0</div>
+            <div class="stat-detail">Deposit: <span id="teamDep">0</span></div>
+        </div>
+    </div>
+
+    <div class="invite-card">
+        <button class="invite-btn" onclick="copyLink()">INVITATION LINK</button>
+        <div class="copy-box" onclick="copyCode()">
+            <span>Copy invitation code</span>
+            <strong id="myReferCode">-------</strong>
+            <i class="far fa-copy" style="color:var(--p-red)"></i>
+        </div>
+    </div>
+
+    <div class="menu-list">
+        <a href="#" class="menu-item">
+            <div class="menu-left"><i class="fas fa-file-invoice-dollar"></i> Subordinate data</div>
+            <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="menu-item">
+            <div class="menu-left"><i class="fas fa-coins"></i> Commission detail</div>
+            <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="menu-item">
+            <div class="menu-left"><i class="fas fa-book-open"></i> Invitation rules</div>
+            <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="menu-item">
+            <div class="menu-left"><i class="fas fa-headset"></i> Agent line customer service</div>
+            <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i>Home</a>
+        <a href="#" class="nav-item"><i class="fas fa-gift"></i>Promotion</a>
+        <a href="agent.html" class="nav-item active"><i class="fas fa-users-cog"></i>Agency</a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i>Account</a>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Firebase Config (Same as yours)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
+            authDomain: "testing-26b8c.firebaseapp.com",
+            databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
+            projectId: "testing-26b8c",
+            appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const userPhone = localStorage.getItem('userPhone');
+
+        if(!userPhone) window.location.href = "login.html";
+
+        // Load Agent Data
+        onValue(ref(db, 'users/' + userPhone), (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                document.getElementById('myReferCode').innerText = data.referCode || userPhone;
+                document.getElementById('yesterdayComm').innerText = (data.commission || 0).toFixed(2);
+                
+                // Track Subordinates
+                loadSubordinateData(data.referCode || userPhone);
+            }
+        });
+
+        async function loadSubordinateData(myCode) {
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            let direct = 0, team = 0, directDeposit = 0;
+
+            snapshot.forEach((child) => {
+                const user = child.val();
+                if(user.referredBy === myCode) {
+                    direct++;
+                    if(user.totalDeposit > 0) directDeposit++;
+                }
+                // Logic for Team (Level 2) can be added here
+            });
+
+            document.getElementById('directCount').innerText = direct;
+            document.getElementById('directDep').innerText = directDeposit;
+        }
+
+        window.copyLink = () => {
+            const code = document.getElementById('myReferCode').innerText;
+            const link = window.location.origin + "/register.html?invite=" + code;
+            navigator.clipboard.writeText(link);
+            alert("Invite Link Copied!");
+        };
+
+        window.copyCode = () => {
+            const code = document.getElementById('myReferCode').innerText;
+            navigator.clipboard.writeText(code);
+            alert("Refer Code Copied!");
+        };
+    </script>
+</body>
+</html>
