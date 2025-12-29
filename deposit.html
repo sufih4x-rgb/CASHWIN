@@ -52,7 +52,7 @@
     </div>
 
     <div class="channel-grid">
-        <div class="channel-box active"><img src="https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/QRCode.png?alt=media&token=0cbd32ef-45e4-4acf-b6fd-715fe5dae74eg"><br><small>UPI x QR</small></div>
+        <div class="channel-box active"><img src="https://i.ibb.co/QD9jWvV/upi-logo.png"><br><small>UPI x QR</small></div>
         <div class="channel-box"><img src="https://i.ibb.co/5vS2Y2T/paytm.png"><br><small>Paytm</small></div>
         <div class="channel-box"><img src="https://i.ibb.co/hZzFzG0/bgcash.png"><br><small>BGCash</small></div>
     </div>
@@ -101,7 +101,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, get, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, set, get, update, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
@@ -113,8 +113,6 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        // localStorage se phone le rahe hain, warna default
         const userPhone = localStorage.getItem('userPhone') || '9117748052';
         
         let depositAmt = 100;
@@ -122,44 +120,70 @@
         let isFirstDep = true;
         let timerInt;
 
-        // 1. Fetch Balance & Bonus Eligibility
+        // TRACKING: Log user entry to Deposit Page
+        update(ref(db, `admin/realtime_activity/${userPhone}`), {
+            page: "Deposit Page",
+            lastSeen: serverTimestamp(),
+            status: "Selecting Amount"
+        });
+
+        // 1. Initial User Fetch & Bonus Eligibility Check
         onValue(ref(db, `users/${userPhone}`), (snap) => {
             const data = snap.val();
             if(data) {
                 document.getElementById('balDisplay').innerText = (data.balance || 0).toFixed(2);
-                isFirstDep = (!data.totalDeposit || data.totalDeposit === 0);
+                
+                // Logic: Check if user has EVER had an approved deposit
+                // If totalDeposit > 0, bonus is disabled forever
+                isFirstDep = (!data.totalDeposit || data.totalDeposit <= 0);
+                
                 if(!isFirstDep) {
                     document.querySelectorAll('.amt-bonus').forEach(b => b.style.display = 'none');
-                    document.getElementById('bonusShow').innerText = "+₹0 (No Bonus)";
-                    document.getElementById('totalGet').innerText = depositAmt;
+                    // Reset calculation to 0 bonus if it was active
+                    updateCalc(depositAmt, 0); 
                 }
             }
         });
 
-        // 2. Load Admin Payment Settings (CORRECT PATH)
+        // 2. Load Admin Settings
         onValue(ref(db, 'admin/settings/payment'), (s) => {
             const d = s.val();
             if(d) {
                 document.getElementById('adminQR').src = d.qr || "";
-                document.getElementById('adminUPI').innerText = d.upi || "Not Set";
+                document.getElementById('adminUPI').innerText = d.upi || "UPI NOT SET";
             }
         });
 
-        // 3. Calculation Logic
+        // 3. Calculation Logic (Updated to respect isFirstDep)
         window.updateCalc = (a, b) => {
             depositAmt = a;
             bonusAmt = isFirstDep ? b : 0;
             document.getElementById('youPay').innerText = "₹" + a;
-            document.getElementById('bonusShow').innerText = isFirstDep ? "+₹" + b : "+₹0 (No Bonus)";
+            document.getElementById('bonusShow').innerText = isFirstDep ? "+₹" + b : "+₹0 (One-time bonus used)";
             document.getElementById('totalGet').innerText = a + bonusAmt;
-            document.querySelectorAll('.amt-btn').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            
+            // UI update for active button
+            const buttons = document.querySelectorAll('.amt-btn');
+            buttons.forEach(btn => {
+                if(btn.innerText.includes(a) || (a >= 1000 && btn.innerText.includes(a/1000 + 'K'))) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         };
 
-        // 4. Modal & Timer
+        // 4. Modal Control
         window.openPayment = () => {
             document.getElementById('payAmt').innerText = depositAmt;
             document.getElementById('paymentModal').style.display = 'flex';
+            
+            // TRACKING: Admin knows user is on payment screen
+            update(ref(db, `admin/realtime_activity/${userPhone}`), {
+                status: `Viewing QR for ₹${depositAmt}`,
+                lastSeen: serverTimestamp()
+            });
+
             let t = 600;
             clearInterval(timerInt);
             timerInt = setInterval(() => {
@@ -169,30 +193,42 @@
             }, 1000);
         };
 
-        window.closeModal = () => { 
-            document.getElementById('paymentModal').style.display = 'none'; 
-            clearInterval(timerInt); 
+        window.closeModal = () => {
+            document.getElementById('paymentModal').style.display = 'none';
+            clearInterval(timerInt);
+            update(ref(db, `admin/realtime_activity/${userPhone}`), { status: "Selecting Amount" });
         };
 
-        // 5. Submit UTR to Admin (CORRECT PATH)
+        // 5. SUBMIT UTR LOGIC
         window.submitUTR = () => {
-            const utr = document.getElementById('utr').value;
-            if(utr.length < 12) return alert("Enter 12-digit UTR No.");
-            
-            const rid = "DEP" + Date.now();
-            set(ref(db, 'requests/deposits/' + rid), {
-                id: rid, 
-                uid: userPhone, // Adding uid for admin approval
-                phone: userPhone, 
-                amount: depositAmt, 
-                bonus: bonusAmt,
-                utr: utr, 
-                status: 'pending', // lowercase pending for admin compatibility
-                time: new Date().toLocaleString()
+            const utrVal = document.getElementById('utr').value.trim();
+            if(utrVal.length < 12) {
+                alert("Please enter valid 12-digit UTR number");
+                return;
+            }
+
+            const requestId = "DEP_" + Date.now();
+            const requestData = {
+                id: requestId,
+                uid: userPhone,
+                phone: userPhone,
+                amount: Number(depositAmt),
+                bonus: Number(bonusAmt),
+                utr: utrVal,
+                status: 'pending',
+                time: new Date().toLocaleString(),
+                timestamp: serverTimestamp()
+            };
+
+            update(ref(db), {
+                ['/requests/deposits/' + requestId]: requestData,
+                [`admin/realtime_activity/${userPhone}/status`]: `Submitted UTR: ${utrVal}`
             }).then(() => {
-                alert("Request Sent! Admin will verify and add balance.");
-                closeModal();
+                alert("Deposit Request Sent Successfully!");
                 document.getElementById('utr').value = "";
+                closeModal();
+            }).catch((err) => {
+                alert("Error: " + err.message);
             });
         };
 
@@ -200,23 +236,31 @@
         onValue(ref(db, 'requests/deposits'), (snap) => {
             const body = document.getElementById('histBody');
             body.innerHTML = "";
+            let records = [];
             snap.forEach(child => {
                 const r = child.val();
-                if(r.phone === userPhone) {
-                    const statusClass = r.status.charAt(0).toUpperCase() + r.status.slice(1);
-                    body.innerHTML = `
-                    <div class="hist-item">
-                        <div><b>₹${r.amount}</b><br><small style="color:#999">${r.time}</small></div>
-                        <span class="status-badge status-${statusClass}">${statusClass}</span>
-                    </div>` + body.innerHTML;
-                }
+                if(r.phone === userPhone) records.push(r);
+            });
+
+            records.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            records.forEach(r => {
+                const sLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1);
+                body.innerHTML += `
+                <div class="hist-item">
+                    <div><b>₹${r.amount}</b><br><small style="color:#999">${r.time}</small></div>
+                    <span class="status-badge status-${sLabel}">${sLabel}</span>
+                </div>`;
             });
         });
 
         window.copyUPI = () => {
-            const upiText = document.getElementById('adminUPI').innerText;
-            navigator.clipboard.writeText(upiText);
-            alert("UPI ID Copied: " + upiText);
+            const upi = document.getElementById('adminUPI').innerText;
+            if(upi !== "Loading..." && upi !== "UPI NOT SET") {
+                navigator.clipboard.writeText(upi);
+                alert("UPI ID Copied!");
+                update(ref(db, `admin/realtime_activity/${userPhone}`), { status: "Copied UPI ID" });
+            }
         };
     </script>
 </body>
