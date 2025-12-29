@@ -3,239 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>WinGo Ultimate</title>
+    <title>WinGo VIP - Ultra</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
             --p-red: #ff4d4d; --p-green: #4cd964; --p-violet: #b666d2; 
-            --theme-grad: linear-gradient(90deg, #ff4d4d, #ff8e8e);
+            --glow-red: 0 0 15px rgba(255, 77, 77, 0.7);
+            --glow-green: 0 0 15px rgba(76, 217, 100, 0.7);
+            --theme-grad: linear-gradient(135deg, #ff4d4d, #f12711);
         }
-        body { background: #f5f5f5; font-family: 'Segoe UI', sans-serif; margin: 0; user-select: none; }
+        body { background: #f0f2f5; font-family: 'Poppins', sans-serif; margin: 0; user-select: none; }
 
-        /* Header & Tabs */
-        .header { background: var(--theme-grad); padding: 15px; color: white; display: flex; align-items: center; justify-content: space-between; }
-        .mode-tabs { display: flex; background: white; margin: 10px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .mode-tab { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 600; color: #666; cursor: pointer; }
-        .mode-tab.active { color: var(--p-red); border-bottom: 3px solid var(--p-red); }
+        /* Full Screen Lock Overlay */
+        #lockOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .lock-timer { color: white; font-size: 100px; font-weight: bold; text-shadow: 0 0 30px var(--p-red); }
+        .lock-text { color: white; font-size: 20px; margin-top: 10px; letter-spacing: 3px; font-weight: bold; }
 
-        /* Wallet */
-        .wallet-card { background: white; margin: 15px; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-
-        /* Number Buttons */
-        .n-btn { height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; cursor: pointer; font-size: 18px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
-        .n-red { background: var(--p-red); }
-        .n-green { background: var(--p-green); }
-        .n-0 { background: linear-gradient(135deg, var(--p-violet) 50%, var(--p-red) 50%); }
-        .n-5 { background: linear-gradient(135deg, var(--p-violet) 50%, var(--p-green) 50%); }
-
-        /* Result Popup Animation */
-        #resultPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; width: 80%; padding: 30px; border-radius: 20px; z-index: 5000; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* Result Animation */
+        #resultPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 10000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; pointer-events: none; }
         #resultPopup.show { transform: translate(-50%, -50%) scale(1); }
-        .win-text { color: #f3ad0c; font-size: 24px; font-weight: bold; }
-        .loss-text { color: #999; font-size: 24px; font-weight: bold; }
+        .res-img { width: 300px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5)); }
+
+        /* Header & Balance */
+        .header { background: var(--theme-grad); padding: 20px; color: white; border-radius: 0 0 25px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .wallet-box { background: rgba(255,255,255,0.15); padding: 15px; border-radius: 15px; margin-top: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        
+        /* Glowing Buttons */
+        .n-btn { height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; cursor: pointer; font-size: 20px; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .n-red { background: var(--p-red); box-shadow: var(--glow-red); }
+        .n-green { background: var(--p-green); box-shadow: var(--glow-green); }
+        .n-btn:active { transform: scale(0.9); }
+
+        /* Mode Tabs */
+        .mode-tab { flex:1; padding:15px; text-align:center; font-weight: bold; color: #666; cursor: pointer; transition: 0.3s; }
+        .mode-tab.active { color: var(--p-red); border-bottom: 3px solid var(--p-red); background: rgba(255,77,77,0.05); }
 
         /* History Tables */
-        .tab-box { display: flex; justify-content: space-around; margin: 20px 15px 10px; background: #eee; border-radius: 10px; padding: 5px; }
-        .tab-btn { padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #777; }
-        .tab-btn.active { background: white; color: var(--p-red); }
+        .history-card { background: white; margin: 15px; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .tab-header { display: flex; border-bottom: 1px solid #eee; }
+        .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: bold; cursor: pointer; color: #999; }
+        .tab-btn.active { color: var(--p-red); background: #fff; }
         
-        .history-section { background: white; margin: 0 15px 20px; border-radius: 15px; overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
-        th { background: #fafafa; padding: 12px; color: #888; }
-        td { padding: 12px; border-bottom: 1px solid #f1f1f1; }
+        table { width: 100%; border-collapse: collapse; text-align: center; }
+        th { padding: 12px; background: #fafafa; color: #888; font-size: 12px; }
+        td { padding: 12px; border-bottom: 1px solid #f8f8f8; font-size: 13px; }
 
-        #bettingPanel { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 2000; border-radius: 25px 25px 0 0; transition: 0.4s; padding: 20px; box-sizing: border-box; }
+        /* Bet Drawer */
+        #bettingPanel { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 2000; border-radius: 30px 30px 0 0; transition: 0.4s; padding: 25px; box-sizing: border-box; box-shadow: 0 -10px 30px rgba(0,0,0,0.2); }
         #bettingPanel.show { bottom: 0; }
+        .qty-ctrl { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0; }
+        .qty-btn { width: 45px; height: 45px; border-radius: 50%; border: none; background: #f0f0f0; font-size: 22px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="resultOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; z-index:4999;"></div>
+    <div id="lockOverlay">
+        <div class="lock-timer" id="lockTimer">10</div>
+        <div class="lock-text">NO MORE BETTING!</div>
+    </div>
+
     <div id="resultPopup">
-        <div id="popContent"></div>
-        <button onclick="closePopup()" style="margin-top:20px; padding:10px 30px; border-radius:20px; border:none; background:var(--p-red); color:white;">Close</button>
+        <img id="resImg" src="" class="res-img">
+        <h2 id="resAmt" style="color: white; font-size: 32px; margin-top: -60px; text-shadow: 0 2px 15px rgba(0,0,0,0.8); font-weight: bold;"></h2>
     </div>
 
     <div class="header">
-        <i class="fas fa-chevron-left"></i>
-        <span>Win Go <span id="mDisp">1</span>Min</span>
-        <i class="fas fa-headset"></i>
-    </div>
-
-    <div class="mode-tabs">
-        <div class="mode-tab active" onclick="switchMode(1, this)">1Min</div>
-        <div class="mode-tab" onclick="switchMode(3, this)">3Min</div>
-        <div class="mode-tab" onclick="switchMode(5, this)">5Min</div>
-    </div>
-
-    <div class="wallet-card">
-        <small style="color:#999;">Wallet Balance</small>
-        <h2 id="uBalance" style="margin:10px 0;">₹0.00</h2>
-        <div style="display:flex; gap:10px; justify-content:center;">
-            <button onclick="location.href='deposit.html'" style="padding:8px 25px; border-radius:20px; border:none; background:var(--p-red); color:white;">Deposit</button>
-            <button onclick="location.href='withdraw.html'" style="padding:8px 25px; border-radius:20px; border:1px solid #ddd; background:white;">Withdraw</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <i class="fas fa-arrow-left"></i>
+            <span style="font-weight:bold; font-size:18px;">WIN GO <span id="modeDisp">1</span>MIN</span>
+            <i class="fas fa-question-circle"></i>
+        </div>
+        <div class="wallet-box">
+            <small style="opacity:0.8;">Wallet Balance</small>
+            <div style="font-size:28px; font-weight:bold; margin:5px 0;">₹<span id="uBalance">0.00</span></div>
+            <div style="display:flex; gap:12px; margin-top:10px;">
+                <button onclick="location.href='deposit.html'" style="flex:1; padding:12px; border-radius:12px; border:none; background:white; color:var(--p-red); font-weight:bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">DEPOSIT</button>
+                <button onclick="location.href='withdraw.html'" style="flex:1; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.5); background:transparent; color:white; font-weight:bold;">WITHDRAW</button>
+            </div>
         </div>
     </div>
 
-    <div style="background:white; margin:15px; padding:15px; border-radius:15px; display:flex; justify-content:space-between; align-items:center;">
-        <div><small>Period</small><br><b id="periodId">20251229001</b></div>
+    <div style="display:flex; background:white; margin:15px; border-radius:15px; overflow:hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <div id="m1" class="mode-tab active" onclick="switchMode(1)">1Min</div>
+        <div id="m3" class="mode-tab" onclick="switchMode(3)">3Min</div>
+        <div id="m5" class="mode-tab" onclick="switchMode(5)">5Min</div>
+    </div>
+
+    <div style="background:white; margin:15px; padding:20px; border-radius:20px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <div><small style="color:#999;">Period ID</small><br><b id="periodId" style="font-size:18px; letter-spacing:1px;">--</b></div>
         <div style="text-align:right;">
-            <small>Time Remaining</small><br>
-            <b id="timer" style="font-size:18px; color:#333;">00:00</b>
+            <small style="color:#999;">Time Remaining</small><br>
+            <div id="mainTimer" style="font-size:26px; font-weight:bold; color:var(--p-red); font-family: monospace;">00:00</div>
         </div>
     </div>
 
-    <div style="margin:15px; background:white; padding:15px; border-radius:15px;">
-        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px;">
-            <div onclick="openBet(0)" class="n-btn n-0">0</div>
-            <div onclick="openBet(1)" class="n-btn n-green">1</div>
-            <div onclick="openBet(2)" class="n-btn n-red">2</div>
-            <div onclick="openBet(3)" class="n-btn n-green">3</div>
-            <div onclick="openBet(4)" class="n-btn n-red">4</div>
-            <div onclick="openBet(5)" class="n-btn n-5">5</div>
-            <div onclick="openBet(6)" class="n-btn n-red">6</div>
-            <div onclick="openBet(7)" class="n-btn n-green">7</div>
-            <div onclick="openBet(8)" class="n-btn n-red">8</div>
-            <div onclick="openBet(9)" class="n-btn n-green">9</div>
+    <div style="margin:15px; display:grid; grid-template-columns: repeat(5, 1fr); gap:12px;">
+        <div onclick="openBet(0)" class="n-btn" style="background:linear-gradient(135deg, var(--p-violet) 50%, var(--p-red) 50%)">0</div>
+        <div onclick="openBet(1)" class="n-btn n-green">1</div>
+        <div onclick="openBet(2)" class="n-btn n-red">2</div>
+        <div onclick="openBet(3)" class="n-btn n-green">3</div>
+        <div onclick="openBet(4)" class="n-btn n-red">4</div>
+        <div onclick="openBet(5)" class="n-btn" style="background:linear-gradient(135deg, var(--p-violet) 50%, var(--p-green) 50%)">5</div>
+        <div onclick="openBet(6)" class="n-btn n-red">6</div>
+        <div onclick="openBet(7)" class="n-btn n-green">7</div>
+        <div onclick="openBet(8)" class="n-btn n-red">8</div>
+        <div onclick="openBet(9)" class="n-btn n-green">9</div>
+    </div>
+
+    <div class="history-card">
+        <div class="tab-header">
+            <div class="tab-btn active" id="gameTab" onclick="toggleTab('game')">Game History</div>
+            <div class="tab-btn" id="myTab" onclick="toggleTab('my')">My Bets</div>
         </div>
-    </div>
-
-    <div class="tab-box">
-        <div class="tab-btn active" onclick="showTab('game', this)">Game History</div>
-        <div class="tab-btn" onclick="showTab('my', this)">My Bets</div>
-    </div>
-
-    <div class="history-section">
-        <table id="gameHistoryTable">
+        
+        <table id="gameTable">
             <thead><tr><th>Period</th><th>Number</th><th>Size</th><th>Color</th></tr></thead>
-            <tbody id="gameHistoryList"></tbody>
+            <tbody id="gameHistory"></tbody>
         </table>
-        <table id="myHistoryTable" style="display:none;">
+
+        <table id="myTable" style="display:none;">
             <thead><tr><th>Period</th><th>Bet</th><th>Amount</th><th>Status</th></tr></thead>
-            <tbody id="myHistoryList"></tbody>
+            <tbody id="myBets"></tbody>
         </table>
     </div>
 
     <div id="bettingPanel">
-        <h3 id="targetName" style="text-align:center;">Select</h3>
-        <div style="display:flex; justify-content:space-between; margin:20px 0;">
-            <span>Amount</span>
-            <div style="display:flex; gap:10px;">
-                <b onclick="setX(10)">₹10</b><b onclick="setX(100)">₹100</b><b onclick="setX(1000)">₹1k</b>
-            </div>
+        <h3 id="targetName" style="text-align:center; color:var(--p-red);">Select Red</h3>
+        <div class="qty-ctrl">
+            <button class="qty-btn" onclick="adjQty(-1)">-</button>
+            <b style="font-size:26px;" id="qtyVal">1</b>
+            <button class="qty-btn" onclick="adjQty(1)">+</button>
         </div>
-        <button onclick="confirmBet()" style="width:100%; padding:15px; border-radius:30px; border:none; background:var(--p-red); color:white; font-weight:bold;">Confirm ₹<span id="totalPrice">10</span></button>
+        <div style="display:flex; justify-content:space-around; margin-bottom:25px;">
+            <span onclick="setMul(10)" class="mul-btn" style="padding:12px 25px; background:#f5f5f5; border-radius:12px; font-weight:bold;">10</span>
+            <span onclick="setMul(100)" class="mul-btn" style="padding:12px 25px; background:#f5f5f5; border-radius:12px; font-weight:bold;">100</span>
+            <span onclick="setMul(1000)" class="mul-btn" style="padding:12px 25px; background:#f5f5f5; border-radius:12px; font-weight:bold;">1K</span>
+        </div>
+        <button onclick="confirmBet()" style="width:100%; padding:20px; border-radius:20px; border:none; background:var(--theme-grad); color:white; font-weight:bold; font-size:18px; box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);">CONFIRM BET ₹<span id="totalPrice">10</span></button>
+        <p onclick="closeBet()" style="text-align:center; color:#bbb; margin-top:15px; cursor:pointer;">Cancel</p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, get, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, get, update, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const fbConfig = { apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8", databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com", projectId: "testing-26b8c" };
         const app = initializeApp(fbConfig);
         const db = getDatabase(app);
         const userPhone = localStorage.getItem('userPhone') || '9117748052';
 
-        let currentMode = 1, currentBalance = 0, selected = "", betAmount = 10;
+        let currentMode = 1, currentBalance = 0, selected = "", qty = 1, multiplier = 10;
 
-        // Timer Logic
-        setInterval(() => {
+        // 1. Timer Engine
+        setInterval(async () => {
             const now = new Date();
             const totalSec = (currentMode * 60) - (now.getMinutes() % currentMode * 60 + now.getSeconds());
-            const m = Math.floor(totalSec / 60);
-            const s = totalSec % 60;
-            document.getElementById('timer').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
             
-            if(totalSec === 1) checkResultAnimation();
-            if(totalSec === (currentMode * 60)) refreshData();
+            document.getElementById('mainTimer').innerText = `0${Math.floor(totalSec/60)}:${String(totalSec%60).padStart(2,'0')}`;
+
+            if(totalSec <= 10) {
+                document.getElementById('lockOverlay').style.display = 'flex';
+                document.getElementById('lockTimer').innerText = totalSec;
+                closeBet();
+            } else {
+                document.getElementById('lockOverlay').style.display = 'none';
+            }
+
+            if(totalSec === (currentMode * 60)) {
+                await processGameResult();
+            }
         }, 1000);
 
-        window.switchMode = (m, el) => {
+        // 2. Result & Smart Admin Math
+        async function processGameResult() {
+            const betsSnap = await get(ref(db, `activeBets/${currentMode}`));
+            const adminRig = await get(ref(db, `adminControl/forceResult/${currentMode}`));
+            
+            let finalNumber = Math.floor(Math.random() * 10);
+
+            // Admin Logic: Choose number with LEAST betting amount
+            if(!adminRig.exists()) {
+                let pools = Array(10).fill(0);
+                if(betsSnap.exists()) {
+                    betsSnap.forEach(snap => {
+                        const b = snap.val();
+                        if(typeof b.type === 'number') pools[b.type] += b.amount;
+                    });
+                    finalNumber = pools.indexOf(Math.min(...pools));
+                }
+            } else {
+                finalNumber = parseInt(adminRig.val());
+            }
+            
+            const period = document.getElementById('periodId').innerText;
+            const resData = {
+                period, number: finalNumber, 
+                color: (finalNumber === 0 ? 'Red-Violet' : (finalNumber === 5 ? 'Green-Violet' : (finalNumber % 2 === 0 ? 'Red' : 'Green')))
+            };
+            
+            push(ref(db, `wingoHistory/${currentMode}`), resData);
+            
+            // Win/Loss Calculation for Current User
+            const myBetSnap = await get(ref(db, `activeBets/${currentMode}/${userPhone}`));
+            if(myBetSnap.exists()) {
+                const bet = myBetSnap.val();
+                let isWin = false;
+                if(bet.type === finalNumber) isWin = true;
+                else if(bet.type === 'Red' && [0,2,4,6,8].includes(finalNumber)) isWin = true;
+                else if(bet.type === 'Green' && [1,3,5,7,9].includes(finalNumber)) isWin = true;
+
+                const winAmt = isWin ? bet.amount * 1.98 : 0;
+                showResultAnimation(isWin, winAmt);
+                
+                // Update History Status
+                if(bet.historyKey) {
+                    update(ref(db, `userBets/${userPhone}/${bet.historyKey}`), { status: isWin ? 'win' : 'loss' });
+                }
+                if(isWin) update(ref(db, `users/${userPhone}`), { balance: currentBalance + winAmt });
+            }
+            
+            set(ref(db, `activeBets/${currentMode}`), null); 
+            if(adminRig.exists()) set(ref(db, `adminControl/forceResult/${currentMode}`), null);
+        }
+
+        // 3. UI Functions
+        function showResultAnimation(win, amt) {
+            const img = document.getElementById('resImg');
+            img.src = win ? 'https://i.ibb.co/vYm6Y9Y/win-banner.png' : 'https://i.ibb.co/9G3z7v8/loss-banner.png';
+            document.getElementById('resAmt').innerText = win ? `+ ₹${amt.toFixed(2)}` : '';
+            document.getElementById('resultPopup').classList.add('show');
+            setTimeout(() => document.getElementById('resultPopup').classList.remove('show'), 5000);
+        }
+
+        window.switchMode = (m) => {
             currentMode = m;
             document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('mDisp').innerText = m;
-            refreshData();
+            document.getElementById('m'+m).classList.add('active');
+            document.getElementById('modeDisp').innerText = m;
+            loadHistory();
         };
 
-        window.showTab = (tab, el) => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('gameHistoryTable').style.display = tab === 'game' ? 'table' : 'none';
-            document.getElementById('myHistoryTable').style.display = tab === 'my' ? 'table' : 'none';
+        window.toggleTab = (tab) => {
+            document.getElementById('gameTab').classList.toggle('active', tab === 'game');
+            document.getElementById('myTab').classList.toggle('active', tab === 'my');
+            document.getElementById('gameTable').style.display = tab === 'game' ? 'table' : 'none';
+            document.getElementById('myTable').style.display = tab === 'my' ? 'table' : 'none';
         };
 
-        // Result Animation & Check
-        async function checkResultAnimation() {
-            const lastBetSnap = await get(query(ref(db, `userBets/${userPhone}`), limitToLast(1)));
-            if(!lastBetSnap.exists()) return;
+        window.openBet = (t) => { selected = t; document.getElementById('targetName').innerText = `Bet on ${t}`; document.getElementById('bettingPanel').classList.add('show'); };
+        window.adjQty = (v) => { qty = Math.max(1, qty + v); updatePrice(); };
+        window.setMul = (m) => { multiplier = m; updatePrice(); };
+        function updatePrice() { document.getElementById('totalPrice').innerText = qty * multiplier; }
+        window.closeBet = () => document.getElementById('bettingPanel').classList.remove('show');
+
+        window.confirmBet = async () => {
+            const total = qty * multiplier;
+            if(total > currentBalance) return alert("Insufficient Balance!");
             
-            setTimeout(async () => {
-                const gameRes = await get(query(ref(db, `wingoHistory/${currentMode}`), limitToLast(1)));
-                const betData = Object.values(lastBetSnap.val())[0];
-                const winData = Object.values(gameRes.val())[0];
-
-                if(betData.period === winData.period) {
-                    const isWin = (betData.type === winData.number); // Simplified for numbers
-                    showPopup(isWin, isWin ? betData.amount * 9 : betData.amount);
-                }
-            }, 2000);
-        }
-
-        function showPopup(win, amt) {
-            const content = win ? `<h2 class="win-text">Congratulations</h2><p>You won ₹${amt}</p>` : `<h2 class="loss-text">Try Again</h2><p>Better luck next time</p>`;
-            document.getElementById('popContent').innerHTML = content;
-            document.getElementById('resultOverlay').style.display = 'block';
-            document.getElementById('resultPopup').classList.add('show');
-        }
-
-        window.closePopup = () => {
-            document.getElementById('resultOverlay').style.display = 'none';
-            document.getElementById('resultPopup').classList.remove('show');
-        };
-
-        // Betting & Data
-        window.openBet = (t) => { selected = t; document.getElementById('targetName').innerText = "Select " + t; document.getElementById('bettingPanel').classList.add('show'); };
-        window.setX = (a) => { betAmount = a; document.getElementById('totalPrice').innerText = a; };
-        
-        window.confirmBet = () => {
-            if(betAmount > currentBalance) return alert("Low Balance");
             const period = document.getElementById('periodId').innerText;
-            push(ref(db, `userBets/${userPhone}`), { period, type: selected, amount: betAmount, mode: currentMode, status: 'pending' });
-            set(ref(db, `users/${userPhone}/balance`), currentBalance - betAmount);
-            document.getElementById('bettingPanel').classList.remove('show');
-            alert("Bet Success");
+            const historyRef = push(ref(db, `userBets/${userPhone}`));
+            const historyKey = historyRef.key;
+
+            await set(historyRef, { period, type: selected, amount: total, status: 'pending', mode: currentMode });
+            await set(ref(db, `activeBets/${currentMode}/${userPhone}`), { amount: total, type: selected, historyKey });
+            await update(ref(db, `users/${userPhone}`), { balance: currentBalance - total });
+
+            closeBet();
+            alert("Bet Placed!");
         };
 
-        function refreshData() {
-            // Load Game History
+        // 4. Data Sync
+        function loadHistory() {
+            // Game History
             onValue(query(ref(db, `wingoHistory/${currentMode}`), limitToLast(10)), snap => {
-                const list = document.getElementById('gameHistoryList');
-                list.innerHTML = "";
+                const h = document.getElementById('gameHistory'); h.innerHTML = "";
                 snap.forEach(c => {
                     const d = c.val();
-                    list.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td>${d.number}</td><td>${d.number >= 5 ? 'Big' : 'Small'}</td><td>${d.color}</td></tr>`);
+                    h.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td>${d.number}</td><td>${d.number>=5?'Big':'Small'}</td><td>${d.color}</td></tr>`);
                     document.getElementById('periodId').innerText = parseInt(d.period) + 1;
                 });
             });
 
-            // Load My History
+            // My Bets
             onValue(query(ref(db, `userBets/${userPhone}`), limitToLast(10)), snap => {
-                const list = document.getElementById('myHistoryList');
-                list.innerHTML = "";
+                const m = document.getElementById('myBets'); m.innerHTML = "";
                 snap.forEach(c => {
                     const d = c.val();
-                    list.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td>${d.type}</td><td>₹${d.amount}</td><td>${d.status}</td></tr>`);
+                    if(d.mode == currentMode) {
+                        const color = d.status === 'win' ? '#4cd964' : (d.status === 'loss' ? '#ff4d4d' : '#999');
+                        m.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td>${d.type}</td><td>₹${d.amount}</td><td style="color:${color}; font-weight:bold;">${d.status.toUpperCase()}</td></tr>`);
+                    }
                 });
             });
         }
 
         onValue(ref(db, `users/${userPhone}/balance`), s => {
             currentBalance = s.val() || 0;
-            document.getElementById('uBalance').innerText = `₹${currentBalance.toFixed(2)}`;
+            document.getElementById('uBalance').innerText = currentBalance.toFixed(2);
         });
 
-        refreshData();
+        loadHistory();
     </script>
 </body>
 </html>
