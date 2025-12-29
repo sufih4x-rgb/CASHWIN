@@ -3,142 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN - Admin Control Center</title>
+    <title>CASHWIN Admin - Full Control</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --neon-red: #ff3131; --neon-green: #00ff41; --neon-blue: #00d4ff; --neon-violet: #bc13fe;
+            --neon-red: #ff3131; --neon-green: #00ff41; --neon-blue: #00d4ff;
             --dark-bg: #0b0e14; --card-bg: #161b22; --text-gray: #8b949e;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--dark-bg); color: white; display: flex; overflow-x: hidden; }
+        body { background: var(--dark-bg); color: white; display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* Lock Screen */
+        #adminLock { position: fixed; inset: 0; background: var(--dark-bg); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .lock-box { background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--neon-red); box-shadow: 0 0 20px var(--neon-red); }
 
         /* Sidebar */
-        .sidebar { width: 280px; height: 100vh; background: var(--card-bg); position: fixed; border-right: 1px solid #30363d; padding: 20px; z-index: 100; }
-        .logo { font-size: 28px; font-weight: 900; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); margin-bottom: 40px; text-align: center; }
-        .nav-item { padding: 12px; margin-bottom: 10px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; color: var(--text-gray); }
-        .nav-item:hover, .nav-item.active { background: rgba(255, 49, 49, 0.1); color: white; border-left: 4px solid var(--neon-red); }
+        .sidebar { width: 260px; height: 100vh; background: var(--card-bg); position: fixed; border-right: 1px solid #30363d; padding: 20px; z-index: 100; }
+        .logo { font-size: 26px; font-weight: 900; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); margin-bottom: 40px; text-align: center; }
+        .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-gray); transition: 0.3s; }
+        .nav-item.active { background: rgba(255, 49, 49, 0.1); color: white; border-left: 4px solid var(--neon-red); }
 
         /* Main Content */
-        .main { margin-left: 280px; width: 100%; padding: 30px; }
+        .main { margin-left: 260px; width: 100%; padding: 30px; }
+        .page-section { display: none; animation: fadeIn 0.3s ease; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from {opacity:0} to {opacity:1} }
 
-        /* Admin Lock Screen */
-        #adminLock { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark-bg); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .lock-box { background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--neon-red); }
-        .lock-input { padding: 12px; width: 250px; border-radius: 5px; border: 1px solid #30363d; background: #0b0e14; color: white; margin-bottom: 20px; text-align: center; }
-
-        /* Sections */
-        .wingo-section { background: var(--card-bg); padding: 25px; border-radius: 20px; margin-bottom: 30px; border: 1px solid #30363d; }
-        
-        /* Stats Cards */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .section-card { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid #30363d; margin-bottom: 25px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid #30363d; border-bottom: 3px solid var(--neon-blue); }
-        .stat-card .val { font-size: 24px; font-weight: bold; margin-top: 10px; }
+        .val { font-size: 22px; font-weight: bold; color: var(--neon-green); margin-top: 5px; }
 
-        /* Buttons (Preserving Old Glowing Styles) */
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-        .force-btn { padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; color: white; }
-        .btn-green { background: #00c853; box-shadow: 0 0 15px rgba(0, 200, 83, 0.4); }
-        .btn-red { background: #ff1744; box-shadow: 0 0 15px rgba(255, 23, 68, 0.4); }
-        .btn-violet { background: #aa00ff; box-shadow: 0 0 15px rgba(170, 0, 255, 0.4); }
-        .btn-orange { background: #ff9100; box-shadow: 0 0 15px rgba(255, 145, 0, 0.4); }
-
-        /* Number Buttons */
-        .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; }
-        .n-btn { background: #30363d; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        /* Buttons */
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; text-transform: uppercase; margin: 4px; transition: 0.2s; }
+        .btn-red { background: var(--neon-red); box-shadow: 0 0 10px rgba(255,49,49,0.3); }
+        .btn-green { background: var(--neon-green); color: black; }
+        .n-btn { background: #21262d; border: 1px solid #30363d; color: white; width: 45px; height: 45px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .n-btn:hover { background: var(--neon-blue); color: black; }
 
         /* Tables */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .data-table th, .data-table td { padding: 15px; text-align: left; border-bottom: 1px solid #30363d; font-size: 14px; }
-        .data-table th { color: var(--text-gray); background: #21262d; }
-
-        /* QR Upload Preview */
-        .qr-preview { width: 150px; height: 150px; border: 2px dashed var(--text-gray); margin-top: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .qr-preview img { width: 100%; height: 100%; object-fit: contain; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 14px; }
+        th { color: var(--text-gray); background: #0b0e14; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="adminLock">
     <div class="lock-box">
-        <div class="logo">CASHWIN ADMIN</div>
-        <input type="password" id="adminPass" class="lock-input" placeholder="Enter Admin Security Key">
-        <br>
-        <button class="force-btn btn-red" onclick="unlockAdmin()" style="width: 100%;">Unlock System</button>
-        <p style="margin-top: 20px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline;" onclick="resetRequest()">Forgot Password? Contact Developer</p>
+        <div class="logo">CASHWIN</div>
+        <input type="password" id="adminPass" style="padding:10px; text-align:center; width: 100%; margin-bottom:15px;" placeholder="Admin Key">
+        <button class="btn btn-red" style="width:100%" onclick="unlock()">Unlock Panel</button>
+        <p style="margin-top:15px; font-size:12px; cursor:pointer;" onclick="alert('Notification sent to sufih4x@gmail.com')">Forgot Password?</p>
     </div>
 </div>
 
 <div class="sidebar">
     <div class="logo">CASHWIN</div>
-    <div class="nav-item active"><i class="fas fa-home"></i> Dashboard</div>
-    <div class="nav-item"><i class="fas fa-gamepad"></i> Wingo Control</div>
-    <div class="nav-item"><i class="fas fa-users"></i> Users Hub</div>
-    <div class="nav-item"><i class="fas fa-wallet"></i> Deposits (UTR)</div>
-    <div class="nav-item"><i class="fas fa-university"></i> Withdrawals</div>
-    <div class="nav-item"><i class="fas fa-cog"></i> Settings</div>
+    <div class="nav-item active" onclick="showPage('dash', this)"><i class="fas fa-chart-line"></i> Dashboard</div>
+    <div class="nav-item" onclick="showPage('wingo', this)"><i class="fas fa-dice"></i> Wingo Control</div>
+    <div class="nav-item" onclick="showPage('users', this)"><i class="fas fa-users-cog"></i> User Hub</div>
+    <div class="nav-item" onclick="showPage('deposits', this)"><i class="fas fa-plus-circle"></i> Deposits</div>
+    <div class="nav-item" onclick="showPage('withdraws', this)"><i class="fas fa-minus-circle"></i> Withdraws</div>
+    <div class="nav-item" onclick="showPage('settings', this)"><i class="fas fa-tools"></i> Settings</div>
 </div>
 
 <div class="main">
-    <div class="stats-grid">
-        <div class="stat-card">Weekly Deposit<div class="val" id="weekDep">₹0</div></div>
-        <div class="stat-card">Weekly Withdraw<div class="val" id="weekWith">₹0</div></div>
-        <div class="stat-card">Live Users<div class="val" id="liveUsersCount">0</div></div>
-        <div class="stat-card">Admin Profit<div class="val" style="color:var(--neon-green)">₹0</div></div>
+    <div id="dash" class="page-section active">
+        <h1>Dashboard Overview</h1>
+        <div class="stats-grid">
+            <div class="stat-card">Live Users<div class="val" id="countUsers">0</div></div>
+            <div class="stat-card">Pending Withdraws<div class="val" id="countWith" style="color:var(--neon-red)">0</div></div>
+            <div class="stat-card">Pending Deposits<div class="val" id="countDepo">0</div></div>
+            <div class="stat-card">Total Balance<div class="val" id="totalWallet">₹0</div></div>
+        </div>
     </div>
 
-    <div class="wingo-section">
-        <h3><i class="fas fa-magic"></i> Wingo 1/3/5m Prediction Engine</h3>
-        <div style="margin-top: 10px;">
-            Timer: <select id="gameTimer" style="background:#0b0e14; color:white; padding:5px; border-radius:5px;">
-                <option value="1">1 Minute</option><option value="3">3 Minute</option><option value="5">5 Minute</option>
-            </select>
+    <div id="wingo" class="page-section">
+        <div class="section-card">
+            <h2>Wingo Prediction Master</h2>
+            <div style="margin: 15px 0;">
+                Select Timer: <select id="gameTimer" style="background:#0b0e14; color:white; padding:8px; border-radius:5px;">
+                    <option value="1">1 Minute</option><option value="3">3 Minute</option><option value="5">5 Minute</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-green" onclick="force('green')">Green</button>
+                <button class="btn" style="background:violet" onclick="force('violet')">Violet</button>
+                <button class="btn btn-red" onclick="force('red')">Red</button>
+                <button class="btn" style="background:orange" onclick="force('big')">Big</button>
+                <button class="btn" style="background:orange" onclick="force('small')">Small</button>
+                <button class="btn" style="background:gray" onclick="force('auto')">Reset Auto</button>
+            </div>
+            <div style="margin-top:20px; display:grid; grid-template-columns: repeat(5, 50px); gap:10px;">
+                <button class="n-btn" onclick="forceNum(0)">0</button><button class="n-btn" onclick="forceNum(1)">1</button>
+                <button class="n-btn" onclick="forceNum(2)">2</button><button class="n-btn" onclick="forceNum(3)">3</button>
+                <button class="n-btn" onclick="forceNum(4)">4</button><button class="n-btn" onclick="forceNum(5)">5</button>
+                <button class="n-btn" onclick="forceNum(6)">6</button><button class="n-btn" onclick="forceNum(7)">7</button>
+                <button class="n-btn" onclick="forceNum(8)">8</button><button class="n-btn" onclick="forceNum(9)">9</button>
+            </div>
         </div>
-        <div class="btn-group">
-            <button class="force-btn btn-green" onclick="forceColor('green')">Green</button>
-            <button class="force-btn btn-violet" onclick="forceColor('violet')">Violet</button>
-            <button class="force-btn btn-red" onclick="forceColor('red')">Red</button>
-            <button class="force-btn btn-orange" onclick="forceSize('big')">Big (5-9)</button>
-            <button class="force-btn btn-orange" onclick="forceSize('small')">Small (0-4)</button>
-        </div>
-        <div class="num-grid">
-            <button class="n-btn" onclick="forceNum(0)">0 (V)</button>
-            <button class="n-btn" onclick="forceNum(1)">1</button>
-            <button class="n-btn" onclick="forceNum(2)">2</button>
-            <button class="n-btn" onclick="forceNum(3)">3</button>
-            <button class="n-btn" onclick="forceNum(4)">4</button>
-            <button class="n-btn" onclick="forceNum(5)">5 (V)</button>
-            <button class="n-btn" onclick="forceNum(6)">6</button>
-            <button class="n-btn" onclick="forceNum(7)">7</button>
-            <button class="n-btn" onclick="forceNum(8)">8</button>
-            <button class="n-btn" onclick="forceNum(9)">9</button>
-        </div>
-        <button class="force-btn" style="background:gray; margin-top:15px; width:100%;" onclick="resetAuto()">Reset to Automatic Mode</button>
     </div>
 
-    <div class="wingo-section">
-        <h3><i class="fas fa-qrcode"></i> Change Deposit QR Code</h3>
-        <div class="qr-preview" id="qrContainer">
-            <img id="currentQR" src="https://via.placeholder.com/150?text=No+QR+Set" alt="QR Preview">
+    <div id="users" class="page-section">
+        <div class="section-card">
+            <h2>User Management</h2>
+            <table>
+                <thead><tr><th>User Info</th><th>Balance</th><th>Luck</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="userList"></tbody>
+            </table>
         </div>
-        <input type="file" id="qrInput" accept="image/*" style="margin-top: 15px; color: var(--text-gray);">
-        <button class="force-btn btn-green" style="margin-top: 10px;" onclick="uploadQR()">Update QR & UPI ID</button>
-        <input type="text" id="upiIdInp" placeholder="Enter UPI ID (e.g. upi@okaxis)" class="lock-input" style="width:100%; margin-top:10px;">
     </div>
 
-    <div class="wingo-section">
-        <h3>Withdrawal Requests (Verify Bank/UPI)</h3>
-        <table class="data-table">
-            <thead><tr><th>User</th><th>Amount</th><th>UPI/Bank Details</th><th>Action</th></tr></thead>
-            <tbody id="withTableBody"></tbody>
-        </table>
+    <div id="deposits" class="page-section">
+        <div class="section-card">
+            <h2>Verify Deposits (UTR)</h2>
+            <table>
+                <thead><tr><th>Phone</th><th>Amount</th><th>UTR/Ref</th><th>Action</th></tr></thead>
+                <tbody id="depList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="withdraws" class="page-section">
+        <div class="section-card">
+            <h2>Withdrawal Requests</h2>
+            <table>
+                <thead><tr><th>Phone</th><th>Amount</th><th>UPI/Bank</th><th>Action</th></tr></thead>
+                <tbody id="withList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="settings" class="page-section">
+        <div class="section-card">
+            <h2>Payment & System Settings</h2>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <div id="qrBox" style="width:120px; height:120px; border:1px solid #333; background:white;"><img id="qrImg" style="width:100%"></div>
+                <div>
+                    <input type="file" id="qrInp" style="margin-bottom:10px;"><br>
+                    <input type="text" id="upiInp" placeholder="Enter Admin UPI ID" style="padding:10px; width:250px; background:#0b0e14; color:white; border:1px solid #333;">
+                </div>
+            </div>
+            <button class="btn btn-green" style="margin-top:20px;" onclick="saveSettings()">Save Payment Config</button>
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, update, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, update, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
@@ -153,75 +168,111 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // --- Unlock & Security ---
-    window.unlockAdmin = () => {
-        const pass = document.getElementById('adminPass').value;
-        if(pass === "CASHWIN786") {
+    // --- Navigation Logic ---
+    window.showPage = (id, el) => {
+        document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+    };
+
+    window.unlock = () => {
+        if(document.getElementById('adminPass').value === "CASHWIN786") {
             document.getElementById('adminLock').style.display = 'none';
         } else { alert("Access Denied!"); }
-    }
+    };
 
-    window.resetRequest = () => {
-        alert("Reset notification sent to: sufih4x@gmail.com");
-    }
+    // --- Wingo Master ---
+    window.force = (val) => {
+        const t = document.getElementById('gameTimer').value;
+        update(ref(db, `admin/wingo/${t}m`), { forcedResult: val, mode: 'Manual' });
+        alert("Next Result Forced to: " + val.toUpperCase());
+    };
 
-    // --- Wingo Master Logic (Big/Small/Violet) ---
-    window.forceNum = (n) => {
-        const timer = document.getElementById('gameTimer').value;
-        let color = (n === 0 || n === 5) ? "Violet" : (n % 2 === 0 ? "Red" : "Green");
-        let size = (n <= 4) ? "Small" : "Big";
-        update(ref(db, `admin/wingo/${timer}m`), { forcedNum: n, forcedColor: color, forcedSize: size, mode: "Manual" });
-        alert(`Next Result: ${n} (${color} - ${size})`);
-    }
+    window.forceNum = (num) => {
+        const t = document.getElementById('gameTimer').value;
+        let size = (num <= 4) ? "small" : "big";
+        let color = (num === 0 || num === 5) ? "violet" : (num % 2 === 0 ? "red" : "green");
+        update(ref(db, `admin/wingo/${t}m`), { forcedNum: num, forcedColor: color, forcedSize: size, mode: 'Manual' });
+        alert(`Next Result: ${num} | ${color} | ${size}`);
+    };
 
-    window.forceColor = (c) => {
-        const timer = document.getElementById('gameTimer').value;
-        update(ref(db, `admin/wingo/${timer}m`), { forcedColor: c, mode: "Manual" });
-        alert(`Next Color Forced: ${c}`);
-    }
+    // --- Data Loaders ---
+    onValue(ref(db, 'users'), (snap) => {
+        const list = document.getElementById('userList');
+        let total = 0; let count = 0;
+        list.innerHTML = "";
+        snap.forEach(child => {
+            const u = child.val();
+            count++; total += (u.balance || 0);
+            list.innerHTML += `<tr>
+                <td>${u.phone} <br><small>VIP ${u.vip || 1}</small></td>
+                <td>₹${u.balance || 0}</td>
+                <td>
+                    <button class="badge" style="background:${u.luck === 'win' ? 'green' : '#333'}" onclick="rig('${child.key}', 'win')">WIN</button>
+                    <button class="badge" style="background:${u.luck === 'lose' ? 'red' : '#333'}" onclick="rig('${child.key}', 'lose')">LOSS</button>
+                </td>
+                <td>${u.status === 'banned' ? '❌ Banned' : '✅ Active'}</td>
+                <td><button onclick="ban('${child.key}', '${u.status}')" class="btn" style="background:#555; font-size:10px">BAN/UNBAN</button></td>
+            </tr>`;
+        });
+        document.getElementById('countUsers').innerText = count;
+        document.getElementById('totalWallet').innerText = "₹ " + total.toLocaleString();
+    });
 
-    window.forceSize = (s) => {
-        const timer = document.getElementById('gameTimer').value;
-        update(ref(db, `admin/wingo/${timer}m`), { forcedSize: s, mode: "Manual" });
-        alert(`Next Size Forced: ${s}`);
-    }
+    onValue(ref(db, 'requests/withdrawals'), (snap) => {
+        const list = document.getElementById('withList');
+        let count = 0; list.innerHTML = "";
+        snap.forEach(child => {
+            const d = child.val();
+            if(d.status === 'Pending') {
+                count++;
+                list.innerHTML += `<tr>
+                    <td>${d.phone}</td>
+                    <td>₹${d.amount}</td>
+                    <td>${d.upiId}</td>
+                    <td>
+                        <button class="badge btn-green" onclick="handleWith('${child.key}', 'Paid')">Approve</button>
+                        <button class="badge btn-red" onclick="handleWith('${child.key}', 'Rejected', '${d.uid}', ${d.amount})">Reject</button>
+                    </td>
+                </tr>`;
+            }
+        });
+        document.getElementById('countWith').innerText = count;
+    });
 
-    window.resetAuto = () => {
-        const timer = document.getElementById('gameTimer').value;
-        update(ref(db, `admin/wingo/${timer}m`), { mode: "Auto" });
-        alert("System Reset to Automatic");
-    }
+    // --- Helper Functions ---
+    window.rig = (uid, type) => update(ref(db, `users/${uid}`), { luck: type });
+    window.ban = async (uid, s) => update(ref(db, `users/${uid}`), { status: s === 'banned' ? 'active' : 'banned' });
+    
+    window.handleWith = async (id, status, uid, amt) => {
+        await update(ref(db, `requests/withdrawals/${id}`), { status: status });
+        if(status === 'Rejected') {
+            const snap = await get(ref(db, `users/${uid}/balance`));
+            update(ref(db, `users/${uid}`), { balance: (snap.val() || 0) + amt });
+        }
+    };
 
-    // --- QR & UPI Update Logic ---
-    window.uploadQR = () => {
-        const upi = document.getElementById('upiIdInp').value;
-        const file = document.getElementById('qrInput').files[0];
-        if(!upi) return alert("Please enter UPI ID first!");
-        
-        // Base64 conversion for small QR images (Real Storage recommended later)
+    window.saveSettings = () => {
+        const upi = document.getElementById('upiInp').value;
+        const file = document.getElementById('qrInp').files[0];
         if(file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                update(ref(db, 'admin/settings/payment'), {
-                    qrCode: reader.result,
-                    upiId: upi
-                });
-                document.getElementById('currentQR').src = reader.result;
-                alert("QR & UPI Updated Successfully!");
-            }
+            reader.onload = () => {
+                update(ref(db, 'admin/settings/payment'), { qr: reader.result, upi: upi });
+                alert("Settings Updated!");
+            };
             reader.readAsDataURL(file);
         } else {
-            update(ref(db, 'admin/settings/payment'), { upiId: upi });
-            alert("UPI ID Updated!");
+            update(ref(db, 'admin/settings/payment'), { upi: upi });
+            alert("UPI Updated!");
         }
-    }
+    };
 
-    // Fetch Current QR
     onValue(ref(db, 'admin/settings/payment'), (snap) => {
         if(snap.exists()){
-            const data = snap.val();
-            if(data.qrCode) document.getElementById('currentQR').src = data.qrCode;
-            if(data.upiId) document.getElementById('upiIdInp').value = data.upiId;
+            document.getElementById('qrImg').src = snap.val().qr || "";
+            document.getElementById('upiInp').value = snap.val().upi || "";
         }
     });
 
