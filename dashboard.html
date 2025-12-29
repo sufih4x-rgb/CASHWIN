@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>CASHWIN - Dashboard</title>
+    <title>CASHWIN - Games</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -13,164 +12,173 @@
             --bg-light: #f8f9fe;
         }
 
-        /* Mobile Full Screen Fix */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; -webkit-tap-highlight-color: transparent; }
-        html, body { height: 100%; width: 100%; overflow-x: hidden; background-color: var(--bg-light); }
-        body { padding-bottom: 80px; -webkit-overflow-scrolling: touch; }
-        ::-webkit-scrollbar { display: none; } /* Ganda scrollbar hide kiya */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-light); padding-bottom: 90px; }
 
-        /* Floating Admin Chat (Feedback) */
+        /* Admin Floating Chat with Online Status */
         .floating-chat {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            background: var(--gradient-red);
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 3000;
-            cursor: pointer;
+            position: fixed; bottom: 100px; right: 20px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: var(--gradient-red); color: white;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 3000; cursor: pointer;
         }
+        .status-dot {
+            position: absolute; top: 5px; right: 5px;
+            width: 12px; height: 12px; border-radius: 50%;
+            border: 2px solid white; background: #ccc; /* Default Offline */
+        }
+        .status-dot.online { background: #4cd964; box-shadow: 0 0 10px #4cd964; }
 
-        /* --- Baki sab design same hai (No Changes) --- */
-        .top-header { background: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .logo-img { height: 35px; }
-        .wallet-box { background: #fff5f5; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--primary-red); display: flex; align-items: center; font-weight: bold; color: var(--primary-red); }
-        .banner-container { width: 100%; padding: 10px; }
-        .banner { width: 100%; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .categories { display: flex; overflow-x: auto; padding: 10px; gap: 15px; background: white; }
-        .cat-item { text-align: center; min-width: 60px; font-size: 12px; color: #666; }
-        .cat-item i { display: block; font-size: 20px; color: var(--primary-red); margin-bottom: 5px; background: #fff1f1; padding: 10px; border-radius: 12px; }
-        .game-section { padding: 15px; }
-        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; }
-        .section-title i { color: var(--primary-red); margin-right: 8px; }
-        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .game-card { background: white; border-radius: 12px; overflow: hidden; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        /* Header & Balance */
+        .top-header { background: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .wallet-box { background: #fff5f5; padding: 8px 15px; border-radius: 20px; border: 1px solid var(--primary-red); color: var(--primary-red); font-weight: bold; }
+
+        /* Game Sections */
+        .section-container { padding: 15px; }
+        .section-title { font-size: 18px; font-weight: bold; margin: 15px 0; display: flex; align-items: center; gap: 10px; }
+        .section-title i { color: var(--primary-red); }
+        
+        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .game-card { background: white; border-radius: 15px; overflow: hidden; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; }
+        .game-card:active { transform: scale(0.95); }
         .game-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
-        .game-card p { font-size: 11px; padding: 5px 2px; color: #444; font-weight: 500; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; z-index: 1000; }
+        .game-card p { font-size: 11px; padding: 8px 2px; font-weight: 600; color: #333; }
+
+        /* Leaderboard */
+        .leaderboard { background: white; margin: 15px; border-radius: 20px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .rank-info { display: flex; align-items: center; gap: 10px; }
+        .rank-num { width: 25px; height: 25px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .top1 { background: #ffd700; color: white; }
+        .win-amt { color: #4cd964; font-weight: bold; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
         .nav-item { text-align: center; color: #999; text-decoration: none; font-size: 12px; }
         .nav-item.active { color: var(--primary-red); }
-        .nav-item i { display: block; font-size: 20px; margin-bottom: 3px; }
-        .center-btn { background: var(--gradient-red); width: 55px; height: 55px; border-radius: 50%; margin-top: -30px; display: flex; justify-content: center; align-items: center; color: white; box-shadow: 0 4px 10px rgba(255,107,107,0.4); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 85%; border-radius: 20px; padding: 20px; text-align: center; }
-        .progress-container { background: #eee; height: 12px; border-radius: 10px; margin: 20px 0; overflow: hidden; }
-        .progress-bar { background: var(--gradient-red); height: 100%; width: 0%; transition: 0.5s; }
-        .claim-btn { background: var(--gradient-red); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; width: 100%; cursor: pointer; }
+        .nav-item i { display: block; font-size: 22px; margin-bottom: 3px; }
     </style>
 </head>
 <body>
 
     <div class="top-header">
-        <img src="https://i.ibb.co/v6mYvXf/logo.png" class="logo-img" alt="CASHWIN">
-        <div class="wallet-box">
-            <i class="fas fa-wallet" style="margin-right:8px;"></i>
-            ₹<span id="userBalance">0.00</span>
-        </div>
+        <img src="https://i.ibb.co/v6mYvXf/logo.png" style="height:35px;">
+        <div class="wallet-box">₹<span id="userBalance">0.00</span></div>
     </div>
 
-    <div class="floating-chat" onclick="location.href='https://t.me/your_admin_link'">
+    <div class="floating-chat" onclick="location.href='https://t.me/your_admin'">
+        <div id="adminStatus" class="status-dot"></div>
         <i class="fas fa-headset fa-lg"></i>
     </div>
 
-    <div class="banner-container">
-        <img src="https://i.ibb.co/pPzBqjL/banner.jpg" class="banner" alt="Offer">
-    </div>
-
-    <div class="categories">
-        <div class="cat-item"><i class="fas fa-trophy"></i>Popular</div>
-        <div class="cat-item"><i class="fas fa-dice"></i>Lottery</div>
-        <div class="cat-item"><i class="fas fa-bolt"></i>Original</div>
-        <div class="cat-item"><i class="fas fa-spade"></i>Slots</div>
-        <div class="cat-item"><i class="fas fa-chess"></i>Casino</div>
-    </div>
-
-    <div class="game-section">
-        <div class="section-title"><i class="fas fa-fire"></i> Hot Games</div>
-        <div class="game-grid" id="gameGrid"></div>
-    </div>
-
-    <div class="modal" id="bonusModal">
-        <div class="modal-content">
-            <h3 style="color:var(--primary-red)">Daily Deposit Bonus</h3>
-            <div class="progress-container"><div class="progress-bar" id="bonusProgress"></div></div>
-            <div id="bonusStatus" style="font-size: 12px; font-weight: bold; margin-bottom: 15px;">Deposit ₹200 for ₹20 Bonus</div>
-            <button class="claim-btn" onclick="claimBonus()">Claim Bonus</button>
-            <p onclick="closeModal()" style="margin-top:15px; color:#999; font-size:12px;">Maybe Later</p>
+    <div class="section-container">
+        <div class="section-title"><i class="fas fa-star"></i> Popular Games</div>
+        <div class="game-grid">
+            <div class="game-card" onclick="location.href='wingo.html'"><img src="https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/wingo.jpg?alt=media&token=c1bf7bf4-f4ef-4309-9ab5-425f89b292db"><p>WinGo 1M</p></div>
+            <div class="game-card" onclick="location.href='k3.html'"><img src="https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/k3.jpg?alt=media&token=fc91cfd9-153c-4990-b458-874301734e1d"><p>K3 Lotre</p></div>
+            <div class="game-card" onclick="location.href='aviator.html'"><img src="https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/download%20(3).jpg?alt=media&token=dca1049c-cc03-48b4-9fea-81c71f435139"><p>Aviator</p></div>
         </div>
     </div>
 
+    <div class="section-container">
+        <div class="section-title"><i class="fas fa-dice"></i> Premium Slots</div>
+        <div class="game-grid" id="slotGrid">
+            </div>
+    </div>
+
+    <div class="section-container">
+        <div class="section-title"><i class="fas fa-fire"></i> Hot Trending</div>
+        <div class="game-grid">
+            <div class="game-card" onclick="location.href='mines.html'"><img src="https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/mines%20pro.jpg?alt=media&token=60e4ad33-e80d-4b11-a8e6-0a4723e5d178"><p>Mines Pro</p></div>
+            <div class="game-card" onclick="location.href='dragon.html'"><img src="https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/download%20(6).jpg?alt=media&token=4ce86451-87fc-4879-8d67-158467e6074b"><p>Dragon Tiger</p></div>
+            <div class="game-card" onclick="location.href='plinko.html'"><img src="https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/plinko.jpg?alt=media&token=4ac39d1d-ff74-472e-b8d4-717e97db5a84"><p>Plinko</p></div>
+        </div>
+    </div>
+
+    <div class="leaderboard">
+        <div class="section-title" style="margin-top:0;"><i class="fas fa-medal"></i> Top Winners</div>
+        <div id="leaderboardList">
+            </div>
+    </div>
+
     <nav class="bottom-nav">
-        <a href="index.html" class="nav-item active"><i class="fas fa-home"></i>Home</a>
-        <a href="promotion.html" class="nav-item"><i class="fas fa-gift"></i>Promotion</a>
-        <a href="invite.html" class="center-btn"><i class="fas fa-coins fa-lg"></i></a>
-        <a href="invite.html" class="nav-item"><i class="fas fa-users"></i>Agent</a>
+        <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i>Home</a>
+        <a href="promotion.html" class="nav-item"><i class="fas fa-gift"></i>Gift</a>
+        <a href="invite.html" class="nav-item"><i class="fas fa-share-alt"></i>Invite</a>
         <a href="profile.html" class="nav-item"><i class="fas fa-user"></i>Account</a>
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
-            authDomain: "testing-26b8c.firebaseapp.com",
-            databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
-            projectId: "testing-26b8c",
-            storageBucket: "testing-26b8c.firebasestorage.app",
-            messagingSenderId: "546674600784",
-            appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
-        };
-
+        const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const userPhone = localStorage.getItem('userPhone');
 
-        if(!userPhone) window.location.href = "login.html";
-
-        // --- 1. Anti-Floating App / Anti-Hack Logic ---
-        function checkScreen() {
-            if (window.innerHeight < 400 || window.innerWidth < 300) {
-                document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px; color:red;'>Access Denied: Floating apps/Split screen not allowed.</h1>";
-                setTimeout(() => { window.location.href = "about:blank"; }, 2000);
-            }
-        }
-        window.addEventListener('resize', checkScreen);
-        checkScreen();
-
-        // --- 2. Real-time Status & Ban Check ---
-        onValue(ref(db, 'users/' + userPhone), (snapshot) => {
-            const data = snapshot.val();
-            if(!data) return;
-
-            // Direct kick if banned
-            if(data.status === 'banned') {
-                alert("You have been banned by Admin!");
-                localStorage.clear();
-                window.location.href = "register.html";
-            }
-
-            document.getElementById('userBalance').innerText = parseFloat(data.balance).toFixed(2);
-            updateBonusUI(data.totalDeposit || 0);
+        // 1. Admin Online Status Tracking
+        onValue(ref(db, 'adminControl/status'), (snap) => {
+            const status = snap.val();
+            document.getElementById('adminStatus').className = status === 'online' ? 'status-dot online' : 'status-dot';
         });
 
-        // 3. Load Games Logic (Remains Same)
-        const games = [{ name: "Wingo", img: "https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/wingo.jpg?alt=media&token=c1bf7bf4-f4ef-4309-9ab5-425f89b292db" }, { name: "Aviator", img: "https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/download%20(3).jpg?alt=media&token=dca1049c-cc03-48b4-9fea-81c71f435139" }, { name: "Mines Pro", img: "https://firebasestorage.googleapis.com/v0/b/test-eb5e7.appspot.com/o/mines%20pro.jpg?alt=media&token=60e4ad33-e80d-4b11-a8e6-0a4723e5d178" }];
-        const grid = document.getElementById('gameGrid');
-        for(let i=0; i<21; i++) {
-            const game = games[i % games.length];
-            grid.innerHTML += `<div class="game-card" onclick="location.href='wingo.html'"><img src="${game.img}"><p>${game.name}</p></div>`;
-        }
+        // 2. Load Slot Games (10 Different Links)
+        const slotGrid = document.getElementById('slotGrid');
+        const slots = [
+            {n:"777 Slot", p:"slot1.html", i:"https://picsum.photos/200?random=1"},
+            {n:"Fruit Ninja", p:"slot2.html", i:"https://picsum.photos/200?random=2"},
+            {n:"Jili Slot", p:"slot3.html", i:"https://picsum.photos/200?random=3"},
+            {n:"Mega Ace", p:"slot4.html", i:"https://picsum.photos/200?random=4"},
+            {n:"Fortune", p:"slot5.html", i:"https://picsum.photos/200?random=5"},
+            {n:"Candy Rush", p:"slot6.html", i:"https://picsum.photos/200?random=6"},
+            {n:"Gates of", p:"slot7.html", i:"https://picsum.photos/200?random=7"},
+            {n:"Super Win", p:"slot8.html", i:"https://picsum.photos/200?random=8"},
+            {n:"Golden", p:"slot9.html", i:"https://picsum.photos/200?random=9"},
+            {n:"Joker", p:"slot10.html", i:"https://picsum.photos/200?random=10"},
+        ];
+        slots.forEach(s => {
+            slotGrid.innerHTML += `<div class="game-card" onclick="location.href='${s.p}'"><img src="${s.i}"><p>${s.n}</p></div>`;
+        });
 
-        // Bonus and Popup Logic (Same as before)
-        window.claimBonus = async () => { /* Same logic as before */ };
-        window.closeModal = () => document.getElementById('bonusModal').style.display = 'none';
+        // 3. Leaderboard - Mixed (Real Top 3 + Fake)
+        const lbList = document.getElementById('leaderboardList');
+        const fakeNames = ["Rahul***", "Vijay***", "Anil***", "Sonu***", "Priya***"];
+        
+        // Fetch Real Users
+        onValue(ref(db, 'users'), (snap) => {
+            let users = [];
+            snap.forEach(u => { users.push(u.val()); });
+            users.sort((a,b) => b.balance - a.balance); // Sort by balance for demo
+
+            lbList.innerHTML = "";
+            // Top 3 Real
+            for(let i=0; i<3; i++) {
+                if(users[i]) {
+                    lbList.innerHTML += `<div class="rank-item">
+                        <div class="rank-info"><div class="rank-num ${i==0?'top1':''}">${i+1}</div><span>${users[i].phone.slice(0,3)}***</span></div>
+                        <div class="win-amt">₹${parseFloat(users[i].balance).toFixed(2)}</div>
+                    </div>`;
+                }
+            }
+            // Add Fake Data for hype
+            fakeNames.forEach((fn, idx) => {
+                lbList.innerHTML += `<div class="rank-item">
+                    <div class="rank-info"><div class="rank-num">${idx+4}</div><span>${fn}</span></div>
+                    <div class="win-amt">₹${(Math.random()*5000 + 1000).toFixed(2)}</div>
+                </div>`;
+            });
+        });
+
+        // 4. Protection & Balance Sync
+        onValue(ref(db, 'users/' + userPhone), (snap) => {
+            const data = snap.val();
+            if(!data) return;
+            if(data.status === 'banned') { localStorage.clear(); location.href="login.html"; }
+            document.getElementById('userBalance').innerText = parseFloat(data.balance).toFixed(2);
+        });
+
     </script>
 </body>
 </html>
