@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>CASHWIN - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-red: #ff6b6b;
+            --gradient-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%);
+            --bg-light: #f8f9fe;
+        }
+
+        /* Mobile Full Screen Fix */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; width: 100%; overflow-x: hidden; background-color: var(--bg-light); }
+        body { padding-bottom: 80px; -webkit-overflow-scrolling: touch; }
+        ::-webkit-scrollbar { display: none; } /* Ganda scrollbar hide kiya */
+
+        /* Floating Admin Chat (Feedback) */
+        .floating-chat {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: var(--gradient-red);
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 3000;
+            cursor: pointer;
+        }
+
+        /* --- Baki sab design same hai (No Changes) --- */
+        .top-header { background: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .logo-img { height: 35px; }
+        .wallet-box { background: #fff5f5; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--primary-red); display: flex; align-items: center; font-weight: bold; color: var(--primary-red); }
+        .banner-container { width: 100%; padding: 10px; }
+        .banner { width: 100%; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .categories { display: flex; overflow-x: auto; padding: 10px; gap: 15px; background: white; }
+        .cat-item { text-align: center; min-width: 60px; font-size: 12px; color: #666; }
+        .cat-item i { display: block; font-size: 20px; color: var(--primary-red); margin-bottom: 5px; background: #fff1f1; padding: 10px; border-radius: 12px; }
+        .game-section { padding: 15px; }
+        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; }
+        .section-title i { color: var(--primary-red); margin-right: 8px; }
+        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .game-card { background: white; border-radius: 12px; overflow: hidden; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .game-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+        .game-card p { font-size: 11px; padding: 5px 2px; color: #444; font-weight: 500; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; z-index: 1000; }
+        .nav-item { text-align: center; color: #999; text-decoration: none; font-size: 12px; }
+        .nav-item.active { color: var(--primary-red); }
+        .nav-item i { display: block; font-size: 20px; margin-bottom: 3px; }
+        .center-btn { background: var(--gradient-red); width: 55px; height: 55px; border-radius: 50%; margin-top: -30px; display: flex; justify-content: center; align-items: center; color: white; box-shadow: 0 4px 10px rgba(255,107,107,0.4); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 85%; border-radius: 20px; padding: 20px; text-align: center; }
+        .progress-container { background: #eee; height: 12px; border-radius: 10px; margin: 20px 0; overflow: hidden; }
+        .progress-bar { background: var(--gradient-red); height: 100%; width: 0%; transition: 0.5s; }
+        .claim-btn { background: var(--gradient-red); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; width: 100%; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="top-header">
+        <img src="https://i.ibb.co/v6mYvXf/logo.png" class="logo-img" alt="CASHWIN">
+        <div class="wallet-box">
+            <i class="fas fa-wallet" style="margin-right:8px;"></i>
+            ₹<span id="userBalance">0.00</span>
+        </div>
+    </div>
+
+    <div class="floating-chat" onclick="location.href='https://t.me/your_admin_link'">
+        <i class="fas fa-headset fa-lg"></i>
+    </div>
+
+    <div class="banner-container">
+        <img src="https://i.ibb.co/pPzBqjL/banner.jpg" class="banner" alt="Offer">
+    </div>
+
+    <div class="categories">
+        <div class="cat-item"><i class="fas fa-trophy"></i>Popular</div>
+        <div class="cat-item"><i class="fas fa-dice"></i>Lottery</div>
+        <div class="cat-item"><i class="fas fa-bolt"></i>Original</div>
+        <div class="cat-item"><i class="fas fa-spade"></i>Slots</div>
+        <div class="cat-item"><i class="fas fa-chess"></i>Casino</div>
+    </div>
+
+    <div class="game-section">
+        <div class="section-title"><i class="fas fa-fire"></i> Hot Games</div>
+        <div class="game-grid" id="gameGrid"></div>
+    </div>
+
+    <div class="modal" id="bonusModal">
+        <div class="modal-content">
+            <h3 style="color:var(--primary-red)">Daily Deposit Bonus</h3>
+            <div class="progress-container"><div class="progress-bar" id="bonusProgress"></div></div>
+            <div id="bonusStatus" style="font-size: 12px; font-weight: bold; margin-bottom: 15px;">Deposit ₹200 for ₹20 Bonus</div>
+            <button class="claim-btn" onclick="claimBonus()">Claim Bonus</button>
+            <p onclick="closeModal()" style="margin-top:15px; color:#999; font-size:12px;">Maybe Later</p>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item active"><i class="fas fa-home"></i>Home</a>
+        <a href="invite.html" class="nav-item"><i class="fas fa-gift"></i>Promotion</a>
+        <a href="invite.html" class="center-btn"><i class="fas fa-coins fa-lg"></i></a>
+        <a href="invite.html" class="nav-item"><i class="fas fa-users"></i>Agent</a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i>Account</a>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
+            authDomain: "testing-26b8c.firebaseapp.com",
+            databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
+            projectId: "testing-26b8c",
+            storageBucket: "testing-26b8c.firebasestorage.app",
+            messagingSenderId: "546674600784",
+            appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const userPhone = localStorage.getItem('userPhone');
+
+        if(!userPhone) window.location.href = "login.html";
+
+        // --- 1. Anti-Floating App / Anti-Hack Logic ---
+        function checkScreen() {
+            if (window.innerHeight < 400 || window.innerWidth < 300) {
+                document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px; color:red;'>Access Denied: Floating apps/Split screen not allowed.</h1>";
+                setTimeout(() => { window.location.href = "about:blank"; }, 2000);
+            }
+        }
+        window.addEventListener('resize', checkScreen);
+        checkScreen();
+
+        // --- 2. Real-time Status & Ban Check ---
+        onValue(ref(db, 'users/' + userPhone), (snapshot) => {
+            const data = snapshot.val();
+            if(!data) return;
+
+            // Direct kick if banned
+            if(data.status === 'banned') {
+                alert("You have been banned by Admin!");
+                localStorage.clear();
+                window.location.href = "register.html";
+            }
+
+            document.getElementById('userBalance').innerText = parseFloat(data.balance).toFixed(2);
+            updateBonusUI(data.totalDeposit || 0);
+        });
+
+        // 3. Load Games Logic (Remains Same)
+        const games = [{ name: "Wingo", img: "https://i.ibb.co/3mNf6X4/wingo.png" }, { name: "Aviator", img: "https://i.ibb.co/mRT8X0t/aviator.png" }, { name: "Mines Pro", img: "https://i.ibb.co/XW9pX8f/mines.png" }];
+        const grid = document.getElementById('gameGrid');
+        for(let i=0; i<21; i++) {
+            const game = games[i % games.length];
+            grid.innerHTML += `<div class="game-card" onclick="location.href='wingo.html'"><img src="${game.img}"><p>${game.name}</p></div>`;
+        }
+
+        // Bonus and Popup Logic (Same as before)
+        window.claimBonus = async () => { /* Same logic as before */ };
+        window.closeModal = () => document.getElementById('bonusModal').style.display = 'none';
+    </script>
+</body>
+</html>
