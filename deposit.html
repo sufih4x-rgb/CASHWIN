@@ -9,38 +9,27 @@
         :root { --p-red: #ff6b6b; --bg: #f8f9fe; }
         body { background: var(--bg); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 30px; }
         .header { background: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top:0; z-index:100; border-bottom: 1px solid #eee; }
-        
-        /* Balance Card */
         .balance-card { background: linear-gradient(135deg, #ff8e8e, #ff5252); margin: 15px; padding: 25px; border-radius: 15px; color: white; position: relative; overflow: hidden;}
         .balance-card h2 { font-size: 28px; margin: 10px 0; }
-
-        /* Channels */
         .channel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px; margin-top: 10px; }
         .channel-box { background: white; padding: 12px 5px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; }
         .channel-box.active { border-color: var(--p-red); background: #fff5f5; border-width: 2px; }
         .channel-box img { width: 40px; margin-bottom: 5px; }
-
-        /* Amounts */
         .amount-section { background: white; margin: 15px; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .amount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
         .amt-btn { background: #f8f9fe; border: 1px solid #eee; padding: 15px 5px; border-radius: 8px; font-weight: bold; position: relative; cursor: pointer; text-align: center; font-size: 14px; }
         .amt-btn.active { border-color: var(--p-red); color: var(--p-red); background: #fff5f5; }
         .amt-bonus { position: absolute; top: 0; right: 0; background: #ff5252; color: white; font-size: 9px; padding: 1px 4px; border-radius: 0 8px 0 8px; }
-
         .calc-box { margin-top: 20px; padding: 10px; border-top: 1px solid #f5f5f5; }
         .calc-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #666; }
         .total-get { color: var(--p-red); font-size: 20px; font-weight: bold; }
         .deposit-btn { background: #ff5252; color: white; border: none; width: 100%; padding: 15px; border-radius: 30px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,82,82,0.3); margin-top: 15px; }
-
-        /* Floating Menu */
         #paymentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: white; width: 88%; border-radius: 20px; padding: 25px; position: relative; text-align: center; }
         .timer-box { color: var(--p-red); font-weight: bold; font-size: 22px; margin-bottom: 10px; border: 1px solid #eee; display: inline-block; padding: 5px 15px; border-radius: 15px;}
-        .qr-display { width: 180px; height: 180px; border: 4px solid #f1f1f1; margin: 15px auto; border-radius: 10px; }
+        .qr-display { width: 180px; height: 180px; border: 4px solid #f1f1f1; margin: 15px auto; border-radius: 10px; background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .upi-box { background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px dashed #ccc; margin: 15px 0; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .utr-input { width: 90%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 15px; outline: none; }
-
-        /* History */
         .history-section { background: white; margin: 15px; border-radius: 15px; padding: 20px; }
         .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
         .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
@@ -70,12 +59,12 @@
 
     <div class="amount-section">
         <div class="amount-grid">
-            <div class="amt-btn active" onclick="updateCalc(100, 20)">₹100 <span class="amt-bonus" id="b1">+20</span></div>
-            <div class="amt-btn" onclick="updateCalc(300, 58)">₹300 <span class="amt-bonus" id="b2">+58</span></div>
-            <div class="amt-btn" onclick="updateCalc(500, 88)">₹500 <span class="amt-bonus" id="b3">+88</span></div>
-            <div class="amt-btn" onclick="updateCalc(1000, 168)">₹1K <span class="amt-bonus" id="b4">+168</span></div>
-            <div class="amt-btn" onclick="updateCalc(10000, 1288)">₹10K <span class="amt-bonus" id="b5">+1288</span></div>
-            <div class="amt-btn" onclick="updateCalc(50000, 6388)">₹50K <span class="amt-bonus" id="b6">+6388</span></div>
+            <div class="amt-btn active" onclick="updateCalc(100, 20)">₹100 <span class="amt-bonus">+20</span></div>
+            <div class="amt-btn" onclick="updateCalc(300, 58)">₹300 <span class="amt-bonus">+58</span></div>
+            <div class="amt-btn" onclick="updateCalc(500, 88)">₹500 <span class="amt-bonus">+88</span></div>
+            <div class="amt-btn" onclick="updateCalc(1000, 168)">₹1K <span class="amt-bonus">+168</span></div>
+            <div class="amt-btn" onclick="updateCalc(10000, 1288)">₹10K <span class="amt-bonus">+1288</span></div>
+            <div class="amt-btn" onclick="updateCalc(50000, 6388)">₹50K <span class="amt-bonus">+6388</span></div>
         </div>
 
         <div class="calc-box">
@@ -99,7 +88,7 @@
             <div class="timer-box" id="timer">10:00</div>
             <p style="color:#666; font-size:14px;">Deposit Amount</p>
             <h2 style="margin:5px 0 20px 0; color:#333;">₹<span id="payAmt">100</span></h2>
-            <div class="qr-display"><img id="adminQR" src="" style="width:100%; height:100%;"></div>
+            <div class="qr-display"><img id="adminQR" src="" style="width:100%; height:100%; object-fit: contain;"></div>
             <div class="upi-box">
                 <span id="adminUPI">Loading...</span>
                 <i class="far fa-copy" onclick="copyUPI()" style="color:var(--p-red); cursor:pointer;"></i>
@@ -112,9 +101,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, set, get, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // CONFIG: Saved Private Config [cite: 2025-12-28]
         const firebaseConfig = {
             apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
             authDomain: "testing-26b8c.firebaseapp.com",
@@ -125,6 +113,8 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        // localStorage se phone le rahe hain, warna default
         const userPhone = localStorage.getItem('userPhone') || '9117748052';
         
         let depositAmt = 100;
@@ -132,29 +122,30 @@
         let isFirstDep = true;
         let timerInt;
 
-        // 1. Initial Data Fetch [cite: 2025-12-28]
+        // 1. Fetch Balance & Bonus Eligibility
         onValue(ref(db, `users/${userPhone}`), (snap) => {
             const data = snap.val();
             if(data) {
                 document.getElementById('balDisplay').innerText = (data.balance || 0).toFixed(2);
-                // logic: check if already deposited [cite: 2025-12-28]
                 isFirstDep = (!data.totalDeposit || data.totalDeposit === 0);
                 if(!isFirstDep) {
                     document.querySelectorAll('.amt-bonus').forEach(b => b.style.display = 'none');
+                    document.getElementById('bonusShow').innerText = "+₹0 (No Bonus)";
+                    document.getElementById('totalGet').innerText = depositAmt;
                 }
             }
         });
 
-        // 2. Load Admin Payment Settings [cite: 2025-12-28]
-        onValue(ref(db, 'admin/paymentSettings'), (s) => {
+        // 2. Load Admin Payment Settings (CORRECT PATH)
+        onValue(ref(db, 'admin/settings/payment'), (s) => {
             const d = s.val();
             if(d) {
-                document.getElementById('adminQR').src = d.qrCode;
-                document.getElementById('adminUPI').innerText = d.upiID;
+                document.getElementById('adminQR').src = d.qr || "";
+                document.getElementById('adminUPI').innerText = d.upi || "Not Set";
             }
         });
 
-        // 3. Calculation Logic [cite: 2025-12-28]
+        // 3. Calculation Logic
         window.updateCalc = (a, b) => {
             depositAmt = a;
             bonusAmt = isFirstDep ? b : 0;
@@ -165,7 +156,7 @@
             event.currentTarget.classList.add('active');
         };
 
-        // 4. Modal & Timer [cite: 2025-12-28]
+        // 4. Modal & Timer
         window.openPayment = () => {
             document.getElementById('payAmt').innerText = depositAmt;
             document.getElementById('paymentModal').style.display = 'flex';
@@ -178,42 +169,54 @@
             }, 1000);
         };
 
-        window.closeModal = () => { document.getElementById('paymentModal').style.display = 'none'; clearInterval(timerInt); };
+        window.closeModal = () => { 
+            document.getElementById('paymentModal').style.display = 'none'; 
+            clearInterval(timerInt); 
+        };
 
-        // 5. Submit UTR to Admin [cite: 2025-12-28]
+        // 5. Submit UTR to Admin (CORRECT PATH)
         window.submitUTR = () => {
             const utr = document.getElementById('utr').value;
             if(utr.length < 12) return alert("Enter 12-digit UTR No.");
             
             const rid = "DEP" + Date.now();
             set(ref(db, 'requests/deposits/' + rid), {
-                id: rid, phone: userPhone, amount: depositAmt, bonus: bonusAmt,
-                utr: utr, status: 'Pending', time: new Date().toLocaleString()
+                id: rid, 
+                uid: userPhone, // Adding uid for admin approval
+                phone: userPhone, 
+                amount: depositAmt, 
+                bonus: bonusAmt,
+                utr: utr, 
+                status: 'pending', // lowercase pending for admin compatibility
+                time: new Date().toLocaleString()
             }).then(() => {
-                alert("Request Sent Successfully!");
+                alert("Request Sent! Admin will verify and add balance.");
                 closeModal();
+                document.getElementById('utr').value = "";
             });
         };
 
-        // 6. History Sync [cite: 2025-12-28]
+        // 6. History Sync
         onValue(ref(db, 'requests/deposits'), (snap) => {
             const body = document.getElementById('histBody');
             body.innerHTML = "";
             snap.forEach(child => {
                 const r = child.val();
                 if(r.phone === userPhone) {
+                    const statusClass = r.status.charAt(0).toUpperCase() + r.status.slice(1);
                     body.innerHTML = `
                     <div class="hist-item">
                         <div><b>₹${r.amount}</b><br><small style="color:#999">${r.time}</small></div>
-                        <span class="status-badge status-${r.status}">${r.status}</span>
+                        <span class="status-badge status-${statusClass}">${statusClass}</span>
                     </div>` + body.innerHTML;
                 }
             });
         });
 
         window.copyUPI = () => {
-            navigator.clipboard.writeText(document.getElementById('adminUPI').innerText);
-            alert("UPI ID Copied!");
+            const upiText = document.getElementById('adminUPI').innerText;
+            navigator.clipboard.writeText(upiText);
+            alert("UPI ID Copied: " + upiText);
         };
     </script>
 </body>
