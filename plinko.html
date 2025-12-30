@@ -7,37 +7,41 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        /* Base Styling */
         body { margin: 0; background: #051622; font-family: 'Poppins', sans-serif; overflow: hidden; color: white; height: 100vh; display: flex; flex-direction: column; }
         
         /* Stats Bar - Fixed Balance Visibility */
-        .stats-bar { width: 100%; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; background: #0a1f2e; border-bottom: 2px solid #1e4d6d; z-index: 100; }
-        .balance-box { background: #112d42; padding: 5px 15px; border-radius: 20px; border: 2px solid #4cd964; color: #4cd964; font-weight: bold; font-size: 18px; min-width: 80px; text-align: center; }
+        .stats-bar { width: 100%; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; background: #0a1f2e; border-bottom: 2px solid #1e4d6d; z-index: 100; flex-shrink: 0; }
+        .logo { font-weight: 800; color: #ffcc00; letter-spacing: 1px; font-size: 18px; }
+        .balance-box { background: #112d42; padding: 6px 15px; border-radius: 20px; border: 2px solid #4cd964; color: #4cd964; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 5px; }
         
-        /* Game Area */
-        #canvas-wrapper { width: 100%; position: relative; flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden; }
-        #plinko-canvas { width: 100%; max-width: 400px; background: transparent; }
+        /* Game Area - Dynamic Height */
+        #canvas-wrapper { width: 100%; position: relative; flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden; background: radial-gradient(circle at top, #0a2a3f 0%, #051622 100%); }
+        #plinko-canvas { width: 100%; max-width: 400px; height: auto; }
 
-        /* Slots UI */
-        .slots-container { position: absolute; bottom: 5px; display: flex; width: 95%; max-width: 380px; justify-content: center; gap: 2px; z-index: 10; }
-        .slot { flex: 1; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #000; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* Slots UI - Fixed Alignment */
+        .slots-container { position: absolute; bottom: 8px; display: flex; width: 92%; max-width: 380px; justify-content: center; gap: 2px; z-index: 10; }
+        .slot { flex: 1; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #000; box-shadow: inset 0 -3px rgba(0,0,0,0.2); transition: 0.2s; }
 
-        /* Controls Panel - Fixed Missing Buttons */
-        .controls { width: 100%; background: #112d42; padding: 20px; border-radius: 25px 25px 0 0; box-shadow: 0 -5px 25px rgba(0,0,0,0.7); box-sizing: border-box; z-index: 100; }
-        .bet-label { font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .bet-input-box { background: #0a1f2e; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; padding: 5px 15px; margin-bottom: 15px; border: 1px solid #1e4d6d; }
-        .bet-input-box input { background: transparent; border: none; color: white; font-size: 22px; text-align: center; width: 50%; font-weight: bold; outline: none; }
-        .btn-circle { width: 45px; height: 45px; border-radius: 50%; border: none; background: #1e4d6d; color: white; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-circle:active { background: #4cd964; transform: scale(0.9); }
+        /* Controls Panel - Professional Layout */
+        .controls { width: 100%; background: #112d42; padding: 15px 20px 25px 20px; border-radius: 30px 30px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); box-sizing: border-box; z-index: 100; flex-shrink: 0; }
+        .bet-label { font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .bet-input-box { background: #0a1f2e; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; margin-bottom: 12px; border: 1px solid #1e4d6d; }
+        .bet-input-box input { background: transparent; border: none; color: white; font-size: 22px; text-align: center; width: 50%; font-weight: 800; outline: none; }
+        .btn-circle { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1e4d6d; color: white; font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 3px 0 #0a1f2e; }
+        .btn-circle:active { transform: translateY(2px); box-shadow: none; background: #1a4c6d; }
         
-        .play-btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 800; color: white; cursor: pointer; font-size: 22px; background: linear-gradient(180deg, #4cd964, #2e8b3f); box-shadow: 0 5px 0 #1b5e20; text-transform: uppercase; }
-        .play-btn:active { transform: translateY(3px); box-shadow: none; }
+        .play-btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: 800; color: white; cursor: pointer; font-size: 20px; background: linear-gradient(180deg, #4cd964, #2e8b3f); box-shadow: 0 5px 0 #1b5e20; text-transform: uppercase; letter-spacing: 1px; }
+        .play-btn:active { transform: translateY(4px); box-shadow: none; }
     </style>
 </head>
 <body>
 
 <div class="stats-bar">
-    <span style="font-weight: 800; color: #ffcc00; letter-spacing: 1px;">PLINKO VIP</span>
-    <div class="balance-box">₹<span id="uBalance">0.00</span></div>
+    <div class="logo">PLINKO VIP</div>
+    <div class="balance-box">
+        <span>₹</span><span id="uBalance">Loading...</span>
+    </div>
 </div>
 
 <div id="canvas-wrapper">
@@ -46,25 +50,26 @@
 </div>
 
 <div class="controls">
-    <div class="bet-label">Enter Bet Amount</div>
+    <div class="bet-label">Bet Amount (Min ₹1)</div>
     <div class="bet-input-box">
-        <button class="btn-circle" onclick="adjustBet(-1)">-</button>
-        <input type="number" id="betAmount" value="1" min="1">
-        <button class="btn-circle" onclick="adjustBet(1)">+</button>
+        <button class="btn-circle" onclick="adjustBet(-5)">-</button>
+        <input type="number" id="betAmount" value="10" min="1">
+        <button class="btn-circle" onclick="adjustBet(5)">+</button>
     </div>
-    <button class="play-btn" onclick="dropBall()">BET & DROP</button>
-    <p style="text-align: center; font-size: 10px; color: #555; margin-top: 10px;">PROVABLY FAIR ENGINE - ADMIN ENABLED</p>
+    <button class="play-btn" id="betBtn" onclick="dropBall()">PLACE BET</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, update, increment, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // Firebase Configuration
     const fbConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
     const app = initializeApp(fbConfig);
     const db = getDatabase(app);
     const userPhone = "9117748052"; 
 
+    // Matter.js Setup
     const { Engine, Runner, Bodies, Composite, Body } = Matter;
     const engine = Engine.create();
     const canvas = document.getElementById('plinko-canvas');
@@ -75,7 +80,6 @@
     canvas.width = width;
     canvas.height = height;
 
-    // Multipliers
     const multipliers = [15, 8, 3, 1.5, 0.5, 0.2, 0.5, 1.5, 3, 8, 15];
     const slotColors = ["#ff0000", "#ff4500", "#ffa500", "#ffff00", "#adff2f", "#00ff00", "#adff2f", "#ffff00", "#ffa500", "#ff4500", "#ff0000"];
 
@@ -98,12 +102,14 @@
     const runner = Runner.create();
     Runner.run(runner, engine);
 
+    // Optimized Render Loop
     function render() {
         ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
         pins.forEach(p => {
             ctx.beginPath(); ctx.arc(p.position.x, p.position.y, 3.5, 0, Math.PI * 2); ctx.fill();
         });
+        
         Composite.allBodies(engine.world).forEach(b => {
             if (!b.isStatic) {
                 ctx.beginPath(); ctx.arc(b.position.x, b.position.y, 10, 0, Math.PI * 2);
@@ -115,30 +121,41 @@
     }
     render();
 
+    // DROP BALL LOGIC
     window.dropBall = async () => {
         const betInput = document.getElementById('betAmount');
         const bet = parseFloat(betInput.value);
         const uRef = ref(db, `users/${userPhone}`);
+        
         const snap = await get(uRef);
-        const bal = snap.val()?.balance || 0;
+        const userData = snap.val();
+        const bal = userData?.balance || 0;
 
-        if (bet > bal || bet < 1) return alert("Low Balance or Invalid Bet!");
+        if (bet > bal || bet < 1) {
+            alert("Insufficient Balance!");
+            return;
+        }
 
+        // Deduct balance instantly
         await update(uRef, { balance: increment(-bet) });
 
+        // Fetch rigging mode
         const rigSnap = await get(ref(db, `adminSettings/${userPhone}/rigging`));
         const mode = rigSnap.val() || "loss"; 
 
-        const ball = Bodies.circle(width / 2 + (Math.random() * 4 - 2), 10, 10, { restitution: 0.5, friction: 0.001 });
+        const ball = Bodies.circle(width / 2 + (Math.random() * 4 - 2), 10, 10, { 
+            restitution: 0.5, 
+            friction: 0.001,
+            label: 'ball'
+        });
         Composite.add(engine.world, ball);
 
         const rigTimer = setInterval(() => {
-            // FORCE RIGGING LOGIC
             if (mode === "loss") {
-                let pull = (width / 2 - ball.position.x) * 0.00005;
+                let pull = (width / 2 - ball.position.x) * 0.00006;
                 Body.applyForce(ball, ball.position, { x: pull, y: 0 });
             } else if (mode === "win") {
-                let push = ball.position.x < width / 2 ? -0.001 : 0.001;
+                let push = ball.position.x < width / 2 ? -0.0012 : 0.0012;
                 Body.applyForce(ball, ball.position, { x: push, y: 0 });
             }
 
@@ -148,19 +165,24 @@
                 const slotIdx = Math.floor(((xPos - 15) / (width - 30)) * multipliers.length);
                 const finalIdx = Math.max(0, Math.min(multipliers.length - 1, slotIdx));
                 
-                const win = bet * multipliers[finalIdx];
+                const winAmt = bet * multipliers[finalIdx];
+                
+                // Animation Hit
                 const el = document.getElementById(`slot-${finalIdx}`);
-                el.style.transform = "scale(1.5)";
-                setTimeout(() => el.style.transform = "scale(1)", 400);
+                el.style.transform = "scale(1.5) translateY(-5px)";
+                setTimeout(() => el.style.transform = "scale(1) translateY(0)", 400);
 
-                update(uRef, { balance: increment(win) });
+                // Add Winning
+                update(uRef, { balance: increment(winAmt) });
                 Composite.remove(engine.world, ball);
             }
         }, 40);
     };
 
-    onValue(ref(db, `users/${userPhone}/balance`), (s) => {
-        document.getElementById('uBalance').innerText = (s.val() || 0).toFixed(2);
+    // LIVE BALANCE SYNC (Fix: This updates the UI automatically)
+    onValue(ref(db, `users/${userPhone}/balance`), (snapshot) => {
+        const currentBalance = snapshot.val() || 0;
+        document.getElementById('uBalance').innerText = parseFloat(currentBalance).toFixed(2);
     });
 
     window.adjustBet = (v) => {
