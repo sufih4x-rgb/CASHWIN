@@ -3,41 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Plinko VIP - Control Center Synced</title>
+    <title>Plinko VIP - Fixed Connection</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; background: #051622; font-family: 'Poppins', sans-serif; overflow: hidden; color: white; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Stats Bar */
         .stats-bar { width: 100%; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; background: #0a1f2e; border-bottom: 2px solid #1e4d6d; z-index: 100; }
         .balance-box { background: #112d42; padding: 6px 15px; border-radius: 20px; border: 2px solid #4cd964; color: #4cd964; font-weight: bold; font-size: 18px; box-shadow: 0 0 10px rgba(76, 217, 100, 0.2); }
         
+        /* Game Area */
         #canvas-wrapper { width: 100%; position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: radial-gradient(circle at top, #0a2a3f 0%, #051622 100%); }
         #plinko-canvas { width: 100%; max-width: 400px; }
 
         .slots-container { position: absolute; bottom: 10px; display: flex; width: 92%; max-width: 380px; justify-content: center; gap: 2px; }
-        .slot { flex: 1; height: 35px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #000; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .slot { flex: 1; height: 35px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #000; transition: 0.3s; }
 
-        #history-section { height: 130px; background: #0a1f2e; padding: 10px 20px; border-top: 1px solid #1e4d6d; box-sizing: border-box; }
-        .hist-title { color: #555; font-size: 10px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        #historyBody { height: 85px; overflow-y: hidden; }
-        .history-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #112d42; font-size: 12px; animation: slideDown 0.3s ease-out; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* History Fixed Section */
+        #history-section { height: 140px; background: #0a1f2e; padding: 10px 20px; border-top: 1px solid #1e4d6d; box-sizing: border-box; }
+        .hist-header { display: flex; justify-content: space-between; color: #555; font-size: 10px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; }
+        #historyBody { height: 95px; overflow-y: auto; }
+        .history-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #112d42; font-size: 12px; }
 
+        /* Controls */
         .controls { width: 100%; background: #112d42; padding: 15px 20px 25px 20px; border-radius: 30px 30px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); z-index: 100; box-sizing: border-box; }
         .bet-input-box { background: #0a1f2e; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; padding: 5px 15px; margin-bottom: 12px; border: 1px solid #1e4d6d; }
         .bet-input-box input { background: transparent; border: none; color: white; font-size: 22px; text-align: center; width: 50%; font-weight: 800; outline: none; }
         .btn-circle { width: 40px; height: 40px; border-radius: 50%; border: none; background: #1e4d6d; color: white; font-size: 24px; cursor: pointer; }
         
-        .play-btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 800; color: white; cursor: pointer; font-size: 20px; background: linear-gradient(180deg, #4cd964, #2e8b3f); box-shadow: 0 5px 0 #1b5e20; transition: 0.1s; }
-        .play-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1b5e20; }
-        .play-btn:disabled { background: #444; box-shadow: none; opacity: 0.6; cursor: not-allowed; }
-        .win-text { color: #4cd964; font-weight: bold; } .loss-text { color: #ff4d4d; font-weight: bold; }
+        .play-btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 800; color: white; cursor: pointer; font-size: 20px; background: linear-gradient(180deg, #4cd964, #2e8b3f); box-shadow: 0 5px 0 #1b5e20; }
+        .play-btn:disabled { background: #444; box-shadow: none; opacity: 0.6; }
+        .win-text { color: #4cd964; } .loss-text { color: #ff4d4d; }
     </style>
 </head>
 <body>
 
 <div class="stats-bar">
-    <div style="font-weight: 800; color: #ffcc00; letter-spacing: 1px;">PLINKO <span style="color:white">VIP</span></div>
+    <div style="font-weight: 800; color: #ffcc00;">PLINKO VIP</div>
     <div class="balance-box">₹<span id="uBalance">0.00</span></div>
 </div>
 
@@ -47,7 +50,7 @@
 </div>
 
 <div id="history-section">
-    <div class="hist-title">My Win/Loss History (Last 10)</div>
+    <div class="hist-header"><span>MULT.</span><span>STAKE</span><span>RESULT</span></div>
     <div id="historyBody"></div>
 </div>
 
@@ -64,12 +67,23 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, update, increment, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
+    // --- FULL WORKING CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
+        authDomain: "testing-26b8c.firebaseapp.com",
+        databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
+        projectId: "testing-26b8c",
+        storageBucket: "testing-26b8c.firebasestorage.app",
+        messagingSenderId: "546674600784",
+        appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const userPhone = "9117748052"; 
     const userPath = `users/${userPhone}`;
 
+    // Matter.js Logic
     const { Engine, Runner, Bodies, Composite, Body } = Matter;
     const engine = Engine.create();
     const canvas = document.getElementById('plinko-canvas');
@@ -77,9 +91,8 @@
     const width = 400, height = 550;
     canvas.width = width; canvas.height = height;
 
-    // Multipliers designed for slow earning (House edge included)
     const multipliers = [15, 5, 2, 1.2, 0.5, 0.2, 0.5, 1.2, 2, 5, 15];
-    const slotColors = ["#ff0000", "#f12711", "#f5af19", "#f8ff00", "#b2ff59", "#76ff03", "#b2ff59", "#f8ff00", "#f5af19", "#f12711", "#ff0000"];
+    const slotColors = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#3f51b5", "#673ab7", "#9c27b0", "#e91e63", "#f44336"];
 
     multipliers.forEach((m, i) => {
         document.getElementById('slotsRow').innerHTML += `<div class="slot" id="slot-${i}" style="background:${slotColors[i]}">${m}x</div>`;
@@ -97,25 +110,26 @@
 
     function draw() {
         ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = "#2c5d7d";
+        ctx.fillStyle = "#ffffff55";
         pins.forEach(p => { ctx.beginPath(); ctx.arc(p.position.x, p.position.y, 3, 0, Math.PI * 2); ctx.fill(); });
         Composite.allBodies(engine.world).forEach(b => {
             if (!b.isStatic) {
                 ctx.beginPath(); ctx.arc(b.position.x, b.position.y, 10, 0, Math.PI * 2);
                 ctx.fillStyle = "#ffcc00"; ctx.fill();
-                ctx.shadowBlur = 12; ctx.shadowColor = "#ffcc00";
                 ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
-                ctx.shadowBlur = 0;
             }
         });
         requestAnimationFrame(draw);
     }
     draw();
 
+    // Balance Listener
     let currentBalance = 0;
-    onValue(ref(db, userPath + '/balance'), (s) => {
-        currentBalance = s.val() || 0;
-        document.getElementById('uBalance').innerText = currentBalance.toFixed(2);
+    onValue(ref(db, userPath + '/balance'), (snapshot) => {
+        currentBalance = snapshot.val() || 0;
+        document.getElementById('uBalance').innerText = parseFloat(currentBalance).toFixed(2);
+    }, (error) => {
+        console.error("Firebase Connection Error:", error);
     });
 
     window.dropBall = async () => {
@@ -125,75 +139,68 @@
         if (betAmt > currentBalance) return alert("Insufficient Balance!");
         
         btn.disabled = true;
-        // 1. Deduct Immediately from Dashboard Balance
+        // 1. Deduct Balance
         await update(ref(db, userPath), { balance: increment(-betAmt) });
 
-        // 2. Fetch Admin Control
+        // 2. Rigging Fetch
         const rigSnap = await get(ref(db, `adminSettings/${userPhone}/rigging`));
         const mode = rigSnap.val() || "normal";
 
-        const ball = Bodies.circle(width / 2 + (Math.random() * 8 - 4), 10, 10, { restitution: 0.6, friction: 0.001 });
+        const ball = Bodies.circle(width / 2 + (Math.random() * 4 - 2), 10, 10, { restitution: 0.5, friction: 0.001 });
         Composite.add(engine.world, ball);
 
-        const rigInterval = setInterval(() => {
-            // Rigging Force Logic
+        const rigTimer = setInterval(() => {
             if (mode === "loss") {
-                // Sucks ball to center (0.2x)
                 Body.applyForce(ball, ball.position, { x: (width/2 - ball.position.x) * 0.00015, y: 0 });
             } else if (mode === "win") {
-                // Pushes ball to high edges (15x)
                 const force = ball.position.x < width/2 ? -0.001 : 0.001;
                 Body.applyForce(ball, ball.position, { x: force, y: 0 });
             }
 
-            // Detection at Bottom
             if (ball.position.y > height - 45) {
-                clearInterval(rigInterval);
-                const x = ball.position.x;
-                const slotIdx = Math.max(0, Math.min(10, Math.floor(((x - 20) / (width - 40)) * 11)));
-                finishGame(betAmt, slotIdx, ball);
+                clearInterval(rigTimer);
+                const xPos = ball.position.x;
+                const slotIdx = Math.max(0, Math.min(10, Math.floor(((xPos - 20) / (width - 40)) * 11)));
+                settleGame(betAmt, slotIdx, ball);
             }
         }, 30);
     };
 
-    async function finishGame(bet, idx, ball) {
+    async function settleGame(bet, idx, ball) {
         const winAmt = bet * multipliers[idx];
         
-        // 3. Update Balance with Winnings
+        // 3. Add Win to DB
         await update(ref(db, userPath), { balance: increment(winAmt) });
 
-        // Update UI History (Last 10)
-        const histBody = document.getElementById('historyBody');
+        // Update History UI
+        const hBody = document.getElementById('historyBody');
         const row = document.createElement('div');
         row.className = 'history-row';
-        const isWin = winAmt >= bet;
+        const winStatusClass = winAmt >= bet ? 'win-text' : 'loss-text';
         
         row.innerHTML = `
-            <span>Slot: ${multipliers[idx]}x</span>
-            <span>Bet: ₹${bet}</span>
-            <span class="${isWin ? 'win-text' : 'loss-text'}">${isWin ? '+' : ''}₹${winAmt.toFixed(2)}</span>
+            <span>${multipliers[idx]}x</span>
+            <span>₹${bet}</span>
+            <span class="${winStatusClass}">₹${winAmt.toFixed(2)}</span>
         `;
         
-        histBody.prepend(row);
-        if (histBody.children.length > 10) histBody.removeChild(histBody.lastChild);
+        hBody.prepend(row);
+        if (hBody.children.length > 10) hBody.removeChild(hBody.lastChild);
 
-        // Slot Visual Feedback
+        // Animation
         const el = document.getElementById(`slot-${idx}`);
-        el.style.transform = "scale(1.4) translateY(-8px)";
-        el.style.filter = "brightness(1.8)";
-        
+        el.style.transform = "scale(1.4)";
         setTimeout(() => {
             el.style.transform = "scale(1)";
-            el.style.filter = "none";
             Composite.remove(engine.world, ball);
             document.getElementById('dropBtn').disabled = false;
-        }, 500);
+        }, 400);
     }
 
     window.adjustBet = (v) => {
         let i = document.getElementById('betAmount');
         let val = parseInt(i.value) + v;
-        if(val >= 10 && val <= 5000) i.value = val;
+        if(val >= 10 && val <= 10000) i.value = val;
     };
 </script>
 </body>
