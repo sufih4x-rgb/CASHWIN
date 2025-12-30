@@ -3,62 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Mines VIP - Auth Wallet</title>
+    <title>Mines Pro - CASHWIN</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #6366f1; --bg: #0f172a; --accent: #fbbf24; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 400px; padding: 20px; text-align: center; }
+        :root { --primary: #6366f1; --bg: #0f172a; --accent: #fbbf24; --danger: #ef4444; --success: #22c55e; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+        body { background: var(--bg); color: white; display: flex; justify-content: center; min-height: 100vh; }
         
-        /* Auth Screen */
-        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; }
-        .google-btn { background: white; color: black; padding: 12px 24px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .container { width: 100%; max-width: 450px; padding: 15px; }
 
-        /* Game Screen */
-        #game-screen { display: none; }
+        /* Header & Wallet */
         .header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px; }
-        .balance-amt { font-size: 22px; font-weight: 900; color: var(--accent); }
-        .user-info { font-size: 10px; color: #94a3b8; text-align: left; }
+        .balance-amt { font-size: 20px; font-weight: 900; color: var(--accent); }
+        .user-info { font-size: 12px; color: #94a3b8; }
 
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
-        .slot { aspect-ratio: 1; background: #1e293b; border-radius: 8px; border: 2px solid #334155; }
-        .controls { background: #1e293b; padding: 20px; border-radius: 20px; }
-        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 10px; margin-bottom: 10px; text-align: center; font-size: 18px; }
-        .main-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        /* Grid System */
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; perspective: 1000px; }
+        .slot { 
+            aspect-ratio: 1; background: #1e293b; border-radius: 10px; border: 2px solid #334155; 
+            display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer;
+            transition: 0.3s; transform-style: preserve-3d;
+        }
+        .slot.revealed { transform: rotateY(180deg); background: #2d3748; border-color: #4a5568; }
+        .slot.diamond { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+        .slot.bomb { color: var(--danger); text-shadow: 0 0 10px var(--danger); }
+
+        /* Controls */
+        .controls { background: #1e293b; padding: 20px; border-radius: 20px; border: 1px solid #334155; }
+        .multiplier-badge { background: var(--primary); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 15px; display: inline-block; }
+        
+        input { width: 100%; padding: 15px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 12px; margin-bottom: 15px; text-align: center; font-size: 20px; font-weight: bold; outline: none; }
+        
+        .btn-stack { display: flex; gap: 10px; }
+        .main-btn { flex: 2; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .cashout-btn { flex: 1; padding: 15px; background: var(--success); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: none; }
+        
+        .disabled { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="auth-screen">
-        <h2 style="color: var(--primary);">MINES <span style="color:white">PRO</span></h2>
-        <p style="color: #94a3b8;">Login with Gmail to sync your wallet</p>
-        <button class="google-btn" onclick="login()">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="20">
-            Sign in with Google
-        </button>
+    <div class="header">
+        <div class="user-info">
+            <span style="color: white; font-weight: bold;">CASHWIN PLAYER</span><br>
+            <span id="userMobile" style="color: var(--accent);">+91 0000000000</span>
+        </div>
+        <div class="balance-box" style="text-align: right;">
+            <div style="font-size: 10px; opacity: 0.7;">WALLET</div>
+            <div class="balance-amt">₹<span id="balDisplay">0.00</span></div>
+        </div>
     </div>
 
-    <div id="game-screen">
-        <div class="header">
-            <div class="user-info">
-                <span id="userEmail" style="color: white; font-weight: bold;">User</span><br>
-                <span id="userID" style="font-size: 8px;">ID: ...</span>
-            </div>
-            <div class="balance-box">
-                <div style="font-size: 10px;">WALLET</div>
-                <div class="balance-amt">₹<span id="balDisplay">0.00</span></div>
-            </div>
+    <div class="grid" id="mineGrid"></div>
+
+    <div class="controls">
+        <div id="statusInfo" style="margin-bottom: 10px; text-align: center;">
+            <span class="multiplier-badge" id="multiTag">Next: 1.25x</span>
         </div>
-
-        <div class="grid" id="mineGrid"></div>
-
-        <div class="controls">
-            <input type="number" id="betInput" value="10">
-            <button class="main-btn" onclick="placeBet()">START GAME</button>
-            <button onclick="logout()" style="background:none; color: #ff4d4d; border:none; margin-top:15px; cursor:pointer;">Logout</button>
+        
+        <input type="number" id="betInput" value="100" placeholder="Bet Amount">
+        
+        <div class="btn-stack">
+            <button class="main-btn" id="startBtn" onclick="startGame()">BET</button>
+            <button class="cashout-btn" id="cashBtn" onclick="cashOut()">CASHOUT</button>
         </div>
     </div>
 </div>
@@ -69,79 +79,123 @@
         authDomain: "testing-26b8c.firebaseapp.com",
         databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
         projectId: "testing-26b8c",
-        storageBucket: "testing-26b8c.firebasestorage.app",
-        messagingSenderId: "546674600784",
         appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.database();
+    const userId = localStorage.getItem('userPhone');
 
-    let currentUser = null;
-    let balance = 0;
+    let currentBalance = 0;
+    let gameActive = false;
+    let currentMultiplier = 1;
+    let betAmount = 0;
+    let revealedCount = 0;
+    let userRigging = "normal"; // Default rigging
 
-    // --- GOOGLE LOGIN ---
-    function login() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(err => alert(err.message));
-    }
+    // 1. Sync User Data & Admin Rigging
+    function initApp() {
+        if (!userId) return window.location.href = "login.html";
 
-    function logout() {
-        auth.signOut().then(() => location.reload());
-    }
-
-    // --- AUTH STATE CHECK ---
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            currentUser = user;
-            document.getElementById("auth-screen").style.display = "none";
-            document.getElementById("game-screen").style.display = "block";
-            document.getElementById("userEmail").innerText = user.displayName || user.email;
-            document.getElementById("userID").innerText = "UID: " + user.uid;
-            
-            // Link to Wallet using UID
-            syncWallet(user.uid);
-        } else {
-            document.getElementById("auth-screen").style.display = "flex";
-            document.getElementById("game-screen").style.display = "none";
-        }
-    });
-
-    // --- SYNC WALLET BY UID ---
-    function syncWallet(uid) {
-        const walletRef = db.ref("users/" + uid);
-        walletRef.on('value', (snapshot) => {
+        db.ref("users/" + userId).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                balance = Number(data.balance) || 0;
-                document.getElementById("balDisplay").innerText = balance.toFixed(2);
-            } else {
-                // If new user, create initial balance
-                walletRef.set({
-                    email: currentUser.email,
-                    balance: 100, // New user bonus
-                    rigging: "normal"
-                });
+                currentBalance = data.balance;
+                userRigging = data.rigging || "normal"; // Get rigging status from admin
+                document.getElementById("balDisplay").innerText = currentBalance.toFixed(2);
+                document.getElementById("userMobile").innerText = "+91 " + (data.phone || "User");
             }
         });
     }
 
-    function initGrid() {
-        const g = document.getElementById("mineGrid");
-        g.innerHTML = '';
-        for(let i=0; i<25; i++) g.innerHTML += `<div class="slot"></div>`;
+    // 2. Initialize 5x5 Grid
+    function createGrid() {
+        const grid = document.getElementById("mineGrid");
+        grid.innerHTML = '';
+        for (let i = 0; i < 25; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            slot.dataset.index = i;
+            slot.onclick = () => revealSlot(slot);
+            grid.appendChild(slot);
+        }
     }
-    initGrid();
 
-    function placeBet() {
-        let amt = Number(document.getElementById("betInput").value);
-        if(amt > balance) return alert("Low Balance!");
+    // 3. Start Game Logic
+    window.startGame = function() {
+        betAmount = Number(document.getElementById("betInput").value);
+        if (betAmount < 10 || betAmount > currentBalance) return alert("Invalid Balance or Amount!");
+
+        // Deduct Balance
+        db.ref("users/" + userId).update({ balance: currentBalance - betAmount });
+
+        gameActive = true;
+        revealedCount = 0;
+        currentMultiplier = 1;
         
-        db.ref("users/" + currentUser.uid).update({
-            balance: balance - amt
-        });
+        document.getElementById("startBtn").style.display = "none";
+        document.getElementById("cashBtn").style.display = "block";
+        document.getElementById("betInput").classList.add("disabled");
+        updateMulti();
+        createGrid();
     }
+
+    // 4. Reveal Slot with Admin Rigging
+    function revealSlot(slot) {
+        if (!gameActive || slot.classList.contains('revealed')) return;
+
+        revealedCount++;
+        let isBomb = false;
+
+        // --- ADMIN RIGGING LOGIC ---
+        if (userRigging === "always_lose") {
+            isBomb = true; // Forcing loss
+        } else if (userRigging === "always_win") {
+            isBomb = false; // Forcing win
+        } else {
+            // Normal Random Logic (1 Bomb in 25 slots example)
+            isBomb = Math.random() < 0.15; 
+        }
+
+        slot.classList.add('revealed');
+
+        if (isBomb) {
+            slot.innerHTML = '<i class="fas fa-bomb"></i>';
+            slot.classList.add('bomb');
+            gameOver(false);
+        } else {
+            slot.innerHTML = '<i class="fas fa-gem"></i>';
+            slot.classList.add('diamond');
+            currentMultiplier += 0.25;
+            updateMulti();
+            document.getElementById("cashBtn").innerText = `CASHOUT (₹${(betAmount * currentMultiplier).toFixed(2)})`;
+        }
+    }
+
+    function updateMulti() {
+        document.getElementById("multiTag").innerText = `Current: ${currentMultiplier.toFixed(2)}x`;
+    }
+
+    // 5. Cashout Logic
+    window.cashOut = function() {
+        if (!gameActive) return;
+        const winAmt = betAmount * currentMultiplier;
+        db.ref("users/" + userId).update({ balance: currentBalance + winAmt });
+        alert(`Congratulations! You won ₹${winAmt.toFixed(2)}`);
+        gameOver(true);
+    }
+
+    // 6. Game Over reset
+    function gameOver(win) {
+        gameActive = false;
+        document.getElementById("startBtn").style.display = "block";
+        document.getElementById("cashBtn").style.display = "none";
+        document.getElementById("betInput").classList.remove("disabled");
+        if (!win) alert("BOOM! You lost.");
+    }
+
+    initApp();
+    createGrid();
 </script>
 </body>
 </html>
