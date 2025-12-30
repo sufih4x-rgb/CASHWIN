@@ -3,39 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Plinko VIP - Fixed</title>
+    <title>Plinko VIP - 100% Wallet Fixed</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #4cd964; --bg-dark: #051622; --panel: #112d42; }
         body { margin: 0; background: var(--bg-dark); font-family: 'Poppins', sans-serif; overflow: hidden; color: white; height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Header */
-        .stats-bar { width: 100%; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; background: #0a1f2e; border-bottom: 2px solid #1e4d6d; }
+        .stats-bar { width: 100%; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; background: #0a1f2e; border-bottom: 2px solid #1e4d6d; box-sizing: border-box; }
         .balance-box { background: var(--panel); padding: 8px 18px; border-radius: 20px; border: 2px solid var(--accent); color: var(--accent); font-weight: 800; font-size: 18px; min-width: 100px; text-align: center; }
-        
-        #canvas-wrapper { width: 100%; position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+        #canvas-wrapper { width: 100%; position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden; }
         #plinko-canvas { width: 100%; max-width: 380px; }
-        
-        /* Betting Section */
-        .controls { width: 100%; background: var(--panel); padding: 20px; border-radius: 25px 25px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
-        
+        .controls { width: 100%; background: var(--panel); padding: 20px; border-radius: 25px 25px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); box-sizing: border-box; }
         .bet-input-box { background: #0a1f2e; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; padding: 10px; margin-bottom: 15px; border: 1px solid #1e4d6d; }
         .bet-input-box input { background: transparent; border: none; color: white; font-size: 20px; text-align: center; width: 60%; font-weight: 800; outline: none; }
-        
         .grid-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
-        .q-btn { background: #1e4d6d; border: none; color: white; padding: 10px 5px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .q-btn:active { background: var(--accent); }
-
+        .q-btn { background: #1e4d6d; border: none; color: white; padding: 10px 5px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .play-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 800; color: white; font-size: 18px; background: linear-gradient(180deg, #4cd964, #2e8b3f); box-shadow: 0 4px 0 #1b5e20; cursor: pointer; }
-        .play-btn:disabled { opacity: 0.5; filter: grayscale(1); transform: none; }
-
-        /* History */
-        #history-section { height: 90px; overflow-y: auto; padding: 5px 20px; background: rgba(0,0,0,0.2); font-size: 12px; }
-        .history-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
+        #history-section { height: 70px; overflow-y: auto; padding: 5px 20px; background: rgba(0,0,0,0.2); font-size: 12px; }
+        .history-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .slots-container { position: absolute; bottom: 5px; display: flex; width: 92%; max-width: 360px; justify-content: center; gap: 2px; }
-        .slot { flex: 1; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: #000; transition: 0.1s; }
+        .slot { flex: 1; height: 25px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: #000; }
     </style>
 </head>
 <body>
@@ -50,9 +39,7 @@
     <div class="slots-container" id="slotsRow"></div>
 </div>
 
-<div id="history-section">
-    <div id="historyBody"></div>
-</div>
+<div id="history-section"><div id="historyBody"></div></div>
 
 <div class="controls">
     <div class="grid-btns">
@@ -61,20 +48,16 @@
         <button class="q-btn" onclick="setBet('double')">2X</button>
         <button class="q-btn" onclick="setBet('max')">MAX</button>
     </div>
-    
     <div class="bet-input-box">
         <button class="q-btn" style="width:40px; border-radius:50%;" onclick="adjustBet(-10)">-</button>
         <input type="number" id="betAmount" value="10">
         <button class="q-btn" style="width:40px; border-radius:50%;" onclick="adjustBet(10)">+</button>
     </div>
-    
-    <button class="play-btn" id="dropBtn">BET & DROP</button>
+    <button class="play-btn" id="dropBtn" onclick="handleDrop()">BET & DROP</button>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, update, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
+<script>
+    // --- 1. FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
         authDomain: "testing-26b8c.firebaseapp.com",
@@ -85,25 +68,29 @@
         appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     const userPhone = "9117748052";
-    const userRef = ref(db, `users/${userPhone}`);
+    const userPath = `users/${userPhone}`;
 
     let currentBalance = 0;
     let rigMode = "normal";
 
-    // --- FIX: REALTIME WALLET SYNC ---
-    onValue(userRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            currentBalance = Number(data.balance) || 0;
-            document.getElementById('uBalance').innerText = currentBalance.toFixed(2);
-            rigMode = data.rigging || "normal";
-        }
-    });
+    // --- 2. WALLET SYNC (FIXED) ---
+    function syncWallet() {
+        db.ref(userPath).on('value', (snap) => {
+            const data = snap.val();
+            if (data) {
+                currentBalance = Number(data.balance) || 0;
+                document.getElementById('uBalance').innerText = currentBalance.toFixed(2);
+                rigMode = data.rigging || "normal";
+                console.log("Plinko Balance Synced:", currentBalance);
+            }
+        });
+    }
+    syncWallet();
 
-    // Matter.js Setup
+    // --- 3. PHYSICS ENGINE ---
     const { Engine, Runner, Bodies, Composite, Body } = Matter;
     const engine = Engine.create();
     const canvas = document.getElementById('plinko-canvas');
@@ -143,39 +130,39 @@
     }
     draw();
 
-    // DROP LOGIC
-    document.getElementById('dropBtn').onclick = async () => {
+    // --- 4. GAME FUNCTIONS ---
+    async function handleDrop() {
         const betAmt = Number(document.getElementById('betAmount').value);
         if (betAmt > currentBalance || betAmt < 1) return alert("Low Balance!");
 
         document.getElementById('dropBtn').disabled = true;
-        await update(userRef, { balance: increment(-betAmt) });
+        // Deduct Bet
+        await db.ref(userPath).update({ balance: currentBalance - betAmt });
 
-        const ball = Bodies.circle(width / 2 + (Math.random() * 6 - 3), 5, 8, { restitution: 0.5 });
+        const ball = Bodies.circle(width / 2 + (Math.random() * 10 - 5), 5, 8, { restitution: 0.5, friction: 0.01 });
         Composite.add(engine.world, ball);
 
         const track = setInterval(() => {
             if (rigMode === "loss") Body.applyForce(ball, ball.position, { x: (width/2 - ball.position.x) * 0.0001, y: 0 });
-            if (rigMode === "win") Body.applyForce(ball, ball.position, { x: ball.position.x < width/2 ? -0.001 : 0.001, y: 0 });
-
+            
             if (ball.position.y > height - 40) {
                 clearInterval(track);
                 const idx = Math.max(0, Math.min(10, Math.floor(((ball.position.x - 20) / (width - 40)) * 11)));
-                finish(betAmt, idx, ball);
+                finishGame(betAmt, idx, ball);
             }
         }, 30);
-    };
+    }
 
-    async function finish(bet, idx, ball) {
+    async function finishGame(bet, idx, ball) {
         const win = bet * multipliers[idx];
-        await update(userRef, { balance: increment(win) });
+        await db.ref(userPath).update({ balance: currentBalance + win });
 
         const hb = document.getElementById('historyBody');
         const row = document.createElement('div');
         row.className = 'history-row';
         row.innerHTML = `<span>${multipliers[idx]}x</span><span>₹${bet}</span><span style="color:${win>=bet?'#4cd964':'#ff4d4d'}">₹${win.toFixed(2)}</span>`;
         hb.prepend(row);
-        if(hb.children.length > 5) hb.removeChild(hb.lastChild);
+        if(hb.children.length > 4) hb.removeChild(hb.lastChild);
 
         const s = document.getElementById(`slot-${idx}`);
         s.style.transform = "scale(1.2)";
@@ -183,10 +170,10 @@
             s.style.transform = "scale(1)";
             Composite.remove(engine.world, ball);
             document.getElementById('dropBtn').disabled = false;
-        }, 300);
+        }, 500);
     }
 
-    // Helper Buttons
+    // --- 5. BETTING HELPERS ---
     window.adjustBet = (v) => {
         let el = document.getElementById('betAmount');
         let val = Number(el.value) + v;
