@@ -23,7 +23,6 @@
             position: relative;
         }
         
-        /* Tab Navigation - Fixed Click Issue */
         .reg-tabs { 
             display: flex; 
             background: #eee; 
@@ -47,7 +46,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
         }
 
-        /* Form Styling */
         .input-box {
             display: flex;
             align-items: center;
@@ -75,7 +73,9 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: bold;
+            cursor: pointer;
         }
+        .otp-btn:disabled { background: #ccc; }
 
         .btn-register {
             background: var(--g-red);
@@ -88,6 +88,7 @@
             font-weight: bold;
             margin-top: 10px;
             box-shadow: 0 5px 15px rgba(255,107,107,0.3);
+            cursor: pointer;
         }
 
         #emailInputSection { display: none; }
@@ -164,84 +165,121 @@
         const db = getDatabase(app);
 
         let mode = 'phone';
-        let confirmationResult;
+        let confirmationResult = null;
 
-        // TAB SWITCHING LOGIC - FIXED
-        const btnPhone = document.getElementById('btnPhone');
-        const btnEmail = document.getElementById('btnEmail');
-        const phoneSection = document.getElementById('phoneInputSection');
-        const emailSection = document.getElementById('emailInputSection');
+        // Initialize Recaptcha once
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible'
+        });
 
-        btnPhone.addEventListener('click', () => {
+        // Tab Switching
+        document.getElementById('btnPhone').onclick = () => {
             mode = 'phone';
-            btnPhone.classList.add('active');
-            btnEmail.classList.remove('active');
-            phoneSection.style.display = 'block';
-            emailSection.style.display = 'none';
-        });
+            document.getElementById('btnPhone').classList.add('active');
+            document.getElementById('btnEmail').classList.remove('active');
+            document.getElementById('phoneInputSection').style.display = 'block';
+            document.getElementById('emailInputSection').style.display = 'none';
+        };
 
-        btnEmail.addEventListener('click', () => {
+        document.getElementById('btnEmail').onclick = () => {
             mode = 'email';
-            btnEmail.classList.add('active');
-            btnPhone.classList.remove('active');
-            phoneSection.style.display = 'none';
-            emailSection.style.display = 'block';
-        });
+            document.getElementById('btnEmail').classList.add('active');
+            document.getElementById('btnPhone').classList.remove('active');
+            document.getElementById('phoneInputSection').style.display = 'none';
+            document.getElementById('emailInputSection').style.display = 'block';
+        };
 
-        // OTP LOGIC
-        document.getElementById('sendOtpBtn').addEventListener('click', async () => {
+        // OTP Send Logic
+        document.getElementById('sendOtpBtn').onclick = async () => {
+            const btn = document.getElementById('sendOtpBtn');
+            btn.disabled = true;
+            btn.innerText = "Wait...";
+
             if (mode === 'phone') {
                 const phone = document.getElementById('regPhone').value;
-                if(phone.length !== 10) return alert("Enter 10 digit phone!");
-                
-                const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
-                signInWithPhoneNumber(auth, "+91" + phone, verifier)
-                    .then(res => { confirmationResult = res; alert("SMS Sent!"); })
-                    .catch(err => alert("Error: SMS Limit/Network Issue"));
+                if(phone.length !== 10) {
+                    alert("Enter 10 digit phone!");
+                    btn.disabled = false;
+                    btn.innerText = "Send";
+                    return;
+                }
+
+                signInWithPhoneNumber(auth, "+91" + phone, window.recaptchaVerifier)
+                    .then(res => {
+                        confirmationResult = res;
+                        alert("SMS Sent successfully!");
+                        btn.innerText = "Resend";
+                        btn.disabled = false;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Error: SMS Limit reached or Domain not whitelisted in Firebase Console.");
+                        btn.disabled = false;
+                        btn.innerText = "Send";
+                    });
             } else {
                 const email = document.getElementById('regEmail').value;
-                if(!email.includes('@')) return alert("Enter valid email!");
+                if(!email.includes('@')) {
+                    alert("Enter valid email!");
+                    btn.disabled = false;
+                    btn.innerText = "Send";
+                    return;
+                }
                 const otp = Math.floor(100000 + Math.random() * 900000);
                 localStorage.setItem('emailOTP', otp);
-                alert("Email OTP: " + otp); // For testing, connect EmailJS later
+                alert("TESTING: Your Email OTP is " + otp);
+                btn.innerText = "Sent";
+                btn.disabled = false;
             }
-        });
+        };
 
-        // REGISTER LOGIC
-        document.getElementById('finalRegBtn').addEventListener('click', async () => {
+        // Final Registration
+        document.getElementById('finalRegBtn').onclick = async () => {
             const otp = document.getElementById('otpInp').value;
             const pass = document.getElementById('regPass').value;
             const phone = document.getElementById('regPhone').value;
             const email = document.getElementById('regEmail').value;
+            const invite = document.getElementById('inviteCode').value || "Direct";
 
-            if(!otp || pass.length < 6) return alert("Enter all details correctly!");
+            if(!otp || pass.length < 6) return alert("Fill all fields correctly!");
 
             if (mode === 'phone') {
+                if(!confirmationResult) return alert("Please send OTP first!");
                 confirmationResult.confirm(otp)
-                .then(() => doRegister(phone))
-                .catch(() => alert("Wrong SMS OTP"));
+                    .then(() => doRegister(phone, invite, pass))
+                    .catch(() => alert("Wrong SMS OTP!"));
             } else {
                 if(otp === localStorage.getItem('emailOTP')) {
-                    doRegister(email.replace(/[.@]/g, "_"));
+                    doRegister(email.replace(/[.@]/g, "_"), invite, pass);
                 } else {
-                    alert("Wrong Email OTP");
+                    alert("Wrong Email OTP!");
                 }
             }
-        });
+        };
 
-        async function doRegister(userId) {
-            await set(ref(db, 'users/' + userId), {
-                phone: mode === 'phone' ? userId : "N/A",
-                email: mode === 'email' ? userId : "N/A",
-                password: document.getElementById('regPass').value,
-                balance: 0,
-                status: 'active',
-                referredBy: document.getElementById('inviteCode').value || "Direct",
-                joinDate: new Date().toLocaleDateString()
-            });
-            alert("Success!");
-            localStorage.setItem('userPhone', userId);
-            window.location.href = "login.html";
+        async function doRegister(id, invite, pass) {
+            try {
+                // Check existing user
+                const snapshot = await get(ref(db, 'users/' + id));
+                if(snapshot.exists()) return alert("User already exists!");
+
+                await set(ref(db, 'users/' + id), {
+                    phone: mode === 'phone' ? id : "N/A",
+                    email: mode === 'email' ? id : "N/A",
+                    password: pass,
+                    balance: 0,
+                    vip: 0,
+                    status: 'active',
+                    referredBy: invite,
+                    joinDate: new Date().toLocaleString()
+                });
+
+                alert("Account Created!");
+                localStorage.setItem('userPhone', id);
+                window.location.href = "login.html";
+            } catch (e) {
+                alert("Database Error: " + e.message);
+            }
         }
     </script>
 </body>
