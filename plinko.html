@@ -7,41 +7,45 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Base Styling */
         body { margin: 0; background: #051622; font-family: 'Poppins', sans-serif; overflow: hidden; color: white; height: 100vh; display: flex; flex-direction: column; }
         
-        /* Stats Bar - Fixed Balance Visibility */
+        /* Top Bar */
         .stats-bar { width: 100%; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; background: #0a1f2e; border-bottom: 2px solid #1e4d6d; z-index: 100; flex-shrink: 0; }
         .logo { font-weight: 800; color: #ffcc00; letter-spacing: 1px; font-size: 18px; }
-        .balance-box { background: #112d42; padding: 6px 15px; border-radius: 20px; border: 2px solid #4cd964; color: #4cd964; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 5px; }
+        .balance-box { background: #112d42; padding: 6px 15px; border-radius: 20px; border: 2px solid #4cd964; color: #4cd964; font-weight: bold; font-size: 16px; box-shadow: 0 0 10px rgba(76, 217, 100, 0.2); }
         
-        /* Game Area - Dynamic Height */
-        #canvas-wrapper { width: 100%; position: relative; flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden; background: radial-gradient(circle at top, #0a2a3f 0%, #051622 100%); }
+        /* Game Area */
+        #canvas-wrapper { width: 100%; position: relative; flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden; background: radial-gradient(circle at top, #0a2a3f 0%, #051622 100%); }
         #plinko-canvas { width: 100%; max-width: 400px; height: auto; }
 
-        /* Slots UI - Fixed Alignment */
-        .slots-container { position: absolute; bottom: 8px; display: flex; width: 92%; max-width: 380px; justify-content: center; gap: 2px; z-index: 10; }
-        .slot { flex: 1; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #000; box-shadow: inset 0 -3px rgba(0,0,0,0.2); transition: 0.2s; }
+        .slots-container { position: absolute; bottom: 8px; display: flex; width: 92%; max-width: 380px; justify-content: center; gap: 2px; }
+        .slot { flex: 1; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #000; box-shadow: inset 0 -3px rgba(0,0,0,0.2); }
 
-        /* Controls Panel - Professional Layout */
+        /* History Table Section */
+        #history-section { flex: 0.8; background: #0a1f2e; overflow-y: auto; padding: 10px 20px; border-top: 2px solid #1e4d6d; }
+        .history-title { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; color: #555; padding-bottom: 10px; }
+        td { padding: 8px 0; border-bottom: 1px solid #112d42; }
+        .win-text { color: #4cd964; font-weight: bold; }
+        .loss-text { color: #ff4d4d; font-weight: bold; }
+
+        /* Bottom Controls */
         .controls { width: 100%; background: #112d42; padding: 15px 20px 25px 20px; border-radius: 30px 30px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); box-sizing: border-box; z-index: 100; flex-shrink: 0; }
-        .bet-label { font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
         .bet-input-box { background: #0a1f2e; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; margin-bottom: 12px; border: 1px solid #1e4d6d; }
         .bet-input-box input { background: transparent; border: none; color: white; font-size: 22px; text-align: center; width: 50%; font-weight: 800; outline: none; }
-        .btn-circle { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1e4d6d; color: white; font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 3px 0 #0a1f2e; }
-        .btn-circle:active { transform: translateY(2px); box-shadow: none; background: #1a4c6d; }
+        .btn-circle { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1e4d6d; color: white; font-size: 26px; cursor: pointer; }
         
-        .play-btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: 800; color: white; cursor: pointer; font-size: 20px; background: linear-gradient(180deg, #4cd964, #2e8b3f); box-shadow: 0 5px 0 #1b5e20; text-transform: uppercase; letter-spacing: 1px; }
+        .play-btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: 800; color: white; cursor: pointer; font-size: 20px; background: linear-gradient(180deg, #4cd964, #2e8b3f); box-shadow: 0 5px 0 #1b5e20; text-transform: uppercase; }
         .play-btn:active { transform: translateY(4px); box-shadow: none; }
+        .play-btn:disabled { background: #555; box-shadow: none; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
 <div class="stats-bar">
     <div class="logo">PLINKO VIP</div>
-    <div class="balance-box">
-        <span>₹</span><span id="uBalance">Loading...</span>
-    </div>
+    <div class="balance-box">₹<span id="uBalance">0.00</span></div>
 </div>
 
 <div id="canvas-wrapper">
@@ -49,67 +53,64 @@
     <div class="slots-container" id="slotsRow"></div>
 </div>
 
+<div id="history-section">
+    <div class="history-title">Recent Betting History</div>
+    <table>
+        <thead>
+            <tr><th>Multiplier</th><th>Stake</th><th>Result</th></tr>
+        </thead>
+        <tbody id="historyBody">
+            </tbody>
+    </table>
+</div>
+
 <div class="controls">
-    <div class="bet-label">Bet Amount (Min ₹1)</div>
     <div class="bet-input-box">
-        <button class="btn-circle" onclick="adjustBet(-5)">-</button>
+        <button class="btn-circle" onclick="adjustBet(-10)">-</button>
         <input type="number" id="betAmount" value="10" min="1">
-        <button class="btn-circle" onclick="adjustBet(5)">+</button>
+        <button class="btn-circle" onclick="adjustBet(10)">+</button>
     </div>
-    <button class="play-btn" id="betBtn" onclick="dropBall()">PLACE BET</button>
+    <button class="play-btn" id="dropBtn" onclick="dropBall()">DROP BALL</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, update, increment, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, update, increment, get, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Firebase Configuration
-    const fbConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
-    const app = initializeApp(fbConfig);
+    const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
+    const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const userPhone = "9117748052"; 
 
-    // Matter.js Setup
+    // Matter JS Engine Setup
     const { Engine, Runner, Bodies, Composite, Body } = Matter;
     const engine = Engine.create();
     const canvas = document.getElementById('plinko-canvas');
     const ctx = canvas.getContext('2d');
-
-    const width = 400;
-    const height = 550;
-    canvas.width = width;
-    canvas.height = height;
+    const width = 400, height = 550;
+    canvas.width = width; canvas.height = height;
 
     const multipliers = [15, 8, 3, 1.5, 0.5, 0.2, 0.5, 1.5, 3, 8, 15];
     const slotColors = ["#ff0000", "#ff4500", "#ffa500", "#ffff00", "#adff2f", "#00ff00", "#adff2f", "#ffff00", "#ffa500", "#ff4500", "#ff0000"];
 
-    const slotsRow = document.getElementById('slotsRow');
     multipliers.forEach((m, i) => {
-        slotsRow.innerHTML += `<div class="slot" id="slot-${i}" style="background:${slotColors[i]}">${m}x</div>`;
+        document.getElementById('slotsRow').innerHTML += `<div class="slot" id="slot-${i}" style="background:${slotColors[i]}">${m}x</div>`;
     });
 
     const pins = [];
     for (let r = 0; r < 13; r++) {
-        const rowPins = r + 3;
-        const spacing = 28;
-        const xStart = width / 2 - (rowPins - 1) * spacing / 2;
+        const rowPins = r + 3, spacing = 28, xStart = width / 2 - (rowPins - 1) * spacing / 2;
         for (let p = 0; p < rowPins; p++) {
-            pins.push(Bodies.circle(xStart + p * spacing, 50 + r * 32, 3.5, { isStatic: true, friction: 0 }));
+            pins.push(Bodies.circle(xStart + p * spacing, 40 + r * 30, 3, { isStatic: true, friction: 0 }));
         }
     }
     Composite.add(engine.world, pins);
+    Runner.run(Runner.create(), engine);
 
-    const runner = Runner.create();
-    Runner.run(runner, engine);
-
-    // Optimized Render Loop
-    function render() {
+    function draw() {
         ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-        pins.forEach(p => {
-            ctx.beginPath(); ctx.arc(p.position.x, p.position.y, 3.5, 0, Math.PI * 2); ctx.fill();
-        });
-        
+        ctx.fillStyle = "#ffffff";
+        pins.forEach(p => { ctx.beginPath(); ctx.arc(p.position.x, p.position.y, 3, 0, Math.PI * 2); ctx.fill(); });
         Composite.allBodies(engine.world).forEach(b => {
             if (!b.isStatic) {
                 ctx.beginPath(); ctx.arc(b.position.x, b.position.y, 10, 0, Math.PI * 2);
@@ -117,73 +118,84 @@
                 ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
             }
         });
-        requestAnimationFrame(render);
+        requestAnimationFrame(draw);
     }
-    render();
+    draw();
 
-    // DROP BALL LOGIC
+    // --- GAMEPLAY & SYNC ---
+    const balanceDisplay = document.getElementById('uBalance');
+    const historyBody = document.getElementById('historyBody');
+    const userRef = ref(db, `users/${userPhone}`);
+
+    // 1. Fetch Balance from Dashboard
+    onValue(userRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) balanceDisplay.innerText = parseFloat(data.balance || 0).toFixed(2);
+    });
+
     window.dropBall = async () => {
-        const betInput = document.getElementById('betAmount');
-        const bet = parseFloat(betInput.value);
-        const uRef = ref(db, `users/${userPhone}`);
+        const betAmt = parseFloat(document.getElementById('betAmount').value);
+        const btn = document.getElementById('dropBtn');
         
-        const snap = await get(uRef);
-        const userData = snap.val();
-        const bal = userData?.balance || 0;
+        const snap = await get(userRef);
+        const currentBal = snap.val()?.balance || 0;
 
-        if (bet > bal || bet < 1) {
-            alert("Insufficient Balance!");
-            return;
-        }
+        if (betAmt > currentBal || betAmt < 1) return alert("Low Balance!");
 
-        // Deduct balance instantly
-        await update(uRef, { balance: increment(-bet) });
+        // 2. Lock Button & Deduct
+        btn.disabled = true;
+        await update(userRef, { balance: increment(-betAmt) });
 
-        // Fetch rigging mode
+        // 3. Check Admin Rigging
         const rigSnap = await get(ref(db, `adminSettings/${userPhone}/rigging`));
-        const mode = rigSnap.val() || "loss"; 
+        const mode = rigSnap.val() || "loss";
 
-        const ball = Bodies.circle(width / 2 + (Math.random() * 4 - 2), 10, 10, { 
-            restitution: 0.5, 
-            friction: 0.001,
-            label: 'ball'
-        });
+        const ball = Bodies.circle(width / 2 + (Math.random() * 4 - 2), 10, 10, { restitution: 0.5, friction: 0.001 });
         Composite.add(engine.world, ball);
 
         const rigTimer = setInterval(() => {
             if (mode === "loss") {
-                let pull = (width / 2 - ball.position.x) * 0.00006;
+                let pull = (width / 2 - ball.position.x) * 0.00007;
                 Body.applyForce(ball, ball.position, { x: pull, y: 0 });
             } else if (mode === "win") {
-                let push = ball.position.x < width / 2 ? -0.0012 : 0.0012;
+                let push = ball.position.x < width / 2 ? -0.0015 : 0.0015;
                 Body.applyForce(ball, ball.position, { x: push, y: 0 });
             }
 
-            if (ball.position.y > height - 45) {
+            if (ball.position.y > height - 40) {
                 clearInterval(rigTimer);
                 const xPos = ball.position.x;
                 const slotIdx = Math.floor(((xPos - 15) / (width - 30)) * multipliers.length);
                 const finalIdx = Math.max(0, Math.min(multipliers.length - 1, slotIdx));
-                
-                const winAmt = bet * multipliers[finalIdx];
-                
-                // Animation Hit
-                const el = document.getElementById(`slot-${finalIdx}`);
-                el.style.transform = "scale(1.5) translateY(-5px)";
-                setTimeout(() => el.style.transform = "scale(1) translateY(0)", 400);
+                const mult = multipliers[finalIdx];
+                const winAmt = betAmt * mult;
 
-                // Add Winning
-                update(uRef, { balance: increment(winAmt) });
-                Composite.remove(engine.world, ball);
+                // 4. Update Win & History
+                update(userRef, { balance: increment(winAmt) });
+                addHistory(mult, betAmt, winAmt);
+
+                const el = document.getElementById(`slot-${finalIdx}`);
+                el.style.transform = "scale(1.4)";
+                setTimeout(() => { 
+                    el.style.transform = "scale(1)"; 
+                    Composite.remove(engine.world, ball);
+                    btn.disabled = false;
+                }, 400);
             }
         }, 40);
     };
 
-    // LIVE BALANCE SYNC (Fix: This updates the UI automatically)
-    onValue(ref(db, `users/${userPhone}/balance`), (snapshot) => {
-        const currentBalance = snapshot.val() || 0;
-        document.getElementById('uBalance').innerText = parseFloat(currentBalance).toFixed(2);
-    });
+    function addHistory(m, stake, win) {
+        const row = document.createElement('tr');
+        const statusClass = win >= stake ? 'win-text' : 'loss-text';
+        row.innerHTML = `
+            <td>${m}x</td>
+            <td>₹${stake}</td>
+            <td class="${statusClass}">₹${win.toFixed(2)}</td>
+        `;
+        historyBody.prepend(row);
+        if (historyBody.children.length > 5) historyBody.lastChild.remove();
+    }
 
     window.adjustBet = (v) => {
         let i = document.getElementById('betAmount');
