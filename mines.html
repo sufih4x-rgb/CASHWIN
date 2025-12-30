@@ -14,38 +14,33 @@
         .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
         .balance-chip { font-weight: 800; color: var(--accent); font-size: 18px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
         
-        /* Grid Animations */
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; }
         .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 2px solid #334155; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .slot:active { transform: scale(0.9); }
         .slot.diamond { background: radial-gradient(circle, #06b6d4, #083344); border-color: #22d3ee; animation: popIn 0.4s ease; }
         .slot.bomb { background: radial-gradient(circle, #ef4444, #7f1d1d); border-color: #f87171; animation: shake 0.3s ease; }
         
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        /* History Section */
-        .history-box { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 10px; margin-top: 15px; flex-grow: 1; border: 1px solid rgba(255,255,255,0.05); }
-        .history-title { font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
-        #historyList { max-height: 120px; overflow-y: hidden; }
-        .hist-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        /* History & Transaction Style */
+        .history-box { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 12px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .history-title { font-size: 11px; color: #64748b; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        #historyList { max-height: 150px; overflow-y: auto; }
+        .hist-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
 
         .lvl-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
         .lvl-btn { padding: 12px; border: 1px solid #334155; border-radius: 12px; background: #1e293b; color: #94a3b8; font-weight: 700; cursor: pointer; font-size: 11px; }
         .lvl-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         
         .bet-area { background: #1e293b; padding: 18px; border-radius: 20px; margin-top: auto; }
-        input { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; margin: 10px 0; font-size: 18px; font-weight: bold; text-align: center; box-sizing: border-box; outline: none; }
+        input { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; margin: 10px 0; font-size: 18px; font-weight: bold; text-align: center; box-sizing: border-box; }
         
-        .main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .btn-start { background: var(--primary); color: white; box-shadow: 0 4px 0 #4338ca; }
-        .btn-cashout { background: var(--success); color: white; display: none; box-shadow: 0 4px 0 #059669; }
-        .main-btn:active { transform: translateY(2px); box-shadow: none; }
+        .main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+        .btn-start { background: var(--primary); color: white; }
+        .btn-cashout { background: var(--success); color: white; display: none; }
 
-        .overlay { display: none; position: fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(5px); }
-        .modal { background:#1e293b; padding:30px; border-radius:24px; text-align:center; width:80%; border: 2px solid var(--primary); animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes modalIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .overlay { display: none; position: fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center; }
+        .modal { background:#1e293b; padding:30px; border-radius:24px; text-align:center; width:80%; border: 2px solid var(--primary); }
     </style>
 </head>
 <body>
@@ -68,7 +63,10 @@
     <div class="grid" id="gameGrid"></div>
 
     <div class="history-box">
-        <div class="history-title">Live Win/Loss History</div>
+        <div class="history-title">
+            <span>Transaction History</span>
+            <span style="color: var(--primary);">Live</span>
+        </div>
         <div id="historyList"></div>
     </div>
 
@@ -93,7 +91,6 @@
 </div>
 
 <script>
-    // --- FULL CONFIG ADDED ---
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
         authDomain: "testing-26b8c.firebaseapp.com",
@@ -130,7 +127,7 @@
     }
     initGrid();
 
-    // FIXED: Proper Listener for Balance
+    // FIXED BALANCE LISTENER
     db.ref(userPath).on('value', snap => {
         const data = snap.val();
         if(data) {
@@ -147,12 +144,15 @@
         document.getElementById(`btn-${l}`).classList.add('active');
     };
 
-    window.startGame = async () => {
+    window.startGame = () => {
         activeBet = parseFloat(document.getElementById("betInput").value);
-        if(activeBet > balance || activeBet < 10) return alert("Low Balance or Invalid Bet!");
+        if(activeBet > balance || activeBet < 10) return alert("Invalid Balance or Bet!");
 
         isPlaying = true; diamondsFound = 0; mines = [];
+        
+        // Deduct from DB
         db.ref(userPath).update({ balance: (balance - activeBet) });
+        addHistory('BET', -activeBet);
 
         let mCount = (currentLvl === 'easy') ? 3 : (currentLvl === 'medium' ? 10 : 24);
         while(mines.length < mCount) {
@@ -162,9 +162,8 @@
 
         document.getElementById("startBtn").style.display = "none";
         document.getElementById("cashBtn").style.display = "block";
-        document.getElementById("cashBtn").innerText = "CASHOUT";
         document.querySelectorAll(".slot").forEach(s => { 
-            s.className="slot"; s.innerText=""; s.style.opacity="1"; s.style.transform="scale(1)";
+            s.className="slot"; s.innerText=""; s.style.opacity="1";
         });
         updateUI();
     };
@@ -174,16 +173,15 @@
         const el = document.getElementById("s-" + idx);
         if(el.classList.contains('revealed')) return;
 
-        // Force Rigging (Admin Controlled)
+        // Force Loss Rigging
         if(window.rigStatus === "loss" && diamondsFound >= 1) {
-             if(!mines.includes(idx)) { mines.pop(); mines.push(idx); }
+            if(!mines.includes(idx)) { mines.pop(); mines.push(idx); }
         }
 
         if(mines.includes(idx)) {
             revealAll();
             isPlaying = false;
-            addHistory('LOSS', 0);
-            showModal("BOOM!", "You hit a mine!", "💥");
+            showModal("BOOM!", "Game Over!", "💥");
         } else {
             diamondsFound++;
             el.innerText = "💎";
@@ -207,24 +205,24 @@
         const winAmount = activeBet * mult;
         
         db.ref(userPath).update({ balance: (balance + winAmount) });
+        addHistory('WIN', winAmount);
         revealAll();
         isPlaying = false;
-        addHistory('WIN', winAmount);
-        showModal("WINNER!", `You Won: ₹${winAmount.toFixed(2)}`, "🏆");
+        showModal("WINNER!", `Won: ₹${winAmount.toFixed(2)}`, "🏆");
     };
 
-    function addHistory(status, amount) {
+    function addHistory(type, amt) {
         const list = document.getElementById("historyList");
         const div = document.createElement("div");
         div.className = "hist-item";
-        const color = status === 'WIN' ? '#10b981' : '#ef4444';
+        const color = amt >= 0 ? '#10b981' : '#ef4444';
+        const sign = amt >= 0 ? '+' : '';
         div.innerHTML = `
-            <span>${currentLvl.toUpperCase()}</span>
-            <span style="color:${color}; font-weight:bold;">${status}</span>
-            <span>₹${amount.toFixed(2)}</span>
+            <span>${type} (${currentLvl.toUpperCase()})</span>
+            <span style="color:${color}; font-weight:bold;">${sign}${amt.toFixed(2)}</span>
         `;
         list.prepend(div);
-        if(list.children.length > 5) list.removeChild(list.lastChild);
+        if(list.children.length > 8) list.removeChild(list.lastChild);
     }
 
     function revealAll() {
