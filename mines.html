@@ -3,43 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Mines Master - Wallet Fix</title>
+    <title>Mines VIP - Auth Wallet</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --accent: #fbbf24; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 400px; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px; border-radius: 15px; border: 1px solid #334155; }
-        .balance-box { text-align: right; }
-        .balance-amt { font-size: 24px; font-weight: 900; color: var(--accent); }
-        .status-tag { font-size: 10px; background: #10b981; padding: 2px 8px; border-radius: 10px; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0; }
-        .slot { aspect-ratio: 1; background: #1e293b; border-radius: 8px; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .container { width: 100%; max-width: 400px; padding: 20px; text-align: center; }
+        
+        /* Auth Screen */
+        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; }
+        .google-btn { background: white; color: black; padding: 12px 24px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+
+        /* Game Screen */
+        #game-screen { display: none; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px; }
+        .balance-amt { font-size: 22px; font-weight: 900; color: var(--accent); }
+        .user-info { font-size: 10px; color: #94a3b8; text-align: left; }
+
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+        .slot { aspect-ratio: 1; background: #1e293b; border-radius: 8px; border: 2px solid #334155; }
         .controls { background: #1e293b; padding: 20px; border-radius: 20px; }
         input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 10px; margin-bottom: 10px; text-align: center; font-size: 18px; }
-        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .main-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <div>
-            <div style="font-weight: 800;">MINES <span style="color:var(--primary)">PRO</span></div>
-            <div id="userLabel" style="font-size: 10px; color: #94a3b8;">ID: 9117748052</div>
-        </div>
-        <div class="balance-box">
-            <span class="status-tag" id="syncStatus">CONNECTING...</span>
-            <div class="balance-amt">₹<span id="balDisplay">0.00</span></div>
-        </div>
+    <div id="auth-screen">
+        <h2 style="color: var(--primary);">MINES <span style="color:white">PRO</span></h2>
+        <p style="color: #94a3b8;">Login with Gmail to sync your wallet</p>
+        <button class="google-btn" onclick="login()">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="20">
+            Sign in with Google
+        </button>
     </div>
 
-    <div class="grid" id="mineGrid"></div>
+    <div id="game-screen">
+        <div class="header">
+            <div class="user-info">
+                <span id="userEmail" style="color: white; font-weight: bold;">User</span><br>
+                <span id="userID" style="font-size: 8px;">ID: ...</span>
+            </div>
+            <div class="balance-box">
+                <div style="font-size: 10px;">WALLET</div>
+                <div class="balance-amt">₹<span id="balDisplay">0.00</span></div>
+            </div>
+        </div>
 
-    <div class="controls">
-        <input type="number" id="betInput" value="10">
-        <button onclick="placeBet()">START GAME</button>
+        <div class="grid" id="mineGrid"></div>
+
+        <div class="controls">
+            <input type="number" id="betInput" value="10">
+            <button class="main-btn" onclick="placeBet()">START GAME</button>
+            <button onclick="logout()" style="background:none; color: #ff4d4d; border:none; margin-top:15px; cursor:pointer;">Logout</button>
+        </div>
     </div>
 </div>
 
@@ -55,64 +75,71 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.database();
-    const phone = "9117748052"; // Ye number aapke database mein hona chahiye
 
+    let currentUser = null;
     let balance = 0;
 
-    // --- 100% FIXED SYNC LOGIC ---
-    function syncAll() {
-        const userPath = db.ref("users/" + phone);
+    // --- GOOGLE LOGIN ---
+    function login() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(err => alert(err.message));
+    }
 
-        userPath.on('value', (snapshot) => {
-            const data = snapshot.val();
+    function logout() {
+        auth.signOut().then(() => location.reload());
+    }
+
+    // --- AUTH STATE CHECK ---
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById("auth-screen").style.display = "none";
+            document.getElementById("game-screen").style.display = "block";
+            document.getElementById("userEmail").innerText = user.displayName || user.email;
+            document.getElementById("userID").innerText = "UID: " + user.uid;
             
+            // Link to Wallet using UID
+            syncWallet(user.uid);
+        } else {
+            document.getElementById("auth-screen").style.display = "flex";
+            document.getElementById("game-screen").style.display = "none";
+        }
+    });
+
+    // --- SYNC WALLET BY UID ---
+    function syncWallet(uid) {
+        const walletRef = db.ref("users/" + uid);
+        walletRef.on('value', (snapshot) => {
+            const data = snapshot.val();
             if (data) {
-                // Agar user mil gaya
                 balance = Number(data.balance) || 0;
                 document.getElementById("balDisplay").innerText = balance.toFixed(2);
-                document.getElementById("syncStatus").innerText = "ONLINE";
-                document.getElementById("syncStatus").style.background = "#10b981";
-                console.log("User Data Loaded:", data);
             } else {
-                // AGAR ERROR "NOT AVAILABLE" AA RAHI HAI TOH YE AUTOMATIC CREATE KAREGA
-                console.log("User not found! Creating user: " + phone);
-                userPath.set({
-                    balance: 1000, // Starting balance
-                    rigging: "normal",
-                    phone: phone
+                // If new user, create initial balance
+                walletRef.set({
+                    email: currentUser.email,
+                    balance: 100, // New user bonus
+                    rigging: "normal"
                 });
-                document.getElementById("syncStatus").innerText = "CREATED";
             }
-        }, (error) => {
-            document.getElementById("syncStatus").innerText = "ERROR";
-            document.getElementById("syncStatus").style.background = "#ef4444";
-            alert("Firebase Link Error: " + error.message);
         });
     }
 
     function initGrid() {
         const g = document.getElementById("mineGrid");
         g.innerHTML = '';
-        for(let i=0; i<25; i++) {
-            g.innerHTML += `<div class="slot"></div>`;
-        }
+        for(let i=0; i<25; i++) g.innerHTML += `<div class="slot"></div>`;
     }
-
-    window.onload = () => {
-        syncAll();
-        initGrid();
-    };
+    initGrid();
 
     function placeBet() {
         let amt = Number(document.getElementById("betInput").value);
-        if(amt > balance) return alert("Insufficient Balance!");
+        if(amt > balance) return alert("Low Balance!");
         
-        // Update balance in Firebase
-        db.ref("users/" + phone).update({
+        db.ref("users/" + currentUser.uid).update({
             balance: balance - amt
-        }).then(() => {
-            alert("Bet Placed! Balance Updated in Database.");
         });
     }
 </script>
