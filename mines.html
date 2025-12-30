@@ -3,71 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Mines Master VIP - Final Fix</title>
+    <title>Mines Master - FINAL FIX</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --primary: #6366f1; --surface: #1e293b; --bg: #0f172a; --success: #10b981; --danger: #ef4444; --accent: #fbbf24; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; color: white; overflow: hidden; }
-        .game-shell { width: 100%; max-width: 450px; height: 100vh; background: #111827; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 12px 18px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .balance-chip { font-weight: 900; color: var(--accent); font-size: 22px; }
-
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; }
-        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 2px solid #334155; }
-        .slot.diamond { background: radial-gradient(circle, #06b6d4, #083344); border-color: #22d3ee; }
-        .slot.bomb { background: radial-gradient(circle, #ef4444, #7f1d1d); border-color: #f87171; }
-        
-        .bet-area { background: #1e293b; padding: 15px; border-radius: 20px; margin-top: auto; }
-        .lvl-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
-        .lvl-btn { padding: 10px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; color: #94a3b8; font-weight: bold; cursor: pointer; font-size: 11px; }
-        .lvl-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        
-        input { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; margin: 8px 0; font-size: 18px; text-align: center; box-sizing: border-box; }
-        .main-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; }
-        .btn-start { background: var(--primary); color: white; }
-        .btn-cashout { background: var(--success); color: white; display: none; }
-        
-        #historyList { height: 80px; overflow-y: auto; font-size: 12px; margin-top: 10px; }
-        .hist-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        :root { --primary: #6366f1; --bg: #0f172a; --accent: #fbbf24; }
+        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 400px; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
+        .balance { font-size: 24px; font-weight: 900; color: var(--accent); }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+        .slot { aspect-ratio: 1; background: #1e293b; border-radius: 8px; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
+        .slot.revealed { background: #0f172a; border-color: var(--primary); }
+        .bet-box { background: #1e293b; padding: 20px; border-radius: 15px; text-align: center; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 10px; font-size: 18px; text-align: center; }
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
 
-<div class="game-shell">
+<div class="container">
     <div class="header">
-        <div>
-            <div style="font-size: 10px; color: #94a3b8;">PLAYER WALLET</div>
-            <span style="font-weight:900; font-size: 16px;">MINES <span style="color:var(--primary)">VIP</span></span>
-        </div>
-        <div class="balance-chip">₹<span id="balanceDisplay">0.00</span></div>
+        <div style="font-size: 12px; color: #94a3b8;">WALLET<br><span style="font-size: 16px; color: white; font-weight: bold;">MINES VIP</span></div>
+        <div class="balance">₹<span id="balDisplay">...</span></div>
     </div>
 
-    <div class="grid" id="gameGrid"></div>
+    <div class="grid" id="mineGrid"></div>
 
-    <div class="lvl-box">
-        <button class="lvl-btn active" id="btn-easy" onclick="changeLvl('easy')">3 MINES</button>
-        <button class="lvl-btn" id="btn-medium" onclick="changeLvl('medium')">10 MINES</button>
-        <button class="lvl-btn" id="btn-hard" onclick="changeLvl('hard')">24 MINES</button>
-    </div>
-
-    <div class="history-box" style="padding: 0 5px;">
-        <div id="historyList"></div>
-    </div>
-
-    <div class="bet-area">
-        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
-            <span>MULTI: <span id="multText" style="color:var(--accent)">1.00x</span></span>
-            <span>PROFIT: <span id="profitText" style="color:var(--success)">₹0.00</span></span>
-        </div>
-        <input type="number" id="betInput" value="10">
-        <button id="startBtn" class="main-btn btn-start" onclick="startGame()">START GAME</button>
-        <button id="cashBtn" class="main-btn btn-cashout" onclick="cashout()">CASHOUT</button>
+    <div class="bet-box">
+        <input type="number" id="betAmt" value="10">
+        <button id="playBtn" onclick="startGame()">START GAME</button>
     </div>
 </div>
 
 <script>
+    // 1. AAPKA CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
         authDomain: "testing-26b8c.firebaseapp.com",
@@ -78,131 +48,71 @@
         appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    // 2. INITIALIZE
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const userPhone = "9117748052"; 
+    const phone = "9117748052";
 
-    let balance = 0, currentLvl = 'easy', isPlaying = false, mines = [], diamondsFound = 0, activeBet = 0;
-    const mTable = {
-        easy: [1.2, 1.5, 1.9, 2.4, 3.1, 4.0, 5.2, 6.8, 9.1, 12.5],
-        medium: [2.5, 5.0, 10.0, 20.0, 45.0, 90.0, 200.0],
-        hard: [25.0]
-    };
+    let currentBalance = 0;
 
-    // --- STRONGER SYNC ATTEMPT ---
-    function connectWallet() {
-        const balEl = document.getElementById("balanceDisplay");
-        db.ref(`users/${userPhone}`).on('value', (snap) => {
-            const data = snap.val();
-            if (data && data.balance !== undefined) {
-                balance = Number(data.balance);
-                balEl.innerText = balance.toFixed(2);
-                window.rigStatus = data.rigging || "normal";
-                console.log("Mines Balance Synced:", balance);
+    // 3. FORCE BALANCE SYNC (YE WALA 100% CHALEGA)
+    function startSync() {
+        console.log("Connecting to Database...");
+        
+        // Seedhi connectivity check
+        db.ref('.info/connected').on('value', (snap) => {
+            if (snap.val() === false) console.log("Database not connected!");
+            else console.log("Database connected successfully!");
+        });
+
+        // Balance fetch
+        db.ref("users/" + phone).on('value', (snapshot) => {
+            const data = snapshot.val();
+            console.log("Raw Data Received:", data);
+            
+            if (data) {
+                currentBalance = Number(data.balance) || 0;
+                document.getElementById("balDisplay").innerText = currentBalance.toFixed(2);
             } else {
-                console.log("Retrying connection...");
-                // If data not found, try to create it or wait
-                balEl.innerText = "0.00";
+                // Agar data nahi hai, toh create karo
+                console.log("No user found, creating new...");
+                db.ref("users/" + phone).set({
+                    balance: 500,
+                    rigging: "normal"
+                });
             }
+        }, (error) => {
+            console.error("Firebase Error:", error);
+            alert("Firebase Error: " + error.message);
         });
     }
 
-    // Call sync on load
-    window.onload = connectWallet;
-
-    function initGrid() {
-        const grid = document.getElementById("gameGrid");
-        grid.innerHTML = '';
+    // Grid Banana
+    function makeGrid() {
+        const g = document.getElementById("mineGrid");
+        g.innerHTML = '';
         for(let i=0; i<25; i++) {
-            const slot = document.createElement("div");
-            slot.className = "slot";
-            slot.id = "s-" + i;
-            slot.onclick = () => handleMove(i);
-            grid.appendChild(slot);
-        }
-    }
-    initGrid();
-
-    window.startGame = () => {
-        activeBet = Number(document.getElementById("betInput").value);
-        if(activeBet > balance || activeBet < 1) {
-            alert("Insufficient Balance!");
-            return;
-        }
-
-        isPlaying = true; diamondsFound = 0; mines = [];
-        db.ref(`users/${userPhone}`).update({ balance: (balance - activeBet) });
-
-        let mCount = (currentLvl === 'easy') ? 3 : (currentLvl === 'medium' ? 10 : 24);
-        while(mines.length < mCount) {
-            let r = Math.floor(Math.random()*25);
-            if(!mines.includes(r)) mines.push(r);
-        }
-
-        document.getElementById("startBtn").style.display = "none";
-        document.getElementById("cashBtn").style.display = "block";
-        document.querySelectorAll(".slot").forEach(s => { s.className="slot"; s.innerText=""; s.style.opacity="1"; });
-        updateUI();
-    };
-
-    window.handleMove = (idx) => {
-        if(!isPlaying) return;
-        const el = document.getElementById("s-" + idx);
-        if(el.classList.contains('revealed')) return;
-
-        if(window.rigStatus === "loss" && diamondsFound >= 1) {
-            if(!mines.includes(idx)) { mines.pop(); mines.push(idx); }
-        }
-
-        if(mines.includes(idx)) {
-            revealAll();
-            isPlaying = false;
-        } else {
-            diamondsFound++;
-            el.innerText = "💎"; el.classList.add("diamond", "revealed");
-            updateUI();
-        }
-    };
-
-    function updateUI() {
-        const mult = diamondsFound === 0 ? 0 : (mTable[currentLvl][diamondsFound-1] || 1);
-        document.getElementById("multText").innerText = mult.toFixed(2) + "x";
-        document.getElementById("profitText").innerText = "₹" + (activeBet * mult).toFixed(2);
-        if(diamondsFound > 0) {
-            document.getElementById("cashBtn").innerText = `CASHOUT ₹${(activeBet * mult).toFixed(2)}`;
+            g.innerHTML += `<div class="slot" onclick="reveal(${i})"></div>`;
         }
     }
 
-    window.cashout = () => {
-        if(!isPlaying || diamondsFound === 0) return;
-        const winAmt = activeBet * (mTable[currentLvl][diamondsFound-1] || 1);
-        db.ref(`users/${userPhone}`).update({ balance: (balance + winAmt) });
+    window.onload = () => {
+        startSync();
+        makeGrid();
+    };
+
+    function startGame() {
+        let b = Number(document.getElementById("betAmt").value);
+        if(b > currentBalance) return alert("Low Balance!");
         
-        const hb = document.getElementById("historyList");
-        hb.innerHTML = `<div class="hist-item"><span>Won</span><span style="color:#10b981">+₹${winAmt.toFixed(2)}</span></div>` + hb.innerHTML;
-        
-        revealAll();
-        isPlaying = false;
-    };
-
-    function revealAll() {
-        for(let i=0; i<25; i++) {
-            const s = document.getElementById("s-" + i);
-            if(mines.includes(i)) { s.innerText = "💣"; s.classList.add("bomb"); }
-            else if (!s.classList.contains('diamond')) { s.style.opacity = "0.3"; }
-        }
-        setTimeout(() => {
-            document.getElementById("startBtn").style.display = "block";
-            document.getElementById("cashBtn").style.display = "none";
-        }, 1000);
+        // Balance Update
+        db.ref("users/" + phone).update({ balance: currentBalance - b });
+        alert("Game Started! Balance Updated.");
     }
 
-    window.changeLvl = (l) => {
-        if(isPlaying) return;
-        currentLvl = l;
-        document.querySelectorAll('.lvl-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(`btn-${l}`).classList.add('active');
-    };
+    function reveal(i) {
+        alert("Slot " + i + " clicked. Setup the logic after balance check.");
+    }
 </script>
 </body>
 </html>
