@@ -108,11 +108,11 @@
                 </select>
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="btn btn-green" id="forceGreen">Green</button>
-                <button class="btn btn-red" id="forceRed">Red</button>
-                <button class="btn" style="background:orange" id="forceBig">Big</button>
-                <button class="btn" style="background:orange" id="forceSmall">Small</button>
-                <button class="btn" style="background:gray" id="forceAuto">Reset Auto</button>
+                <button class="btn btn-green" onclick="rigWingo('Green')">Force Green</button>
+                <button class="btn btn-red" onclick="rigWingo('Red')">Force Red</button>
+                <button class="btn" style="background:orange" onclick="rigWingo('Big')">Force Big</button>
+                <button class="btn" style="background:orange" onclick="rigWingo('Small')">Force Small</button>
+                <button class="btn" style="background:gray" onclick="rigWingo(null)">Reset Auto</button>
             </div>
         </div>
     </div>
@@ -211,7 +211,6 @@
             document.getElementById('adminLock').style.display = 'none';
         } else { alert("Access Denied!"); }
     };
-    window.forgotPass = () => { alert("Reset link sent to: sufih4x@gmail.com"); };
 
     // --- Navigation ---
     const navs = ['dash', 'wingo', 'users', 'refer', 'deposits', 'withdraws', 'settings'];
@@ -224,17 +223,7 @@
         };
     });
 
-    // --- Online Status ---
-    window.setAdminStatus = (status) => {
-        update(ref(db, 'admin/status'), { current: status, lastSeen: serverTimestamp() });
-    };
-    onValue(ref(db, 'admin/status'), (s) => {
-        const val = s.val()?.current || 'offline';
-        document.getElementById('statusDot').style.background = val === 'online' ? 'var(--neon-green)' : 'var(--neon-red)';
-        document.getElementById('statusText').innerText = "Status: " + val.toUpperCase();
-    });
-
-    // --- Data Sync ---
+    // --- Data Sync & Counters ---
     onValue(ref(db, '/'), (snap) => {
         const data = snap.val();
         if(!data) return;
@@ -244,6 +233,7 @@
         const referList = document.getElementById('referList');
         userList.innerHTML = ""; referList.innerHTML = "";
 
+        // Users Sync
         if(data.users) {
             for(let uid in data.users) {
                 let u = data.users[uid];
@@ -271,14 +261,13 @@
         document.getElementById('totalWallet').innerText = "₹" + uBal.toLocaleString();
         document.getElementById('adminProfit').innerText = "₹" + (totalDep - totalWith).toLocaleString();
 
+        // Requests Sync (Deposit & Withdraw)
         renderRequests(data.requests);
         
-        // --- QR Persist Fix ---
-        if(data.admin?.settings?.payment?.qr) {
-            document.getElementById('qrImg').src = data.admin.settings.payment.qr;
-        }
-        if(data.admin?.settings?.payment?.upi) {
-            document.getElementById('upiInp').value = data.admin.settings.payment.upi;
+        // Settings Sync
+        if(data.admin?.settings?.payment) {
+            if(data.admin.settings.payment.qr) document.getElementById('qrImg').src = data.admin.settings.payment.qr;
+            if(data.admin.settings.payment.upi) document.getElementById('upiInp').value = data.admin.settings.payment.upi;
         }
     });
 
@@ -288,6 +277,7 @@
         dL.innerHTML = ""; dH.innerHTML = ""; wL.innerHTML = ""; wH.innerHTML = "";
         let pCount = 0;
 
+        // Deposits
         if(reqs?.deposits) {
             Object.keys(reqs.deposits).forEach(rid => {
                 let d = reqs.deposits[rid];
@@ -299,12 +289,15 @@
                 }
             });
         }
+        
+        // Withdrawals (FIXED PATH & SYNC)
         if(reqs?.withdraws) {
             Object.keys(reqs.withdraws).forEach(rid => {
                 let w = reqs.withdraws[rid];
+                const details = w.bank ? `Bank: ${w.bank}<br>Acc: ${w.acc}` : `UPI: ${w.upi}`;
                 if(w.status === 'pending') {
                     pCount++;
-                    wL.insertAdjacentHTML('beforeend', `<tr><td>${w.phone}</td><td>₹${w.amount}</td><td>${w.upi || w.bank}</td>
+                    wL.insertAdjacentHTML('beforeend', `<tr><td>${w.phone}</td><td>₹${w.amount}</td><td>${details}</td>
                     <td>
                         <button class="badge btn-green" onclick="handleWithdraw('${rid}', '${w.uid}', 'paid')">PAID</button>
                         <button class="badge btn-blue" onclick="handleWithdraw('${rid}', '${w.uid}', 'refund', ${w.amount})">REFUND</button>
@@ -318,20 +311,19 @@
         document.getElementById('pendingReq').innerText = pCount;
     }
 
-    // --- Actions ---
+    // --- Core Functions ---
+    window.rigWingo = (val) => {
+        const m = document.getElementById('gameTimer').value;
+        set(ref(db, `adminControl/forceResult/${m}`), val).then(() => alert(`Mode ${m} set to ${val}`));
+    };
+
     window.setRig = (uid, type) => {
-        let updateData = { forceWin: type === 'win', forceLoss: type === 'loss' };
-        if(type === 'normal') updateData = { forceWin: false, forceLoss: false };
-        update(ref(db, `users/${uid}`), updateData).then(() => alert("Luck set to: " + type));
+        update(ref(db, `users/${uid}`), { forceWin: type === 'win', forceLoss: type === 'loss' });
     };
 
     window.editBalance = (uid, old) => {
-        let n = prompt("New Balance:", old);
-        if(n !== null) update(ref(db, `users/${uid}`), { balance: parseFloat(n) });
-    };
-
-    window.toggleBan = (uid, s) => {
-        update(ref(db, `users/${uid}`), { status: s === 'banned' ? 'active' : 'banned' });
+        let n = prompt("Enter New Balance:", old);
+        if(n) update(ref(db, `users/${uid}`), { balance: parseFloat(n) });
     };
 
     window.handleDeposit = (rid, uid, amt, act) => {
@@ -342,50 +334,41 @@
     };
 
     window.handleWithdraw = (rid, uid, act, amt=0) => {
-        if(act === 'paid') { update(ref(db, `requests/withdraws/${rid}`), { status: 'paid' }); }
-        else if(act === 'refund') { 
-            update(ref(db, `users/${uid}`), { balance: increment(amt) }); 
-            update(ref(db, `requests/withdraws/${rid}`), { status: 'refunded' }); 
-        }
-        else { update(ref(db, `requests/withdraws/${rid}`), { status: 'rejected' }); }
+        if(act === 'paid') update(ref(db, `requests/withdraws/${rid}`), { status: 'paid' });
+        else if(act === 'refund') {
+            update(ref(db, `users/${uid}`), { balance: increment(amt) });
+            update(ref(db, `requests/withdraws/${rid}`), { status: 'refunded' });
+        } else update(ref(db, `requests/withdraws/${rid}`), { status: 'rejected' });
     };
 
-    // --- Payment Config Save ---
     document.getElementById('savePayBtn').onclick = () => {
         const upi = document.getElementById('upiInp').value;
         const file = document.getElementById('qrInp').files[0];
         if(file) {
             const reader = new FileReader();
-            reader.onload = () => {
-                update(ref(db, 'admin/settings/payment'), { qr: reader.result, upi: upi });
-                alert("QR & UPI Saved!");
-            };
+            reader.onload = () => update(ref(db, 'admin/settings/payment'), { qr: reader.result, upi: upi });
             reader.readAsDataURL(file);
-        } else {
-            update(ref(db, 'admin/settings/payment'), { upi: upi });
-            alert("UPI Updated!");
-        }
+        } else update(ref(db, 'admin/settings/payment'), { upi: upi });
+        alert("Payment Config Updated!");
     };
 
-    // --- Chat ---
+    // Chat Logic
     window.toggleChat = () => {
         const box = document.getElementById('chatBox');
         box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
     };
     onValue(ref(db, 'admin/chats'), (snap) => {
-        const container = document.getElementById('chatMsgs');
-        container.innerHTML = "";
-        if(snap.val()) {
+        const container = document.getElementById('chatMsgs'); container.innerHTML = "";
+        if(snap.exists()) {
             Object.values(snap.val()).forEach(m => {
-                container.insertAdjacentHTML('beforeend', `<div class="msg ${m.sender === 'admin' ? 'admin' : 'user'}"><b>${m.phone || 'User'}:</b><br>${m.text}</div>`);
+                container.insertAdjacentHTML('beforeend', `<div class="msg ${m.sender==='admin'?'admin':'user'}"><b>${m.phone || 'User'}:</b><br>${m.text}</div>`);
             });
             container.scrollTop = container.scrollHeight;
         }
     });
     window.sendChat = () => {
         const text = document.getElementById('chatInput').value;
-        if(!text) return;
-        push(ref(db, 'admin/chats'), { sender: 'admin', text: text, timestamp: serverTimestamp() });
+        if(text) push(ref(db, 'admin/chats'), { sender: 'admin', text: text, timestamp: serverTimestamp() });
         document.getElementById('chatInput').value = "";
     };
 
