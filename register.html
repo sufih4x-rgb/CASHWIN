@@ -8,90 +8,15 @@
     <style>
         :root { --p-red: #ff6b6b; --g-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        
         body { background-color: #f8f9fe; padding-bottom: 50px; }
-
         .header { background: var(--g-red); height: 150px; padding: 20px; color: white; text-align: center; }
         .logo-text { font-size: 28px; font-weight: 900; color: #ffeb3b; font-style: italic; margin-bottom: 5px; }
-        
-        .container { 
-            background: white; 
-            margin: -30px 15px 0 15px; 
-            border-radius: 20px; 
-            padding: 20px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            position: relative;
-        }
-        
-        .reg-tabs { 
-            display: flex; 
-            background: #eee; 
-            border-radius: 10px; 
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .tab-btn { 
-            flex: 1; 
-            padding: 12px; 
-            border: none; 
-            background: none; 
-            font-weight: bold; 
-            color: #666;
-            cursor: pointer;
-            font-size: 15px;
-        }
-        .tab-btn.active { 
-            background: white; 
-            color: var(--p-red); 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-        }
-
-        .input-box {
-            display: flex;
-            align-items: center;
-            background: #fdfdfd;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 5px 15px;
-            margin-bottom: 15px;
-        }
+        .container { background: white; margin: -30px 15px 0 15px; border-radius: 20px; padding: 25px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        .form-title { text-align: center; font-weight: bold; color: #333; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid var(--p-red); display: inline-block; width: 100%; padding-bottom: 10px; }
+        .input-box { display: flex; align-items: center; background: #fdfdfd; border: 1px solid #ddd; border-radius: 12px; padding: 5px 15px; margin-bottom: 15px; }
         .input-box i { color: var(--p-red); width: 20px; }
-        input {
-            flex: 1;
-            border: none;
-            padding: 12px;
-            outline: none;
-            font-size: 15px;
-            background: transparent;
-        }
-
-        .otp-btn {
-            background: var(--g-red);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .otp-btn:disabled { background: #ccc; }
-
-        .btn-register {
-            background: var(--g-red);
-            color: white;
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
-            box-shadow: 0 5px 15px rgba(255,107,107,0.3);
-            cursor: pointer;
-        }
-
-        #emailInputSection { display: none; }
+        input { flex: 1; border: none; padding: 12px; outline: none; font-size: 15px; background: transparent; }
+        .btn-register { background: var(--g-red); color: white; width: 100%; padding: 15px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; margin-top: 10px; box-shadow: 0 5px 15px rgba(255,107,107,0.3); cursor: pointer; }
     </style>
 </head>
 <body>
@@ -102,24 +27,17 @@
     </div>
 
     <div class="container">
-        <div class="reg-tabs">
-            <button class="tab-btn active" id="btnPhone">Phone</button>
-            <button class="tab-btn" id="btnEmail">Email</button>
+        <div class="form-title">REGISTER</div>
+
+        <div class="input-box">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="regEmail" placeholder="Enter Email Address">
         </div>
 
-        <div id="phoneInputSection">
-            <div class="input-box">
-                <i class="fas fa-phone-alt"></i>
-                <span style="font-weight:bold; margin:0 10px;">+91</span>
-                <input type="number" id="regPhone" placeholder="Mobile number">
-            </div>
-        </div>
-
-        <div id="emailInputSection">
-            <div class="input-box">
-                <i class="fas fa-envelope"></i>
-                <input type="email" id="regEmail" placeholder="Enter Email Address">
-            </div>
+        <div class="input-box">
+            <i class="fas fa-phone-alt"></i>
+            <span style="font-weight:bold; margin:0 10px;">+91</span>
+            <input type="number" id="regPhone" placeholder="Mobile Number">
         </div>
 
         <div class="input-box">
@@ -132,14 +50,6 @@
             <input type="text" id="inviteCode" placeholder="Invite Code (Optional)">
         </div>
 
-        <div class="input-box">
-            <i class="fas fa-shield-alt"></i>
-            <input type="number" id="otpInp" placeholder="Verification Code">
-            <button class="otp-btn" id="sendOtpBtn">Send</button>
-        </div>
-
-        <div id="recaptcha-container"></div>
-
         <button class="btn-register" id="finalRegBtn">Register Now</button>
         
         <p style="text-align:center; margin-top:20px; font-size:14px;">
@@ -149,8 +59,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
@@ -164,123 +74,47 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        let mode = 'phone';
-        let confirmationResult = null;
-
-        // Initialize Recaptcha once
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible'
-        });
-
-        // Tab Switching
-        document.getElementById('btnPhone').onclick = () => {
-            mode = 'phone';
-            document.getElementById('btnPhone').classList.add('active');
-            document.getElementById('btnEmail').classList.remove('active');
-            document.getElementById('phoneInputSection').style.display = 'block';
-            document.getElementById('emailInputSection').style.display = 'none';
-        };
-
-        document.getElementById('btnEmail').onclick = () => {
-            mode = 'email';
-            document.getElementById('btnEmail').classList.add('active');
-            document.getElementById('btnPhone').classList.remove('active');
-            document.getElementById('phoneInputSection').style.display = 'none';
-            document.getElementById('emailInputSection').style.display = 'block';
-        };
-
-        // OTP Send Logic
-        document.getElementById('sendOtpBtn').onclick = async () => {
-            const btn = document.getElementById('sendOtpBtn');
-            btn.disabled = true;
-            btn.innerText = "Wait...";
-
-            if (mode === 'phone') {
-                const phone = document.getElementById('regPhone').value;
-                if(phone.length !== 10) {
-                    alert("Enter 10 digit phone!");
-                    btn.disabled = false;
-                    btn.innerText = "Send";
-                    return;
-                }
-
-                signInWithPhoneNumber(auth, "+91" + phone, window.recaptchaVerifier)
-                    .then(res => {
-                        confirmationResult = res;
-                        alert("SMS Sent successfully!");
-                        btn.innerText = "Resend";
-                        btn.disabled = false;
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert("Error: SMS Limit reached or Domain not whitelisted in Firebase Console.");
-                        btn.disabled = false;
-                        btn.innerText = "Send";
-                    });
-            } else {
-                const email = document.getElementById('regEmail').value;
-                if(!email.includes('@')) {
-                    alert("Enter valid email!");
-                    btn.disabled = false;
-                    btn.innerText = "Send";
-                    return;
-                }
-                const otp = Math.floor(100000 + Math.random() * 900000);
-                localStorage.setItem('emailOTP', otp);
-                alert("TESTING: Your Email OTP is " + otp);
-                btn.innerText = "Sent";
-                btn.disabled = false;
-            }
-        };
-
-        // Final Registration
         document.getElementById('finalRegBtn').onclick = async () => {
-            const otp = document.getElementById('otpInp').value;
-            const pass = document.getElementById('regPass').value;
-            const phone = document.getElementById('regPhone').value;
             const email = document.getElementById('regEmail').value;
+            const phone = document.getElementById('regPhone').value;
+            const pass = document.getElementById('regPass').value;
             const invite = document.getElementById('inviteCode').value || "Direct";
 
-            if(!otp || pass.length < 6) return alert("Fill all fields correctly!");
+            // Basic Validation
+            if(!email.includes('@')) return alert("Please enter a valid Email!");
+            if(phone.length !== 10) return alert("Please enter 10-digit Mobile Number!");
+            if(pass.length < 6) return alert("Password must be at least 6 characters!");
 
-            if (mode === 'phone') {
-                if(!confirmationResult) return alert("Please send OTP first!");
-                confirmationResult.confirm(otp)
-                    .then(() => doRegister(phone, invite, pass))
-                    .catch(() => alert("Wrong SMS OTP!"));
-            } else {
-                if(otp === localStorage.getItem('emailOTP')) {
-                    doRegister(email.replace(/[.@]/g, "_"), invite, pass);
-                } else {
-                    alert("Wrong Email OTP!");
-                }
-            }
-        };
-
-        async function doRegister(id, invite, pass) {
             try {
-                // Check existing user
-                const snapshot = await get(ref(db, 'users/' + id));
-                if(snapshot.exists()) return alert("User already exists!");
+                // 1. Firebase Auth mein User create karo
+                const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = userCred.user;
 
-                await set(ref(db, 'users/' + id), {
-                    phone: mode === 'phone' ? id : "N/A",
-                    email: mode === 'email' ? id : "N/A",
-                    password: pass,
+                // 2. Gmail par Verification Link bhejo
+                await sendEmailVerification(user);
+                
+                // 3. Database mein user ka data 'Pending' status ke sath save karo
+                // Hum UID ko key banayenge taaki unique rahe
+                await set(ref(db, 'users/' + user.uid), {
+                    uid: user.uid,
+                    email: email,
+                    phone: phone,
+                    password: pass, // Optional: Security ke liye save na karein toh behtar hai
                     balance: 0,
-                    vip: 0,
-                    status: 'active',
+                    status: 'pending_verification',
                     referredBy: invite,
+                    emailVerified: false,
                     joinDate: new Date().toLocaleString()
                 });
 
-                alert("Account Created!");
-                localStorage.setItem('userPhone', id);
+                alert("Success! A verification link has been sent to " + email + ". Please verify your email to activate your account.");
                 window.location.href = "login.html";
-            } catch (e) {
-                alert("Database Error: " + e.message);
+
+            } catch (error) {
+                console.error(error);
+                alert("Error: " + error.message);
             }
-        }
+        };
     </script>
 </body>
 </html>
