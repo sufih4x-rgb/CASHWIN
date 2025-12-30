@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Mines Master VIP - Secure</title>
+    <title>Mines Master VIP - Balance Fixed</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -11,30 +11,28 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; color: white; overflow-x: hidden; }
         .game-shell { width: 100%; max-width: 450px; min-height: 100vh; background: #111827; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .balance-chip { font-weight: 800; color: var(--accent); font-size: 18px; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
-        
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; }
-        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 2px solid #334155; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .slot.diamond { background: radial-gradient(circle, #06b6d4, #083344); border-color: #22d3ee; animation: popIn 0.4s ease; }
-        .slot.bomb { background: radial-gradient(circle, #ef4444, #7f1d1d); border-color: #f87171; animation: shake 0.3s ease; }
-        
-        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        /* Header & Balance */
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .balance-chip { font-weight: 900; color: var(--accent); font-size: 20px; transition: 0.3s; }
+        .balance-chip.update { transform: scale(1.1); color: #fff; }
 
-        /* History & Transaction Style */
-        .history-box { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 12px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .history-title { font-size: 11px; color: #64748b; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        #historyList { max-height: 150px; overflow-y: auto; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; }
+        .slot { aspect-ratio: 1 / 1; background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 2px solid #334155; transition: 0.2s; }
+        .slot.diamond { background: radial-gradient(circle, #06b6d4, #083344); border-color: #22d3ee; }
+        .slot.bomb { background: radial-gradient(circle, #ef4444, #7f1d1d); border-color: #f87171; }
+        
+        /* History */
+        .history-box { background: rgba(0,0,0,0.2); border-radius: 15px; padding: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05); flex-grow: 1; }
+        .history-title { font-size: 11px; color: #64748b; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
+        #historyList { max-height: 120px; overflow-y: auto; }
         .hist-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
 
         .lvl-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
         .lvl-btn { padding: 12px; border: 1px solid #334155; border-radius: 12px; background: #1e293b; color: #94a3b8; font-weight: 700; cursor: pointer; font-size: 11px; }
-        .lvl-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .lvl-btn.active { background: var(--primary); color: white; }
         
         .bet-area { background: #1e293b; padding: 18px; border-radius: 20px; margin-top: auto; }
         input { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; margin: 10px 0; font-size: 18px; font-weight: bold; text-align: center; box-sizing: border-box; }
-        
         .main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 900; cursor: pointer; text-transform: uppercase; }
         .btn-start { background: var(--primary); color: white; }
         .btn-cashout { background: var(--success); color: white; display: none; }
@@ -48,8 +46,8 @@
 <div class="game-shell">
     <div class="header">
         <div>
-            <div style="font-size: 10px; color: #94a3b8;">VIP MASTER</div>
-            <span style="font-weight:900; font-size: 16px;">MINES <span style="color:var(--primary)">VIP</span></span>
+            <div style="font-size: 10px; color: #94a3b8;">VIP PLAYER</div>
+            <span style="font-weight:900; font-size: 16px;">MINES <span style="color:var(--primary)">MASTER</span></span>
         </div>
         <div class="balance-chip">₹<span id="balanceDisplay">0.00</span></div>
     </div>
@@ -63,19 +61,16 @@
     <div class="grid" id="gameGrid"></div>
 
     <div class="history-box">
-        <div class="history-title">
-            <span>Transaction History</span>
-            <span style="color: var(--primary);">Live</span>
-        </div>
+        <div class="history-title">Transaction Log</div>
         <div id="historyList"></div>
     </div>
 
     <div class="bet-area">
         <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;">
-            <span>MULT: <span id="multText" style="color:var(--accent)">1.00x</span></span>
+            <span>MULTI: <span id="multText" style="color:var(--accent)">1.00x</span></span>
             <span>PROFIT: <span id="profitText" style="color:var(--success)">₹0.00</span></span>
         </div>
-        <input type="number" id="betInput" value="10">
+        <input type="number" id="betInput" value="10" min="10">
         <button id="startBtn" class="main-btn btn-start" onclick="startGame()">START GAME</button>
         <button id="cashBtn" class="main-btn btn-cashout" onclick="cashout()">CASHOUT</button>
     </div>
@@ -107,12 +102,27 @@
     const userPath = `users/${userPhone}`;
 
     let balance = 0, currentLvl = 'easy', isPlaying = false, mines = [], diamondsFound = 0, activeBet = 0;
-    
     const mTable = {
         easy: [0.70, 0.85, 1.05, 1.25, 1.50, 1.80, 2.10, 2.50, 3.00, 3.50, 4.00, 4.50, 5.00, 5.50, 6.00, 6.50, 7.00, 7.50, 8.00, 8.50, 9.20, 10.00],
         medium: [1.50, 2.50, 3.80, 5.00, 6.50, 7.80, 8.50, 9.20, 10.00, 12.00, 15.00, 20.00, 30.00, 50.00, 100.00],
         hard: [25.00]
     };
+
+    // --- FIX: Stronger Balance Listener ---
+    db.ref(userPath).on('value', (snap) => {
+        const data = snap.val();
+        if (data) {
+            // Force conversion to Number to avoid string errors
+            balance = Number(data.balance) || 0; 
+            document.getElementById("balanceDisplay").innerText = balance.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            window.rigStatus = data.rigging || "normal";
+            
+            // Visual feedback of balance update
+            const chip = document.querySelector('.balance-chip');
+            chip.classList.add('update');
+            setTimeout(() => chip.classList.remove('update'), 300);
+        }
+    });
 
     function initGrid() {
         const grid = document.getElementById("gameGrid");
@@ -127,32 +137,17 @@
     }
     initGrid();
 
-    // FIXED BALANCE LISTENER
-    db.ref(userPath).on('value', snap => {
-        const data = snap.val();
-        if(data) {
-            balance = parseFloat(data.balance) || 0;
-            document.getElementById("balanceDisplay").innerText = balance.toFixed(2);
-            window.rigStatus = data.rigging || "normal"; 
-        }
-    });
-
-    window.changeLvl = (l) => {
-        if(isPlaying) return;
-        currentLvl = l;
-        document.querySelectorAll('.lvl-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(`btn-${l}`).classList.add('active');
-    };
-
     window.startGame = () => {
         activeBet = parseFloat(document.getElementById("betInput").value);
-        if(activeBet > balance || activeBet < 10) return alert("Invalid Balance or Bet!");
+        if(activeBet > balance || activeBet < 10) {
+            return alert("Insufficient balance! Please deposit.");
+        }
 
         isPlaying = true; diamondsFound = 0; mines = [];
         
-        // Deduct from DB
+        // Deduct from Database immediately
         db.ref(userPath).update({ balance: (balance - activeBet) });
-        addHistory('BET', -activeBet);
+        addHistory('Bet Placed', -activeBet);
 
         let mCount = (currentLvl === 'easy') ? 3 : (currentLvl === 'medium' ? 10 : 24);
         while(mines.length < mCount) {
@@ -162,9 +157,7 @@
 
         document.getElementById("startBtn").style.display = "none";
         document.getElementById("cashBtn").style.display = "block";
-        document.querySelectorAll(".slot").forEach(s => { 
-            s.className="slot"; s.innerText=""; s.style.opacity="1";
-        });
+        document.querySelectorAll(".slot").forEach(s => { s.className="slot"; s.innerText=""; s.style.opacity="1"; });
         updateUI();
     };
 
@@ -173,7 +166,7 @@
         const el = document.getElementById("s-" + idx);
         if(el.classList.contains('revealed')) return;
 
-        // Force Loss Rigging
+        // Force Loss Rigging logic
         if(window.rigStatus === "loss" && diamondsFound >= 1) {
             if(!mines.includes(idx)) { mines.pop(); mines.push(idx); }
         }
@@ -181,7 +174,7 @@
         if(mines.includes(idx)) {
             revealAll();
             isPlaying = false;
-            showModal("BOOM!", "Game Over!", "💥");
+            showModal("BOOM!", "Better luck next time!", "💣");
         } else {
             diamondsFound++;
             el.innerText = "💎";
@@ -204,25 +197,28 @@
         const mult = mTable[currentLvl][diamondsFound-1] || 1;
         const winAmount = activeBet * mult;
         
+        // Add win to Database
         db.ref(userPath).update({ balance: (balance + winAmount) });
-        addHistory('WIN', winAmount);
+        addHistory('Game Won', winAmount);
+        
         revealAll();
         isPlaying = false;
-        showModal("WINNER!", `Won: ₹${winAmount.toFixed(2)}`, "🏆");
+        showModal("WINNER!", `Credited ₹${winAmount.toFixed(2)}`, "🏆");
     };
 
     function addHistory(type, amt) {
         const list = document.getElementById("historyList");
         const div = document.createElement("div");
         div.className = "hist-item";
-        const color = amt >= 0 ? '#10b981' : '#ef4444';
-        const sign = amt >= 0 ? '+' : '';
+        const isWin = amt >= 0;
         div.innerHTML = `
-            <span>${type} (${currentLvl.toUpperCase()})</span>
-            <span style="color:${color}; font-weight:bold;">${sign}${amt.toFixed(2)}</span>
+            <span>${type}</span>
+            <span style="color:${isWin ? '#10b981' : '#ef4444'}; font-weight:bold;">
+                ${isWin ? '+' : ''}${amt.toFixed(2)}
+            </span>
         `;
         list.prepend(div);
-        if(list.children.length > 8) list.removeChild(list.lastChild);
+        if(list.children.length > 6) list.removeChild(list.lastChild);
     }
 
     function revealAll() {
@@ -249,6 +245,12 @@
         document.getElementById("alertOverlay").style.display = "flex";
     }
     window.closeModal = () => document.getElementById("alertOverlay").style.display = "none";
+    window.changeLvl = (l) => {
+        if(isPlaying) return;
+        currentLvl = l;
+        document.querySelectorAll('.lvl-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`btn-${l}`).classList.add('active');
+    };
 </script>
 </body>
 </html>
