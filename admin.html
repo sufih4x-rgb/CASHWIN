@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN Admin - Multi-Game Control</title>
+    <title>CASHWIN Admin - Pro Control</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -36,14 +36,14 @@
         .val { font-size: 20px; font-weight: bold; color: var(--neon-green); margin-top: 5px; }
 
         input[type="text"], input[type="number"], input[type="password"] { background: #0b0e14; border: 1px solid #30363d; color: white; padding: 10px; border-radius: 5px; margin: 5px 0; }
-        .btn { padding: 8px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; margin: 4px; transition: 0.2s; font-size: 12px; }
+        .btn { padding: 8px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; margin: 4px; transition: 0.2s; font-size: 11px; }
         .btn-red { background: var(--neon-red); }
         .btn-green { background: var(--neon-green); color: black; }
         .btn-blue { background: var(--neon-blue); color: black; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 13px; }
-        .badge { padding: 5px 10px; border-radius: 5px; cursor: pointer; border: none; font-size: 10px; font-weight: bold; margin-right: 2px; }
+        .badge { padding: 4px 8px; border-radius: 5px; cursor: pointer; border: none; font-size: 10px; font-weight: bold; margin-right: 2px; }
         
         #chatBox { position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; background: var(--card-bg); border: 1px solid var(--neon-blue); border-radius: 15px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .chat-head { background: var(--neon-blue); padding: 10px; color: black; font-weight: bold; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; }
@@ -52,6 +52,7 @@
         .msg.admin { background: var(--neon-blue); color: black; align-self: flex-end; margin-left: auto; }
         .msg.user { background: #333; color: white; }
         
+        .qr-config-item { border: 1px solid #333; padding: 10px; border-radius: 10px; margin-bottom: 10px; background: #0b0e14; }
         .history-title { margin-top: 40px; color: var(--text-gray); border-bottom: 1px solid #333; padding-bottom: 10px; }
     </style>
 </head>
@@ -62,7 +63,6 @@
         <div class="logo">CASHWIN</div>
         <input type="password" id="adminPass" style="width: 100%;" placeholder="Admin Key">
         <button class="btn btn-red" style="width:100%; margin-top: 10px;" id="unlockBtn">Unlock Panel</button>
-        <p onclick="forgotPass()" style="font-size: 11px; color: var(--text-gray); margin-top: 15px; cursor: pointer;">Forgot Password? (Email Link)</p>
     </div>
 </div>
 
@@ -85,7 +85,7 @@
     <div class="nav-item" id="nav-deposits"><i class="fas fa-plus-circle"></i> Deposits</div>
     <div class="nav-item" id="nav-withdraws"><i class="fas fa-minus-circle"></i> Withdraws</div>
     <div class="nav-item" id="nav-settings"><i class="fas fa-tools"></i> Settings</div>
-    <div class="nav-item" onclick="toggleChat()"><i class="fas fa-comments"></i> User Support Chat</div>
+    <div class="nav-item" onclick="toggleChat()"><i class="fas fa-comments"></i> Support Chat</div>
 </div>
 
 <div class="main">
@@ -94,35 +94,43 @@
         <div class="stats-grid">
             <div class="stat-card">Total Users<div class="val" id="countUsers">0</div></div>
             <div class="stat-card">Total Balance<div class="val" id="totalWallet">₹0</div></div>
-            <div class="stat-card">Admin Net Profit<div class="val" id="adminProfit" style="color:var(--neon-green)">₹0</div></div>
+            <div class="stat-card">Admin Profit<div class="val" id="adminProfit">₹0</div></div>
             <div class="stat-card">Pending Req.<div class="val" id="pendingReq" style="color:var(--neon-red)">0</div></div>
         </div>
     </div>
 
     <div id="wingo" class="page-section">
         <div class="section-card">
-            <h2>Wingo Manipulation</h2>
+            <h2>Global Wingo Manipulation</h2>
             <div style="margin: 15px 0;">
                 Timer: <select id="gameTimer" style="background:#0b0e14; color:white; padding:8px;">
                     <option value="1">1 Minute</option><option value="3">3 Minute</option><option value="5">5 Minute</option>
                 </select>
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="btn btn-green" onclick="rigWingo('Green')">Force Green</button>
-                <button class="btn btn-red" onclick="rigWingo('Red')">Force Red</button>
-                <button class="btn" style="background:orange" onclick="rigWingo('Big')">Force Big</button>
-                <button class="btn" style="background:orange" onclick="rigWingo('Small')">Force Small</button>
-                <button class="btn" style="background:gray" onclick="rigWingo(null)">Reset Auto</button>
+                <button class="btn btn-green" onclick="rigGlobal('Green')">Force Green</button>
+                <button class="btn btn-red" onclick="rigGlobal('Red')">Force Red</button>
+                <button class="btn" style="background:orange" onclick="rigGlobal('Big')">Force Big</button>
+                <button class="btn" style="background:orange" onclick="rigGlobal('Small')">Force Small</button>
+                <button class="btn" style="background:gray" onclick="rigGlobal('none')">Reset Auto Result</button>
             </div>
         </div>
     </div>
 
     <div id="users" class="page-section">
         <div class="section-card">
-            <h2>User Hub (Global Rigging Control)</h2>
+            <h2>User Hub & Rigging</h2>
             <div style="overflow-x:auto;">
                 <table>
-                    <thead><tr><th>User Info</th><th>Balance</th><th>Global Luck Control</th><th>Status</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>User Info</th>
+                            <th>Wallets</th>
+                            <th>Profit/Loss</th>
+                            <th>Rigging</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody id="userList"></tbody>
                 </table>
             </div>
@@ -131,9 +139,9 @@
 
     <div id="refer" class="page-section">
         <div class="section-card">
-            <h2>Referral & Commission Tracking</h2>
+            <h2>Referral Track</h2>
             <table>
-                <thead><tr><th>User</th><th>Referral Code</th><th>Total Referrals</th><th>Commission</th></tr></thead>
+                <thead><tr><th>User</th><th>Code</th><th>Count</th><th>Commission</th></tr></thead>
                 <tbody id="referList"></tbody>
             </table>
         </div>
@@ -142,47 +150,48 @@
     <div id="deposits" class="page-section">
         <div class="section-card">
             <h2>Pending Deposits</h2>
-            <table>
-                <thead><tr><th>Phone</th><th>Amount</th><th>UTR</th><th>Action</th></tr></thead>
-                <tbody id="depList"></tbody>
-            </table>
+            <tbody id="depList"></tbody>
             <h3 class="history-title">Deposit History</h3>
-            <table>
-                <thead><tr><th>Phone</th><th>Amount</th><th>UTR/Time</th><th>Status</th></tr></thead>
-                <tbody id="depHistoryList"></tbody>
-            </table>
+            <tbody id="depHistoryList"></tbody>
         </div>
     </div>
 
     <div id="withdraws" class="page-section">
         <div class="section-card">
             <h2>Pending Withdrawals</h2>
-            <table>
-                <thead><tr><th>Phone</th><th>Amount</th><th>Details</th><th>Action</th></tr></thead>
-                <tbody id="withList"></tbody>
-            </table>
+            <tbody id="withList"></tbody>
             <h3 class="history-title">Withdrawal History</h3>
-            <table>
-                <thead><tr><th>Phone</th><th>Amount</th><th>Details/Time</th><th>Status</th></tr></thead>
-                <tbody id="withHistoryList"></tbody>
-            </table>
+            <tbody id="withHistoryList"></tbody>
         </div>
     </div>
 
     <div id="settings" class="page-section">
         <div class="section-card">
-            <h2>Payment QR & UPI Config</h2>
-            <div style="display:flex; gap:20px; align-items:center; flex-wrap: wrap;">
-                <div id="qrBox" style="width:120px; height:120px; border:1px solid #333; background:white;"><img id="qrImg" src="" style="width:100%; height:100%; object-fit: contain;"></div>
-                <div><input type="file" id="qrInp" accept="image/*"><br><input type="text" id="upiInp" placeholder="Admin UPI ID" style="width:250px;"></div>
+            <h2>Payment Settings (3 QRs)</h2>
+            <div id="qrConfigs">
+                <div class="qr-config-item">
+                    <b>QR Slot 1:</b><br>
+                    <input type="text" id="upi1" placeholder="UPI ID 1" style="width:70%"><br>
+                    <input type="file" id="file1" accept="image/*">
+                </div>
+                <div class="qr-config-item">
+                    <b>QR Slot 2:</b><br>
+                    <input type="text" id="upi2" placeholder="UPI ID 2" style="width:70%"><br>
+                    <input type="file" id="file2" accept="image/*">
+                </div>
+                <div class="qr-config-item">
+                    <b>QR Slot 3:</b><br>
+                    <input type="text" id="upi3" placeholder="UPI ID 3" style="width:70%"><br>
+                    <input type="file" id="file3" accept="image/*">
+                </div>
             </div>
-            <button class="btn btn-green" style="margin-top:20px;" id="savePayBtn">Save Payment Config</button>
+            <button class="btn btn-green" id="savePayBtn">Update All QRs & UPIs</button>
         </div>
     </div>
 </div>
 
 <div id="chatBox">
-    <div class="chat-head"><span>User Support</span> <i class="fas fa-times" onclick="toggleChat()" style="cursor:pointer"></i></div>
+    <div class="chat-head"><span>Support</span> <i class="fas fa-times" onclick="toggleChat()"></i></div>
     <div id="chatMsgs"></div>
     <div style="padding: 10px; display: flex; gap: 5px;">
         <input type="text" id="chatInput" placeholder="Reply..." style="flex:1; margin:0;">
@@ -192,27 +201,24 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, update, onValue, get, set, remove, push, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, update, onValue, get, set, push, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
-        authDomain: "testing-26b8c.firebaseapp.com",
         databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
-        projectId: "testing-26b8c",
-        appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
+        projectId: "testing-26b8c"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // --- Auth ---
+    // --- AUTH ---
     document.getElementById('unlockBtn').onclick = () => {
         if(document.getElementById('adminPass').value === "CASHWIN786") {
             document.getElementById('adminLock').style.display = 'none';
-        } else { alert("Access Denied!"); }
+        } else alert("Wrong Key!");
     };
 
-    // --- Navigation ---
+    // --- NAVIGATION ---
     const navs = ['dash', 'wingo', 'users', 'refer', 'deposits', 'withdraws', 'settings'];
     navs.forEach(id => {
         document.getElementById('nav-' + id).onclick = () => {
@@ -223,136 +229,71 @@
         };
     });
 
-    // --- Data Sync & Counters ---
+    // --- SYNC & RIGGING ---
     onValue(ref(db, '/'), (snap) => {
-        const data = snap.val();
-        if(!data) return;
-
-        let uCount = 0, uBal = 0, totalDep = 0, totalWith = 0;
+        const data = snap.val(); if(!data) return;
+        let uCount = 0, uBal = 0, totalP = 0;
         const userList = document.getElementById('userList');
-        const referList = document.getElementById('referList');
-        userList.innerHTML = ""; referList.innerHTML = "";
+        userList.innerHTML = "";
 
-        // Users Sync
         if(data.users) {
             for(let uid in data.users) {
                 let u = data.users[uid];
                 uCount++; uBal += (u.balance || 0);
-                if(u.totalDeposit) totalDep += u.totalDeposit;
-                if(u.totalWithdraw) totalWith += u.totalWithdraw;
+                let winLossColor = (u.totalWin > u.totalLoss) ? 'var(--neon-green)' : 'var(--neon-red)';
 
                 userList.insertAdjacentHTML('beforeend', `<tr>
-                    <td>${u.phone}<br><small>${uid}</small></td>
-                    <td>₹${(u.balance || 0).toFixed(2)} <button class="badge btn-blue" onclick="editBalance('${uid}', ${u.balance || 0})">EDIT</button></td>
+                    <td>${u.phone}<br><small>UID: ${uid}</small></td>
+                    <td>Bal: ₹${u.balance?.toFixed(2)}<br>Vault: ₹${(u.vaultBalance || 0).toFixed(2)}</td>
+                    <td style="color:${winLossColor}">W: ₹${u.totalWin || 0}<br>L: ₹${u.totalLoss || 0}</td>
                     <td>
                         <button class="badge" style="background:${u.forceWin ? 'green' : '#333'}" onclick="setRig('${uid}', 'win')">WIN</button>
                         <button class="badge" style="background:${u.forceLoss ? 'red' : '#333'}" onclick="setRig('${uid}', 'loss')">LOSS</button>
-                        <button class="badge" style="background:#555" onclick="setRig('${uid}', 'normal')">NORMAL</button>
+                        <button class="badge" style="background:#555" onclick="setRig('${uid}', 'normal')">RESET</button>
                     </td>
-                    <td>${u.status === 'banned' ? '❌ Banned' : '✅ Active'}</td>
-                    <td><button onclick="toggleBan('${uid}', '${u.status}')" class="btn btn-red">BAN</button></td>
+                    <td>
+                        <button class="badge btn-blue" onclick="editBalance('${uid}')">EDIT</button>
+                        <button class="badge ${u.status === 'banned' ? 'btn-green' : 'btn-red'}" onclick="toggleBan('${uid}', '${u.status}')">${u.status === 'banned' ? 'UNBAN' : 'BAN'}</button>
+                    </td>
                 </tr>`);
-
-                referList.insertAdjacentHTML('beforeend', `<tr><td>${u.phone}</td><td>${u.referCode || 'N/A'}</td><td>${u.referCount || 0}</td><td>₹${(u.commission || 0).toFixed(2)}</td></tr>`);
             }
         }
-
         document.getElementById('countUsers').innerText = uCount;
         document.getElementById('totalWallet').innerText = "₹" + uBal.toLocaleString();
-        document.getElementById('adminProfit').innerText = "₹" + (totalDep - totalWith).toLocaleString();
-
-        // Requests Sync (Deposit & Withdraw)
-        renderRequests(data.requests);
         
-        // Settings Sync
-        if(data.admin?.settings?.payment) {
-            if(data.admin.settings.payment.qr) document.getElementById('qrImg').src = data.admin.settings.payment.qr;
-            if(data.admin.settings.payment.upi) document.getElementById('upiInp').value = data.admin.settings.payment.upi;
-        }
+        // Admin Online/Offline Logic
+        const status = data.admin?.status || 'offline';
+        document.getElementById('statusDot').style.background = status === 'online' ? 'var(--neon-green)' : 'grey';
+        document.getElementById('statusText').innerText = "Status: " + status.toUpperCase();
     });
 
-    function renderRequests(reqs) {
-        const dL = document.getElementById('depList'); const dH = document.getElementById('depHistoryList');
-        const wL = document.getElementById('withList'); const wH = document.getElementById('withHistoryList');
-        dL.innerHTML = ""; dH.innerHTML = ""; wL.innerHTML = ""; wH.innerHTML = "";
-        let pCount = 0;
+    window.setAdminStatus = (s) => update(ref(db, 'admin'), { status: s });
+    window.rigGlobal = (val) => set(ref(db, `adminControl/wingo/${document.getElementById('gameTimer').value}/forceNext`), val);
+    window.setRig = (uid, type) => update(ref(db, `users/${uid}`), { forceWin: type === 'win', forceLoss: type === 'loss' });
+    window.toggleBan = (uid, s) => update(ref(db, `users/${uid}`), { status: s === 'banned' ? 'active' : 'banned' });
+    window.editBalance = (uid) => {
+        let n = prompt("Enter Main Balance:");
+        let v = prompt("Enter Vault Balance:");
+        if(n) update(ref(db, `users/${uid}`), { balance: parseFloat(n), vaultBalance: parseFloat(v || 0) });
+    };
 
-        // Deposits
-        if(reqs?.deposits) {
-            Object.keys(reqs.deposits).forEach(rid => {
-                let d = reqs.deposits[rid];
-                if(d.status === 'pending') {
-                    pCount++;
-                    dL.insertAdjacentHTML('beforeend', `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td><td><button class="badge btn-green" onclick="handleDeposit('${rid}', '${d.uid}', ${d.amount}, 'approve')">APPROVE</button> <button class="badge btn-red" onclick="handleDeposit('${rid}', '${d.uid}', 0, 'reject')">REJECT</button></td></tr>`);
-                } else {
-                    dH.insertAdjacentHTML('beforeend', `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td><td>${d.status.toUpperCase()}</td></tr>`);
-                }
-            });
+    // --- MULTI QR SAVE ---
+    document.getElementById('savePayBtn').onclick = async () => {
+        const updates = {};
+        for(let i=1; i<=3; i++) {
+            const upi = document.getElementById('upi'+i).value;
+            const file = document.getElementById('file'+i).files[0];
+            if(upi) updates[`admin/settings/payment/upi${i}`] = upi;
+            if(file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => update(ref(db, `admin/settings/payment`), { [`qr${i}`]: reader.result });
+            }
         }
-        
-        // Withdrawals (FIXED PATH & SYNC)
-        if(reqs?.withdraws) {
-            Object.keys(reqs.withdraws).forEach(rid => {
-                let w = reqs.withdraws[rid];
-                const details = w.bank ? `Bank: ${w.bank}<br>Acc: ${w.acc}` : `UPI: ${w.upi}`;
-                if(w.status === 'pending') {
-                    pCount++;
-                    wL.insertAdjacentHTML('beforeend', `<tr><td>${w.phone}</td><td>₹${w.amount}</td><td>${details}</td>
-                    <td>
-                        <button class="badge btn-green" onclick="handleWithdraw('${rid}', '${w.uid}', 'paid')">PAID</button>
-                        <button class="badge btn-blue" onclick="handleWithdraw('${rid}', '${w.uid}', 'refund', ${w.amount})">REFUND</button>
-                        <button class="badge btn-red" onclick="handleWithdraw('${rid}', '${w.uid}', 'reject')">REJECT</button>
-                    </td></tr>`);
-                } else {
-                    wH.insertAdjacentHTML('beforeend', `<tr><td>${w.phone}</td><td>₹${w.amount}</td><td>${w.status.toUpperCase()}</td></tr>`);
-                }
-            });
-        }
-        document.getElementById('pendingReq').innerText = pCount;
-    }
-
-    // --- Core Functions ---
-    window.rigWingo = (val) => {
-        const m = document.getElementById('gameTimer').value;
-        set(ref(db, `adminControl/forceResult/${m}`), val).then(() => alert(`Mode ${m} set to ${val}`));
+        update(ref(db, '/'), updates).then(() => alert("All 3 QR/UPI Configs Updated!"));
     };
 
-    window.setRig = (uid, type) => {
-        update(ref(db, `users/${uid}`), { forceWin: type === 'win', forceLoss: type === 'loss' });
-    };
-
-    window.editBalance = (uid, old) => {
-        let n = prompt("Enter New Balance:", old);
-        if(n) update(ref(db, `users/${uid}`), { balance: parseFloat(n) });
-    };
-
-    window.handleDeposit = (rid, uid, amt, act) => {
-        if(act === 'approve') {
-            update(ref(db, `users/${uid}`), { balance: increment(amt), totalDeposit: increment(amt) });
-            update(ref(db, `requests/deposits/${rid}`), { status: 'approved' });
-        } else { update(ref(db, `requests/deposits/${rid}`), { status: 'rejected' }); }
-    };
-
-    window.handleWithdraw = (rid, uid, act, amt=0) => {
-        if(act === 'paid') update(ref(db, `requests/withdraws/${rid}`), { status: 'paid' });
-        else if(act === 'refund') {
-            update(ref(db, `users/${uid}`), { balance: increment(amt) });
-            update(ref(db, `requests/withdraws/${rid}`), { status: 'refunded' });
-        } else update(ref(db, `requests/withdraws/${rid}`), { status: 'rejected' });
-    };
-
-    document.getElementById('savePayBtn').onclick = () => {
-        const upi = document.getElementById('upiInp').value;
-        const file = document.getElementById('qrInp').files[0];
-        if(file) {
-            const reader = new FileReader();
-            reader.onload = () => update(ref(db, 'admin/settings/payment'), { qr: reader.result, upi: upi });
-            reader.readAsDataURL(file);
-        } else update(ref(db, 'admin/settings/payment'), { upi: upi });
-        alert("Payment Config Updated!");
-    };
-
-    // Chat Logic
+    // Support Chat
     window.toggleChat = () => {
         const box = document.getElementById('chatBox');
         box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
