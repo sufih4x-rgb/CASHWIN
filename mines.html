@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Mines Pro - Realistic Edition v2</title>
+    <title>Mines Pro - Fixed Edition</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,16 +12,13 @@
         body { background: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
         .container { width: 100%; max-width: 450px; padding: 15px; }
 
-        /* Realistic Glow Header */
         .header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 20px; border-radius: 20px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .bal-val { font-size: 24px; font-weight: 800; color: var(--gold); text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
 
-        /* Mode Switcher */
         .mode-selector { display: flex; gap: 8px; margin-bottom: 20px; }
         .mode-btn { flex: 1; padding: 12px 5px; border: 1px solid #334155; background: var(--card-bg); color: #94a3b8; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.2s; }
         .mode-btn.active { background: var(--p-blue); color: white; border-color: var(--accent); box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); transform: translateY(-2px); }
 
-        /* Realistic Grid */
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; perspective: 1000px; }
         .slot { 
             aspect-ratio: 1; background: #242f47; border-radius: 10px; cursor: pointer;
@@ -35,7 +32,6 @@
         .slot.diamond { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
         .slot.bomb { color: var(--danger); text-shadow: 0 0 15px var(--danger); animation: shake 0.2s infinite; }
 
-        /* Panel Controls */
         .panel { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid #334155; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); }
         .multi-info { text-align: center; margin-bottom: 15px; font-size: 18px; font-weight: bold; color: var(--accent); }
         
@@ -72,7 +68,7 @@
     <div class="grid" id="mineGrid"></div>
 
     <div class="panel">
-        <div class="multi-info" id="multiTag">Next: 1.30x</div>
+        <div class="multi-info" id="multiTag">Next: 1.13x</div>
         <div class="input-box">
             <input type="number" id="betInput" value="100" min="1" max="10000000">
         </div>
@@ -92,16 +88,17 @@
     let userRigging = "normal";
 
     const config = {
-        easy: { mines: 3, multis: [1.3, 1.8, 2.5, 3.2, 4.5, 5.0, 5.3, 5.9, 6.0, 6.5, 6.7, 6.9, 7.0, 7.4, 7.7, 8.1, 8.2.0, 8.3, 8.5, 8.9, 9.1, 10x.0, ] },
-        medium: { mines: 10, multis: [2.1, 4.5, 5.0, 6.0, 7.0, 7.4, 7.8, 7.99, 8.0, 9.0, 9.2, 9.4, 9.7, 10.0, 15.0] },
-        hard: { mines: 24, multis: [20.0] }
+        easy: { mines: 3, multis: [1.13, 1.30, 1.50, 1.73, 2.02, 2.37, 2.80, 3.32, 3.98, 4.82, 5.91, 7.33, 9.24, 11.84, 15.54, 21.03, 29.79, 44.68, 72.61, 133.12, 306.18, 1224.72] },
+        medium: { mines: 10, multis: [1.60, 2.62, 4.41, 7.63, 13.73, 25.96, 52.02, 112.72, 270.52, 757.47, 2651.15] },
+        hard: { mines: 24, multis: [24.25] }
     };
 
     function setMode(m) {
         if(gameActive) return;
         currentMode = m;
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        const btn = event.currentTarget;
+        btn.classList.add('active');
         document.getElementById('multiTag').innerText = `Next: ${config[m].multis[0].toFixed(2)}x`;
         createGrid();
     }
@@ -144,7 +141,7 @@
             document.getElementById("startBtn").style.display = "none";
             document.getElementById("cashBtn").style.display = "block";
             document.getElementById("modeSelector").classList.add("disabled");
-            document.getElementById("betInput").classList.add("disabled");
+            document.getElementById("betInput").disabled = true;
             document.getElementById("cashBtn").innerText = `CASHOUT (₹${betAmount})`;
         });
     }
@@ -164,7 +161,6 @@
         let id = parseInt(slot.dataset.id);
         let isBomb = minesPositions.includes(id);
 
-        // Advanced Admin Rigging Control
         if(userRigging === "loss" && revealedCount < 1) isBomb = true;
         if(userRigging === "win") isBomb = false;
 
@@ -177,17 +173,17 @@
             gameActive = false;
             setTimeout(() => {
                 alert("BOOM! You Lost.");
-                location.reload(); // Auto refresh on loss
+                location.reload(); 
             }, 1500);
         } else {
             slot.innerHTML = '<i class="fas fa-gem"></i>';
             slot.classList.add('diamond');
             
             let mList = config[currentMode].multis;
-            currentMultiplier = mList[revealedCount] || currentMultiplier * 1.5;
+            currentMultiplier = mList[revealedCount];
             revealedCount++;
             
-            let nextMulti = mList[revealedCount] || currentMultiplier * 1.5;
+            let nextMulti = mList[revealedCount] || currentMultiplier;
             document.getElementById("multiTag").innerText = `Next: ${nextMulti.toFixed(2)}x`;
             document.getElementById("cashBtn").innerText = `CASHOUT (₹${(betAmount * currentMultiplier).toFixed(2)})`;
 
@@ -226,7 +222,7 @@
         document.getElementById("startBtn").style.display = "block";
         document.getElementById("cashBtn").style.display = "none";
         document.getElementById("modeSelector").classList.remove("disabled");
-        document.getElementById("betInput").classList.remove("disabled");
+        document.getElementById("betInput").disabled = false;
         createGrid();
     }
 
