@@ -10,7 +10,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: var(--dark); user-select: none; overflow-x: hidden; }
 
-        /* UI Styles */
         .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #1e272e; color: white; position: sticky; top: 0; z-index: 1000; }
         .user-id-box { background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); }
         .header-card { background: linear-gradient(135deg, #1e272e, #485460); padding: 20px 20px 80px; color: white; border-radius: 0 0 40px 40px; text-align: center; }
@@ -29,19 +28,18 @@
         .n-btn { aspect-ratio: 1; border-radius: 50%; border: none; color: white; font-weight: 900; font-size: 18px; cursor: pointer; }
 
         .tab-box { display: flex; background: #e0e0e0; margin: 15px; border-radius: 12px; padding: 4px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; background: none; font-weight: 700; border-radius: 10px; cursor: pointer; transition: 0.3s; }
-        .tab-btn.active { background: white; color: var(--dark); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: none; font-weight: 700; border-radius: 10px; cursor: pointer; }
+        .tab-btn.active { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
         .h-row, .my-bet-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; padding: 14px; border-bottom: 1px solid #f1f2f6; text-align: center; font-size: 13px; align-items: center; }
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; color: white; }
         .badge-win { background: var(--green); } .badge-loss { background: var(--primary); } .badge-pending { background: var(--gold); }
 
-        /* Animation & Popups */
         #resPopup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .res-card { width: 85%; max-width: 320px; background: white; border-radius: 30px; text-align: center; overflow: hidden; animation: popUp 0.4s ease-out; }
         @keyframes popUp { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        #betSheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 5000; border-radius: 30px 30px 0 0; padding: 25px; transition: 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97); box-shadow: 0 -10px 40px rgba(0,0,0,0.3); }
+        #betSheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 5000; border-radius: 30px 30px 0 0; padding: 25px; transition: 0.4s ease; box-shadow: 0 -10px 40px rgba(0,0,0,0.3); }
         #betSheet.open { bottom: 0; }
         #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 4000; display: none; }
         #blocker { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: none; align-items: center; justify-content: center; color: white; font-size: 100px; font-weight: 900; }
@@ -77,8 +75,8 @@
     <div style="color: #747d8c; font-size: 13px; font-weight: 700;"><i class="fas fa-wallet"></i> WALLET BALANCE</div>
     <div class="bal-amt">₹<span id="userBal">0.00</span></div>
     <div class="btn-group">
-        <a href="deposit.html" class="btn-action btn-recharge">RECHARGE</a>
-        <a href="withdraw.html" class="btn-action btn-withdraw">WITHDRAW</a>
+        <button class="btn-action btn-recharge">RECHARGE</button>
+        <button class="btn-action btn-withdraw">WITHDRAW</button>
     </div>
 </div>
 
@@ -118,10 +116,7 @@
 <div id="betSheet">
     <div style="text-align:center; font-weight:800; font-size:20px; margin-bottom: 10px;">Select: <span id="sheetChoice" style="color:var(--primary)">-</span></div>
     <input type="number" id="baseAmount" value="10" min="10" style="width:100%; padding:15px; border-radius:15px; border:2px solid #eee; font-size:24px; font-weight:900; text-align: center; outline: none;">
-    <div style="display:flex; justify-content:space-between; font-weight:800; padding:15px 5px;">
-        <span style="color:#747d8c">Total:</span><span style="color:var(--primary)">₹<span id="sheetTotal">10</span></span>
-    </div>
-    <button id="confirmBtn" onclick="confirmBet()" style="width:100%; padding:20px; border:none; background:var(--primary); color:white; border-radius:18px; font-weight:900;">CONFIRM</button>
+    <button id="confirmBtn" onclick="confirmBet()" style="width:100%; padding:20px; border:none; background:var(--primary); color:white; border-radius:18px; font-weight:900; margin-top:10px;">CONFIRM</button>
 </div>
 
 <script type="module">
@@ -133,10 +128,6 @@
         authDomain: "testing-26b8c.firebaseapp.com",
         databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
         projectId: "testing-26b8c",
-        storageBucket: "testing-26b8c.firebasestorage.app",
-        messagingSenderId: "546674600784",
-        appId: "1:546674600784:web:4b316bb716eda5f3b7da55",
-        measurementId: "G-BJ4CZ5Z6PW"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -151,14 +142,15 @@
     let lastProcessed = "";
     let activeChoice = "";
 
-    // 1. REAL-TIME BALANCE FETCH (Robust Fix)
-    onValue(ref(db, `users/${uid}`), (snap) => {
+    const userRef = ref(db, `users/${uid}`);
+
+    // 1. REAL-TIME BALANCE SYNC
+    onValue(userRef, (snap) => {
         if (snap.exists()) {
             userBalance = parseFloat(snap.val().balance || 0);
             document.getElementById('userBal').innerText = userBalance.toFixed(2);
         } else {
-            // Initial Signup Balance
-            set(ref(db, `users/${uid}`), { id: uid, balance: 200, joinedAt: Date.now() });
+            set(userRef, { id: uid, balance: 200, joinedAt: Date.now() });
         }
     });
 
@@ -190,7 +182,7 @@
         }
     }, 1000);
 
-    // 4. HARD MODE & RIGGING LOGIC
+    // 4. SMART RIGGING & PAYOUT RESTORED
     async function processResult() {
         const myBetSnap = await get(ref(db, `bets/m60/${currentPeriod}/${uid}`));
         const myBet = myBetSnap.val();
@@ -200,11 +192,10 @@
         let winNum = Math.floor(Math.random() * 10);
 
         if (myBet) {
-            // HARD MODE: User ko ₹200 banane me 2-3 ghante lagne chahiye.
-            // Profit check & Rigging
-            const shouldLoss = (userBalance > 140) || (myBet.amount >= 50) || (rig?.forceLoss);
+            // Rigging: Agar balance ₹150+ hai ya Admin ne haraane ko kaha hai
+            const forceLoss = (userBalance > 150) || (myBet.amount >= 50) || (rig?.forceLoss);
             
-            if (shouldLoss) {
+            if (forceLoss) {
                 winNum = [0,1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5).find(n => !checkWin(myBet.choice, n));
             } else if (rig?.forceWin) {
                 winNum = [0,1,2,3,4,5,6,7,8,9].find(n => checkWin(myBet.choice, n));
@@ -221,11 +212,11 @@
 
         if (myBet) {
             const isWin = checkWin(myBet.choice, winNum);
-            // Payout Logic: Color/BigSmall (1.92x), Number/Violet (4.8x)
+            // Payouts: Color/Size = 1.92x, Number = 4.8x
             let mult = (typeof myBet.choice === 'number' || myBet.choice === 'Violet') ? 4.8 : 1.92;
             const winAmt = isWin ? (myBet.amount * mult) : 0;
             
-            if(isWin) await update(ref(db, `users/${uid}`), { balance: userBalance + winAmt });
+            if(isWin) await update(userRef, { balance: userBalance + winAmt });
             await update(ref(db, `bets/m60/${currentPeriod}/${uid}`), { status: isWin?'Win':'Loss', win: winAmt });
             showWinLossPopup(isWin, winAmt, resData);
         }
@@ -241,7 +232,7 @@
         return false;
     }
 
-    // 5. HISTORY & MY BETS REAL-TIME SYNC
+    // 5. HISTORY SYNC
     onValue(query(ref(db, `history/m60`), limitToLast(15)), (snap) => {
         const list = document.getElementById('historyList');
         list.innerHTML = "";
@@ -275,7 +266,7 @@
         });
     });
 
-    // 6. UI FUNCTIONS
+    // UI CONTROLS
     window.openBetSheet = (c) => { 
         activeChoice = c; 
         document.getElementById('sheetChoice').innerText = c; 
@@ -288,8 +279,8 @@
     };
     window.confirmBet = async () => {
         const amt = parseInt(document.getElementById('baseAmount').value);
-        if(userBalance < amt) return alert("Balance low hai!");
-        await update(ref(db, `users/${uid}`), { balance: userBalance - amt });
+        if(userBalance < amt) return alert("Low balance!");
+        await update(userRef, { balance: userBalance - amt });
         await set(ref(db, `bets/m60/${currentPeriod}/${uid}`), { choice: activeChoice, amount: amt, status: 'Pending' });
         closeSheet();
     };
