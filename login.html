@@ -6,42 +6,23 @@
     <title>Login - CASHWIN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-red: #ff6b6b;
-            --gradient-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%);
-            --bg-light: #f8f9fe;
-            --gray-text: #999;
-        }
-
+        :root { --primary-red: #ff6b6b; --gradient-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); --bg-light: #f8f9fe; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-light); color: #333; overflow-x: hidden; }
-
         .header { background: var(--gradient-red); height: 160px; padding: 25px; color: white; position: relative; }
         .logo-text { font-size: 26px; font-weight: 900; color: #ffeb3b; font-style: italic; }
         .login-title { font-size: 24px; font-weight: bold; margin-top: 15px; }
-        
         .container { background: white; margin-top: -30px; border-radius: 30px 35px 0 0; padding: 30px 20px; min-height: calc(100vh - 130px); }
-
-        /* Tabs Logic */
         .tabs { display: flex; background: #f0f0f5; border-radius: 15px; padding: 5px; margin-bottom: 25px; }
         .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; color: #777; font-weight: bold; border-radius: 12px; transition: 0.3s; }
         .tab.active { background: white; color: var(--primary-red); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-
-        /* Input Styles */
         .input-label { display: flex; align-items: center; font-size: 14px; margin-bottom: 10px; color: #444; margin-top: 15px; }
         .input-label i { margin-right: 10px; color: var(--primary-red); }
-
         .input-group { display: flex; background: #f9f9f9; border-radius: 12px; border: 1px solid #eee; align-items: center; padding: 2px 15px; margin-bottom: 15px; }
         input { flex: 1; border: none; background: transparent; padding: 14px 5px; outline: none; font-size: 15px; }
-
-        .btn-login { 
-            background: #ccc; color: white; width: 100%; padding: 16px; border: none; border-radius: 35px; 
-            font-size: 18px; font-weight: bold; margin-top: 30px; cursor: pointer; transition: 0.3s;
-        }
+        .btn-login { background: #ccc; color: white; width: 100%; padding: 16px; border: none; border-radius: 35px; font-size: 18px; font-weight: bold; margin-top: 30px; cursor: pointer; transition: 0.3s; }
         .btn-login.ready { background: var(--gradient-red); box-shadow: 0 5px 15px rgba(255,107,107,0.4); }
-
         .btn-reg { display: block; text-align: center; margin-top: 20px; color: var(--primary-red); text-decoration: none; font-weight: bold; }
-
         #phoneSection, #emailSection { display: none; }
         .active-section { display: block !important; }
     </style>
@@ -85,10 +66,10 @@
         <a href="register.html" class="btn-reg">Create an account</a>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
             authDomain: "testing-26b8c.firebaseapp.com",
@@ -97,12 +78,11 @@
             appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         let currentMode = 'phone';
 
-        // Tab Switch Fix
         window.toggleMode = (mode) => {
             currentMode = mode;
             document.getElementById('tabPhone').classList.toggle('active', mode === 'phone');
@@ -140,7 +120,6 @@
             }
         };
 
-        // Core Login Logic with Admin Features
         window.handleLogin = async () => {
             const btn = document.getElementById('loginBtn');
             if(!btn.classList.contains('ready')) return;
@@ -149,46 +128,54 @@
             const email = document.getElementById('loginEmail').value;
             const pass = document.getElementById('loginPass').value;
 
-            // ID selection: Phone ya Email (Firebase keys safe format)
+            // Database key format logic
             const userId = currentMode === 'phone' ? phone : email.replace(/[.@]/g, "_");
             
             btn.innerText = "Verifying...";
-            const userRef = ref(db, 'users/' + userId);
-            
-            try {
-                const snapshot = await get(userRef);
+            btn.disabled = true;
+
+            db.ref('users/' + userId).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
 
                     // 1. Admin Blacklist/Ban Check
                     if (userData.status === 'banned') {
                         alert("🚨 Access Denied! Your account is blacklisted.");
-                        btn.innerText = "Log in";
+                        resetBtn();
                         return;
                     }
 
                     // 2. Password Check
                     if (userData.password === pass) {
-                        // 3. Update Admin Real-time Tracking
-                        await update(userRef, {
+                        // 3. Update Status
+                        db.ref('users/' + userId).update({
                             lastLogin: new Date().toLocaleString(),
                             onlineStatus: 'Online'
                         });
 
-                        localStorage.setItem('userPhone', userId); // Session save
-                        alert("Login Successful! Welcome back.");
-                        window.location.href = "dashboard.html"; 
+                        localStorage.setItem('userPhone', userId); 
+                        alert("Login Successful!");
+                        window.location.href = "index.html"; 
                     } else {
-                        alert("Incorrect Password!");
+                        alert("Wrong password!");
+                        resetBtn();
                     }
                 } else {
-                    alert("User not found! Please check your credentials.");
+                    // 4. Register First Check
+                    alert("User not found! Please register first.");
+                    resetBtn();
                 }
-            } catch (error) {
-                alert("Database Error!");
-            }
-            btn.innerText = "Log in";
+            }).catch((err) => {
+                alert("Connection Error!");
+                resetBtn();
+            });
         };
+
+        function resetBtn() {
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = "Log in";
+            btn.disabled = false;
+        }
     </script>
 </body>
 </html>
