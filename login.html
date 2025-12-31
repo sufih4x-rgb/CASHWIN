@@ -13,18 +13,15 @@
         .logo-text { font-size: 26px; font-weight: 900; color: #ffeb3b; font-style: italic; }
         .login-title { font-size: 24px; font-weight: bold; margin-top: 15px; }
         .container { background: white; margin-top: -30px; border-radius: 30px 35px 0 0; padding: 30px 20px; min-height: calc(100vh - 130px); }
-        .tabs { display: flex; background: #f0f0f5; border-radius: 15px; padding: 5px; margin-bottom: 25px; }
-        .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; color: #777; font-weight: bold; border-radius: 12px; transition: 0.3s; }
-        .tab.active { background: white; color: var(--primary-red); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
         .input-label { display: flex; align-items: center; font-size: 14px; margin-bottom: 10px; color: #444; margin-top: 15px; }
         .input-label i { margin-right: 10px; color: var(--primary-red); }
         .input-group { display: flex; background: #f9f9f9; border-radius: 12px; border: 1px solid #eee; align-items: center; padding: 2px 15px; margin-bottom: 15px; }
         input { flex: 1; border: none; background: transparent; padding: 14px 5px; outline: none; font-size: 15px; }
+        
         .btn-login { background: #ccc; color: white; width: 100%; padding: 16px; border: none; border-radius: 35px; font-size: 18px; font-weight: bold; margin-top: 30px; cursor: pointer; transition: 0.3s; }
         .btn-login.ready { background: var(--gradient-red); box-shadow: 0 5px 15px rgba(255,107,107,0.4); }
         .btn-reg { display: block; text-align: center; margin-top: 20px; color: var(--primary-red); text-decoration: none; font-weight: bold; }
-        #phoneSection, #emailSection { display: none; }
-        .active-section { display: block !important; }
     </style>
 </head>
 <body>
@@ -36,24 +33,9 @@
     </div>
 
     <div class="container">
-        <div class="tabs">
-            <div class="tab active" id="tabPhone" onclick="toggleMode('phone')">Phone Login</div>
-            <div class="tab" id="tabEmail" onclick="toggleMode('email')">Email Login</div>
-        </div>
-
-        <div id="phoneSection" class="active-section">
-            <div class="input-label"><i class="fas fa-mobile-alt"></i> Phone Number</div>
-            <div class="input-group">
-                <span style="font-weight:bold; margin-right:10px;">+91</span>
-                <input type="number" id="loginPhone" placeholder="Enter mobile number" oninput="validate()">
-            </div>
-        </div>
-
-        <div id="emailSection">
-            <div class="input-label"><i class="fas fa-envelope"></i> Email Address</div>
-            <div class="input-group">
-                <input type="email" id="loginEmail" placeholder="Enter your email" oninput="validate()">
-            </div>
+        <div class="input-label"><i class="fas fa-user"></i> Phone or Email</div>
+        <div class="input-group">
+            <input type="text" id="userInput" placeholder="Enter mobile or email" oninput="validate()">
         </div>
 
         <div class="input-label"><i class="fas fa-lock"></i> Password</div>
@@ -81,17 +63,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentMode = 'phone';
-
-        window.toggleMode = (mode) => {
-            currentMode = mode;
-            document.getElementById('tabPhone').classList.toggle('active', mode === 'phone');
-            document.getElementById('tabEmail').classList.toggle('active', mode === 'email');
-            document.getElementById('phoneSection').classList.toggle('active-section', mode === 'phone');
-            document.getElementById('emailSection').classList.toggle('active-section', mode === 'email');
-            validate();
-        };
-
+        // Password Show/Hide logic
         window.viewPass = () => {
             const p = document.getElementById('loginPass');
             const icon = document.getElementById('toggleIcon');
@@ -104,16 +76,13 @@
             }
         };
 
+        // Validate Button logic
         window.validate = () => {
-            const phone = document.getElementById('loginPhone').value;
-            const email = document.getElementById('loginEmail').value;
+            const user = document.getElementById('userInput').value;
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('loginBtn');
 
-            const isPhoneValid = currentMode === 'phone' && phone.length === 10;
-            const isEmailValid = currentMode === 'email' && email.includes('@');
-
-            if((isPhoneValid || isEmailValid) && pass.length >= 6) {
+            if(user.length >= 4 && pass.length >= 6) {
                 btn.classList.add('ready');
             } else {
                 btn.classList.remove('ready');
@@ -124,12 +93,11 @@
             const btn = document.getElementById('loginBtn');
             if(!btn.classList.contains('ready')) return;
 
-            const phone = document.getElementById('loginPhone').value;
-            const email = document.getElementById('loginEmail').value;
+            let userVal = document.getElementById('userInput').value.trim();
             const pass = document.getElementById('loginPass').value;
 
-            // Database key format logic
-            const userId = currentMode === 'phone' ? phone : email.replace(/[.@]/g, "_");
+            // Agar user ne email dala hai to '.' aur '@' ko replace karega firebase key ke liye
+            const userId = userVal.includes('@') ? userVal.replace(/[.@]/g, "_") : userVal;
             
             btn.innerText = "Verifying...";
             btn.disabled = true;
@@ -138,7 +106,7 @@
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
 
-                    // 1. Admin Blacklist/Ban Check
+                    // 1. Admin Blacklist Check
                     if (userData.status === 'banned') {
                         alert("🚨 Access Denied! Your account is blacklisted.");
                         resetBtn();
@@ -147,7 +115,7 @@
 
                     // 2. Password Check
                     if (userData.password === pass) {
-                        // 3. Update Status
+                        // 3. Update Real-time status
                         db.ref('users/' + userId).update({
                             lastLogin: new Date().toLocaleString(),
                             onlineStatus: 'Online'
@@ -155,13 +123,12 @@
 
                         localStorage.setItem('userPhone', userId); 
                         alert("Login Successful!");
-                        window.location.href = "index.html"; 
+                        window.location.href = "index.html"; // Dashboard redirect
                     } else {
                         alert("Wrong password!");
                         resetBtn();
                     }
                 } else {
-                    // 4. Register First Check
                     alert("User not found! Please register first.");
                     resetBtn();
                 }
