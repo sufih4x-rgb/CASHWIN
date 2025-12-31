@@ -8,46 +8,59 @@
     <style>
         :root { --p-red: #ff6b6b; --g-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); --bg: #f8f9fe; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: var(--bg); padding-bottom: 90px; }
+        body { background-color: var(--bg); padding-bottom: 90px; overflow-x: hidden; }
         #main-dashboard { display: none; }
         
-        /* Header & Wallet */
         .top-header { background: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .wallet-box { background: #fff5f5; padding: 8px 15px; border-radius: 20px; border: 1px solid var(--p-red); color: var(--p-red); font-weight: bold; }
         
-        /* Dynamic Slider */
-        .slider-container { margin: 15px; border-radius: 20px; overflow: hidden; height: 160px; background: #ddd; position: relative; }
-        .slider img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; display: block; }
+        .slider-container { margin: 15px; border-radius: 20px; overflow: hidden; height: 170px; background: #000; position: relative; }
+        .slider-wrapper { display: flex; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-item { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .slide-item img { width: 100%; height: 100%; object-fit: contain; cursor: pointer; }
 
         .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; color: white; margin-left: 5px; text-transform: uppercase; }
         .online { background: #4cd964; box-shadow: 0 0 5px #4cd964; }
         .offline { background: #999; }
 
-        /* Tabs & Games */
         .game-tabs { display: flex; justify-content: space-around; background: white; margin: 10px 15px; padding: 10px; border-radius: 15px; }
         .tab-btn { padding: 8px 12px; font-size: 13px; font-weight: bold; color: #777; border-radius: 10px; cursor: pointer; }
         .tab-btn.active { background: var(--g-red); color: white; }
+        
+        /* Grid setup for 10 games */
         .game-section { display: none; padding: 0 15px; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .game-section.active { display: grid; }
-        .game-card { background: white; border-radius: 12px; overflow: hidden; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .game-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+        .game-card { background: white; border-radius: 12px; overflow: hidden; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; }
+        .game-card:active { transform: scale(0.95); }
+        .game-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
+        .game-card p { font-size: 10px; padding: 5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Navigation */
+        #bonusPopup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; display: none; align-items: center; justify-content: center; }
+        .popup-box { background: white; width: 85%; border-radius: 20px; padding: 20px; text-align: center; position: relative; animation: pop 0.3s ease; }
+        @keyframes pop { from { transform: scale(0.5); } to { transform: scale(1); } }
+
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
         .nav-item { text-align: center; color: #999; text-decoration: none; font-size: 12px; }
         .nav-item.active { color: var(--p-red); }
 
-        /* FIX: Admin Chat UI */
-        #chatBtn { position: fixed; bottom: 100px; right: 20px; width: 55px; height: 55px; background: var(--g-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; z-index: 4000; box-shadow: 0 4px 15px rgba(255,107,107,0.4); }
-        #chatWindow { position: fixed; bottom: 110px; right: 20px; width: 300px; height: 420px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 4001; overflow: hidden; border: 1px solid #eee; }
-        .chat-header { background: var(--g-red); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        #chatBtn { position: fixed; bottom: 100px; right: 20px; width: 55px; height: 55px; background: var(--g-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; z-index: 4000; }
+        #chatWindow { position: fixed; bottom: 110px; right: 20px; width: 300px; height: 420px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 4001; overflow: hidden; }
+        .chat-header { background: var(--g-red); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; }
         #msgArea { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #fdfdfd; }
-        .m-user { align-self: flex-end; background: var(--p-red); color: white; padding: 8px 12px; border-radius: 15px 15px 0 15px; font-size: 12px; max-width: 80%; word-wrap: break-word; }
-        .m-admin { align-self: flex-start; background: #e9e9e9; color: #333; padding: 8px 12px; border-radius: 15px 15px 15px 0; font-size: 12px; max-width: 80%; word-wrap: break-word; }
-        .chat-footer { padding: 10px; display: flex; gap: 5px; border-top: 1px solid #eee; background: white; }
+        .m-user { align-self: flex-end; background: var(--p-red); color: white; padding: 8px 12px; border-radius: 15px 15px 0 15px; font-size: 12px; }
+        .m-admin { align-self: flex-start; background: #e9e9e9; color: #333; padding: 8px 12px; border-radius: 15px 15px 15px 0; font-size: 12px; }
     </style>
 </head>
 <body>
+
+<div id="bonusPopup">
+    <div class="popup-box">
+        <h3 id="bonusTitle" style="color: var(--p-red);">DEPOSIT BONUS</h3>
+        <p id="bonusText" style="margin: 15px 0; font-size: 14px;">Get 100% extra on your first deposit!</p>
+        <button onclick="location.href='wallet.html'" style="background: var(--g-red); color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold;">CLAIM NOW</button>
+        <div onclick="closePopup()" style="position: absolute; top: -10px; right: -10px; background: white; width: 30px; height: 30px; border-radius: 50%; line-height: 30px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">×</div>
+    </div>
+</div>
 
 <div id="main-dashboard">
     <div class="top-header">
@@ -58,10 +71,8 @@
         <div class="wallet-box" onclick="location.href='wallet.html'">₹<span id="userBalance">0.00</span></div>
     </div>
 
-    <div class="slider-container" id="sliderDiv">
-        <div class="slider" id="mainSlider">
-            <img src="https://via.placeholder.com/400x160?text=Loading+Banners...">
-        </div>
+    <div class="slider-container">
+        <div class="slider-wrapper" id="mainSlider"></div>
     </div>
 
     <div class="game-tabs">
@@ -76,14 +87,11 @@
 
     <div id="chatBtn" onclick="toggleChat()"><i class="fas fa-headset"></i></div>
     <div id="chatWindow">
-        <div class="chat-header">
-            <span><i class="fas fa-circle" style="font-size:8px; color:#4cd964"></i> Online Support</span>
-            <i class="fas fa-times" onclick="toggleChat()" style="cursor:pointer"></i>
-        </div>
+        <div class="chat-header"><span>Support Online</span><i class="fas fa-times" onclick="toggleChat()"></i></div>
         <div id="msgArea"></div>
-        <div class="chat-footer">
-            <input type="text" id="chatMsgInp" placeholder="Type message..." style="flex:1; padding:10px; border-radius:20px; border:1px solid #eee; outline:none;">
-            <button onclick="sendMsg()" style="border:none; color:var(--p-red); background:none; font-size:20px; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
+        <div style="padding:10px; display:flex; gap:5px; background:white;">
+            <input type="text" id="chatMsgInp" placeholder="Ask anything..." style="flex:1; padding:8px; border-radius:20px; border:1px solid #eee;">
+            <button onclick="sendMsg()" style="border:none; color:var(--p-red); background:none;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -96,75 +104,98 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, push, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    
-    // User data from local storage or default
     const userPhone = localStorage.getItem('userPhone') || '9117748052';
     document.getElementById('main-dashboard').style.display = 'block';
 
-    // 1. DYNAMIC SLIDER (Admin Updates Image & Link)
-    onValue(ref(db, 'marketing/slider1'), (snap) => {
-        const data = snap.val();
-        if(data && data.img) {
-            document.getElementById('mainSlider').innerHTML = `
-                <img src="${data.img}" onclick="if('${data.link}') window.location.href='${data.link}'" onerror="this.src='https://via.placeholder.com/400x160?text=CASHWIN+GAMES'">`;
+    // 1. SYNC GAMES (Popular, Hot, Slots) - 10 SLOTS PER SECTION
+    const categories = ['popular', 'hot', 'slots'];
+    categories.forEach(cat => {
+        onValue(ref(db, `admin/games/${cat}`), (snap) => {
+            const container = document.getElementById(cat);
+            container.innerHTML = "";
+            const gamesData = snap.val() || {};
+            const gamesArray = Object.values(gamesData);
+
+            // 10 slots fill karenge
+            for(let i=0; i<10; i++) {
+                const g = gamesArray[i];
+                if(g) {
+                    // Admin uploaded game
+                    container.innerHTML += `
+                        <div class="game-card" onclick="location.href='${g.link || 'wingo.html'}'">
+                            <img src="${g.image}">
+                            <p>${g.name || 'Game'}</p>
+                        </div>`;
+                } else {
+                    // Coming Soon Placeholder
+                    container.innerHTML += `
+                        <div class="game-card">
+                            <img src="https://via.placeholder.com/150?text=Coming+Soon">
+                            <p>Coming Soon</p>
+                        </div>`;
+                }
+            }
+        });
+    });
+
+    // 2. BANNERS
+    let currentSlide = 0;
+    let slideInterval;
+    onValue(ref(db, 'admin/settings/banners'), (snap) => {
+        const banners = snap.val() || [];
+        const slider = document.getElementById('mainSlider');
+        slider.innerHTML = "";
+        if(slideInterval) clearInterval(slideInterval);
+        if(banners.length > 0) {
+            banners.forEach(b => {
+                const item = document.createElement('div');
+                item.className = 'slide-item';
+                const img = document.createElement('img');
+                img.src = b.image;
+                img.onclick = () => { if(b.link && b.link !== "#") window.location.href = b.link; };
+                item.appendChild(img);
+                slider.appendChild(item);
+            });
+            slideInterval = setInterval(() => {
+                currentSlide = (currentSlide + 1) % banners.length;
+                slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            }, 3500);
         }
     });
 
-    // 2. REAL-TIME ADMIN STATUS (Online/Offline)
-    onValue(ref(db, 'admin_settings/isOnline'), (snap) => {
-        const isOnline = snap.val();
-        const badge = document.getElementById('admStatus');
-        badge.innerText = isOnline ? "ONLINE" : "OFFLINE";
-        badge.className = 'status-badge ' + (isOnline ? 'online' : 'offline');
+    // 3. BONUS POPUP (Only once)
+    onValue(ref(db, 'admin/settings/bonus_offer'), (snap) => {
+        const offer = snap.val();
+        if(offer && offer.active){
+            get(ref(db, `users/${userPhone}/bonusClaimed`)).then((claimed) => {
+                if(!claimed.val()){
+                    document.getElementById('bonusPopup').style.display = 'flex';
+                    document.getElementById('bonusText').innerText = offer.message;
+                }
+            });
+        }
     });
 
-    // 3. USER BALANCE & BAN CHECK
+    window.closePopup = () => document.getElementById('bonusPopup').style.display = 'none';
+
+    // 4. WALLET & STATUS
     onValue(ref(db, 'users/' + userPhone), (snap) => {
         const u = snap.val();
-        if(u) {
-            if(u.status === 'banned') { 
-                alert("Account Banned by Admin!"); 
-                window.location.href="login.html"; 
-            }
-            document.getElementById('userBalance').innerText = parseFloat(u.balance || 0).toFixed(2);
-        }
+        if(u) document.getElementById('userBalance').innerText = parseFloat(u.balance || 0).toFixed(2);
     });
 
-    // 4. FIX: CHAT SYSTEM (Correct Path for Admin Panel Sync)
-    window.sendMsg = () => {
-        const inp = document.getElementById('chatMsgInp');
-        const text = inp.value.trim();
-        if(text){
-            const chatRef = ref(db, `chats/${userPhone}`);
-            push(chatRef, {
-                text: text,
-                sender: 'user',
-                time: Date.now()
-            });
-            inp.value = "";
-        }
-    };
-
-    // Receive Messages in Real-time
-    onValue(ref(db, `chats/${userPhone}`), (snap) => {
-        const area = document.getElementById('msgArea');
-        area.innerHTML = "";
-        snap.forEach(child => {
-            const m = child.val();
-            const div = document.createElement('div');
-            div.className = m.sender === 'user' ? 'm-user' : 'm-admin';
-            div.innerText = m.text;
-            area.appendChild(div);
-        });
-        area.scrollTop = area.scrollHeight;
+    onValue(ref(db, 'admin_settings/isOnline'), (snap) => {
+        const badge = document.getElementById('admStatus');
+        badge.className = 'status-badge ' + (snap.val() ? 'online' : 'offline');
+        badge.innerText = snap.val() ? "ONLINE" : "OFFLINE";
     });
 
-    // Sidebar & Game Helpers
+    // 5. FUNCTIONS
     window.showCat = (id) => {
         document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -177,17 +208,13 @@
         c.style.display = (c.style.display === 'flex') ? 'none' : 'flex';
     };
 
-    // Dummy Games Generator
-    ['popular', 'hot', 'slots'].forEach(c => {
-        const container = document.getElementById(c);
-        for(let i=1; i<=6; i++){
-            container.innerHTML += `
-                <div class="game-card" onclick="location.href='wingo.html'">
-                    <img src="https://picsum.photos/200?random=${c}${i}">
-                    <p style="font-size:11px; padding:5px;">Game ${i}</p>
-                </div>`;
+    window.sendMsg = () => {
+        const inp = document.getElementById('chatMsgInp');
+        if(inp.value.trim()){
+            push(ref(db, `chats/${userPhone}`), { text: inp.value, sender: 'user', time: Date.now() });
+            inp.value = "";
         }
-    });
+    };
 </script>
 </body>
 </html>
