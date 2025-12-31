@@ -5,63 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Register - CASHWIN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --p-red: #ff6b6b; --g-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: #f8f9fe; padding-bottom: 50px; }
-        .header { background: var(--g-red); height: 150px; padding: 20px; color: white; text-align: center; }
-        .logo-text { font-size: 28px; font-weight: 900; color: #ffeb3b; font-style: italic; margin-bottom: 5px; }
-        .container { background: white; margin: -30px 15px 0 15px; border-radius: 20px; padding: 25px 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
-        .form-title { text-align: center; font-weight: bold; color: #333; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid var(--p-red); display: inline-block; width: 100%; padding-bottom: 10px; }
-        .input-box { display: flex; align-items: center; background: #fdfdfd; border: 1px solid #ddd; border-radius: 12px; padding: 5px 15px; margin-bottom: 15px; }
-        .input-box i { color: var(--p-red); width: 20px; }
-        input { flex: 1; border: none; padding: 12px; outline: none; font-size: 15px; background: transparent; }
-        .btn-register { background: var(--g-red); color: white; width: 100%; padding: 15px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; margin-top: 10px; box-shadow: 0 5px 15px rgba(255,107,107,0.3); cursor: pointer; }
+        :root { --p-red: #ff4d4d; --g-red: linear-gradient(180deg, #ff6b6b 0%, #d32f2f 100%); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f4f7f6; display: flex; flex-direction: column; align-items: center; }
+        
+        .header { background: var(--g-red); width: 100%; height: 160px; padding: 30px; color: white; text-align: center; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; }
+        .logo-text { font-size: 32px; font-weight: 900; color: #ffeb3b; font-style: italic; letter-spacing: 2px; }
+
+        .container { background: white; width: 90%; max-width: 400px; margin-top: -40px; border-radius: 25px; padding: 30px 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .form-title { text-align: center; font-weight: 800; color: #333; margin-bottom: 25px; font-size: 20px; }
+        
+        .input-group { position: relative; margin-bottom: 18px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--p-red); font-size: 18px; }
+        .input-group input { width: 100%; padding: 14px 14px 14px 45px; border: 1px solid #e0e0e0; border-radius: 15px; outline: none; font-size: 15px; transition: 0.3s; background: #fafafa; }
+        .input-group input:focus { border-color: var(--p-red); background: #fff; box-shadow: 0 0 8px rgba(255,77,77,0.1); }
+
+        .btn-register { background: var(--g-red); color: white; width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 8px 20px rgba(211,47,47,0.3); margin-top: 10px; }
+        .btn-register:active { transform: scale(0.96); }
+        
+        .footer-text { text-align: center; margin-top: 25px; font-size: 14px; color: #666; }
+        .footer-text a { color: var(--p-red); text-decoration: none; font-weight: 700; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <div class="logo-text">CASHWIN</div>
-        <p>Create your professional account</p>
+        <p style="opacity: 0.9;">Secure Gaming Platform</p>
     </div>
 
     <div class="container">
-        <div class="form-title">REGISTER</div>
+        <div class="form-title">CREATE ACCOUNT</div>
 
-        <div class="input-box">
+        <div class="input-group">
             <i class="fas fa-envelope"></i>
-            <input type="email" id="regEmail" placeholder="Enter Email Address">
+            <input type="email" id="email" placeholder="Email Address">
         </div>
 
-        <div class="input-box">
+        <div class="input-group">
             <i class="fas fa-phone-alt"></i>
-            <span style="font-weight:bold; margin:0 10px;">+91</span>
-            <input type="number" id="regPhone" placeholder="Mobile Number">
+            <input type="number" id="phone" placeholder="10-Digit Mobile Number">
         </div>
 
-        <div class="input-box">
+        <div class="input-group">
             <i class="fas fa-lock"></i>
-            <input type="password" id="regPass" placeholder="Set Password">
+            <input type="password" id="pass" placeholder="Create Password">
         </div>
 
-        <div class="input-box">
-            <i class="fas fa-user-plus"></i>
-            <input type="text" id="inviteCode" placeholder="Invite Code (Optional)">
+        <div class="input-group">
+            <i class="fas fa-shield-alt"></i>
+            <input type="password" id="confirmPass" placeholder="Confirm Password">
         </div>
 
-        <button class="btn-register" id="finalRegBtn">Register Now</button>
+        <div class="input-group">
+            <i class="fas fa-user-friends"></i>
+            <input type="text" id="invite" placeholder="Invite Code (Optional)">
+        </div>
+
+        <button class="btn-register" onclick="handleRegister()">REGISTER NOW</button>
         
-        <p style="text-align:center; margin-top:20px; font-size:14px;">
-            Already have an account? <a href="login.html" style="color:var(--p-red); text-decoration:none; font-weight:bold;">Login</a>
+        <p class="footer-text">
+            Already have an account? <a href="login.html">Login</a>
         </p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
+    <script>
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
             authDomain: "testing-26b8c.firebaseapp.com",
@@ -70,51 +83,57 @@
             appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
 
-        document.getElementById('finalRegBtn').onclick = async () => {
-            const email = document.getElementById('regEmail').value;
-            const phone = document.getElementById('regPhone').value;
-            const pass = document.getElementById('regPass').value;
-            const invite = document.getElementById('inviteCode').value || "Direct";
+        async function handleRegister() {
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const pass = document.getElementById('pass').value;
+            const cPass = document.getElementById('confirmPass').value;
+            const invite = document.getElementById('invite').value || "Direct";
 
-            // Basic Validation
-            if(!email.includes('@')) return alert("Please enter a valid Email!");
-            if(phone.length !== 10) return alert("Please enter 10-digit Mobile Number!");
-            if(pass.length < 6) return alert("Password must be at least 6 characters!");
+            // Validations
+            if(!email || !phone || !pass) return alert("Please fill all fields!");
+            if(phone.length !== 10) return alert("Enter valid 10-digit number!");
+            if(pass.length < 6) return alert("Password must be 6+ characters!");
+            if(pass !== cPass) return alert("Passwords do not match!");
 
             try {
-                // 1. Firebase Auth mein User create karo
-                const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+                // 1. Firebase Auth User Create
+                const userCred = await auth.createUserWithEmailAndPassword(email, pass);
                 const user = userCred.user;
 
-                // 2. Gmail par Verification Link bhejo
-                await sendEmailVerification(user);
-                
-                // 3. Database mein user ka data 'Pending' status ke sath save karo
-                // Hum UID ko key banayenge taaki unique rahe
-                await set(ref(db, 'users/' + user.uid), {
+                // 2. Prepare User Data
+                const userData = {
                     uid: user.uid,
                     email: email,
                     phone: phone,
-                    password: pass, // Optional: Security ke liye save na karein toh behtar hai
+                    password: pass, // Security ke liye aap chahe toh hide kar sakte hain
                     balance: 0,
-                    status: 'pending_verification',
+                    status: 'active',
+                    rigging: 'normal',
                     referredBy: invite,
-                    emailVerified: false,
-                    joinDate: new Date().toLocaleString()
-                });
+                    joinDate: new Date().toLocaleString(),
+                    onlineStatus: 'Online'
+                };
 
-                alert("Success! A verification link has been sent to " + email + ". Please verify your email to activate your account.");
-                window.location.href = "login.html";
+                // 3. Save to Database (Phone mapping is important for your tracking)
+                await db.ref("users/" + phone).set(userData);
+                
+                alert("Registration Successful!");
+                
+                // Set Session
+                localStorage.setItem('userPhone', phone);
+                
+                // Redirect to Game
+                window.location.href = "dashboard.html"; // Ya jo bhi aapka game file name hai
 
-            } catch (error) {
-                console.error(error);
-                alert("Error: " + error.message);
+            } catch (err) {
+                alert("Error: " + err.message);
             }
-        };
+        }
     </script>
 </body>
 </html>
