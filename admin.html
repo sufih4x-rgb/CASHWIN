@@ -10,18 +10,15 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Login Screen */
         #loginOverlay { position: fixed; inset: 0; background: var(--primary); z-index: 10000; display: flex; align-items: center; justify-content: center; color: white; }
         .login-card { background: white; padding: 40px; border-radius: 20px; width: 350px; color: #333; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .login-card input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
 
-        /* Sidebar */
         .sidebar { width: 260px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; flex-shrink: 0; }
         .sidebar h2 { color: var(--accent); margin-bottom: 30px; text-align: center; font-style: italic; }
         .nav-link { padding: 12px; color: #ecf0f1; text-decoration: none; border-radius: 8px; margin-bottom: 5px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
         .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--accent); }
 
-        /* Main Content */
         .main-content { flex: 1; overflow-y: auto; padding: 30px; }
         .header-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); }
@@ -29,24 +26,20 @@
         .section { display: none; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .section.active { display: block; }
 
-        /* QR Upload Styling */
         .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
         .qr-card { border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center; }
         .qr-card input { width: 100%; margin-top: 10px; font-size: 11px; }
 
-        /* Floating Chat Simulation */
-        .chat-bubble { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        #chatPanel { position: fixed; bottom: 100px; right: 30px; width: 300px; height: 400px; background: white; border-radius: 15px; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 999; }
-
-        /* All-over Buttons */
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; }
         .btn-green { background: var(--success); }
         .btn-red { background: var(--accent); }
         .btn-blue { background: #3498db; }
-        .btn-reset { background: #f39c12; width: 100%; margin-top: 15px; padding: 15px; font-size: 16px; }
+        .btn-orange { background: #f39c12; }
+        .btn-reset { background: #e74c3c; width: 100%; margin-top: 15px; padding: 15px; font-size: 16px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        input.small-input { width: 60px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -55,8 +48,7 @@
         <div class="login-card">
             <h2>Admin Login</h2>
             <input type="password" id="adminPass" placeholder="Enter Admin Password">
-            <button class="btn btn-blue" style="width:100%;" onclick="checkLogin()">Login</button>
-            <p onclick="alert('Contact Dev')">Reset Password</p>
+            <button class="btn btn-blue" style="width:100%; padding: 12px;" onclick="checkLogin()">Login</button>
         </div>
     </div>
 
@@ -72,149 +64,202 @@
 
     <div class="main-content">
         <div class="header-stats">
-            <div class="stat-card"><h3>Profit</h3><h2 id="adminProfitDisplay">₹0</h2></div>
+            <div class="stat-card"><h3>Admin Profit</h3><h2 id="adminProfitDisplay">₹0</h2></div>
             <div class="stat-card"><h3>Live Users</h3><h2 id="liveUsersCount">0</h2></div>
-            <div class="stat-card"><h3>Admin Status</h3><h2 id="adminStatusTag" style="color:green">OFFLINE</h2></div>
-            <div class="stat-card"><h3>Total Loss</h3><h2 id="totalLossDisplay">₹0</h2></div>
+            <div class="stat-card"><h3>Status</h3><h2 id="adminStatusTag" style="color:red">OFFLINE</h2></div>
+            <div class="stat-card"><h3>User Deposits</h3><h2 id="totalDepDisplay">₹0</h2></div>
         </div>
 
         <div id="dashboard" class="section active">
-            <h2>Live Betting Monitor</h2>
-            <table id="liveBetsTable"><thead><tr><th>Phone</th><th>Mode</th><th>Bet</th><th>Amount</th></tr></thead><tbody id="liveBetsBody"></tbody></table>
+            <h2>Recent Betting activity</h2>
+            <table id="liveBetsTable"><thead><tr><th>Phone</th><th>Period</th><th>Bet</th><th>Amount</th><th>Status</th></tr></thead><tbody id="liveBetsBody"></tbody></table>
         </div>
 
         <div id="paymentConfig" class="section">
-            <h2>Payment QR Settings (3 Sections)</h2>
+            <h2>Payment QR Settings</h2>
             <div class="qr-grid">
-                <div class="qr-card">
-                    <i class="fas fa-university" style="font-size:30px; color:#673ab7"></i>
-                    <h4>UPI / PhonePe QR</h4>
-                    <input type="text" id="qr_upi" placeholder="Image URL / Base64">
-                </div>
-                <div class="qr-card">
-                    <i class="fab fa-paypal" style="font-size:30px; color:#00bcd4"></i>
-                    <h4>Paytm QR</h4>
-                    <input type="text" id="qr_paytm" placeholder="Image URL / Base64">
-                </div>
-                <div class="qr-card">
-                    <i class="fas fa-store" style="font-size:30px; color:#ff9800"></i>
-                    <h4>All-in-One Merchant</h4>
-                    <input type="text" id="qr_merchant" placeholder="Image URL / Base64">
-                </div>
+                <div class="qr-card"><h4>PhonePe QR</h4><input type="text" id="qr_upi"></div>
+                <div class="qr-card"><h4>Paytm QR</h4><input type="text" id="qr_paytm"></div>
+                <div class="qr-card"><h4>Merchant QR</h4><input type="text" id="qr_merchant"></div>
             </div>
-            <button class="btn btn-green" style="width:100%; margin-top:20px;" onclick="saveQR()">Save All QR Codes</button>
+            <button class="btn btn-green" style="width:100%; margin-top:20px; padding: 15px;" onclick="saveQR()">Save All QR Codes</button>
         </div>
 
         <div id="users" class="section">
-            <h2>User Rigging & Control</h2>
-            <table><thead><tr><th>Phone</th><th>Balance</th><th>Rigging</th><th>Status</th><th>Edit</th></tr></thead><tbody id="userTableBody"></tbody></table>
+            <h2>User Rigging & Management</h2>
+            <table><thead><tr><th>Phone</th><th>Balance</th><th>Rigging</th><th>Status</th><th>Edit Balance</th></tr></thead><tbody id="userTableBody"></tbody></table>
         </div>
 
         <div id="wingo" class="section">
-            <h2>WinGo Result Force</h2>
-            <div style="background:#fff5f5; padding:20px; border-radius:10px;">
-                <select id="forceMode"><option value="1">1 Min</option><option value="3">3 Min</option><option value="5">5 Min</option></select>
-                <select id="forceResult">
-                    <option value="none">Auto</option>
-                    <option value="Red">Red</option><option value="Green">Green</option>
-                    <option value="0">0 (Red/V)</option><option value="5">5 (Grn/V)</option>
+            <h2>WinGo Result Force (Next Period)</h2>
+            <div style="background:#fff5f5; padding:20px; border-radius:10px; display: flex; gap: 10px;">
+                <select id="forceMode" style="padding: 10px; flex: 1;"><option value="1">1 Min</option><option value="3">3 Min</option><option value="5">5 Min</option></select>
+                <select id="forceResult" style="padding: 10px; flex: 1;">
+                    <option value="none">Auto (Normal)</option>
+                    <option value="Red">Force Red</option><option value="Green">Force Green</option>
+                    <option value="0">Force 0 (Violet/Red)</option><option value="5">Force 5 (Violet/Green)</option>
                 </select>
-                <button class="btn btn-red" onclick="applyGameForce()">Apply</button>
+                <button class="btn btn-red" style="padding: 0 30px;" onclick="applyGameForce()">Apply</button>
             </div>
-            <button class="btn btn-reset" onclick="resetAllRigging()">RESET ALL RIGGING</button>
+            <button class="btn btn-reset" onclick="resetAllRigging()">RESET ALL SYSTEM RIGGING</button>
         </div>
 
         <div id="transactions" class="section">
             <h2>Pending Requests</h2>
-            <div style="margin-bottom:10px;"><button class="btn btn-blue" onclick="loadTx('deposits')">Dep</button> <button class="btn btn-blue" onclick="loadTx('withdrawals')">With</button></div>
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-blue" onclick="loadTx('deposits')">Deposit Requests</button> 
+                <button class="btn btn-orange" onclick="loadTx('withdrawals')">Withdrawal Requests</button>
+            </div>
             <table><thead id="txHead"></thead><tbody id="txBody"></tbody></table>
         </div>
 
         <div id="slider" class="section">
-            <h2>Home Sliders</h2>
+            <h2>Home Screen Sliders</h2>
             <div id="sliderGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
-            <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="saveSliders()">Save Sliders</button>
+            <button class="btn btn-green" style="width:100%; margin-top:15px; padding: 15px;" onclick="saveSliders()">Save Banners</button>
         </div>
-    </div>
-
-    <div class="chat-bubble" onclick="toggleChat()"><i class="fas fa-comments"></i></div>
-    <div id="chatPanel">
-        <div style="background:var(--primary); color:white; padding:15px; border-radius:15px 15px 0 0;">Live Chat Admin</div>
-        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:10px; font-size:12px;"></div>
-        <div style="padding:10px; display:flex;"><input type="text" id="chatInput" style="flex:1; padding:5px;"><button onclick="sendMsg()">Send</button></div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, get, query, limitToLast, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get, query, limitToLast, onDisconnect, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const fbConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
     const app = initializeApp(fbConfig);
     const db = getDatabase(app);
 
-    // Login
-    window.checkLogin = () => { if(document.getElementById('adminPass').value === "admin123") document.getElementById('loginOverlay').style.display='none'; };
-    
-    // Online Status
-    const statusRef = ref(db, 'adminControl/status');
-    set(statusRef, "ONLINE"); document.getElementById('adminStatusTag').innerText="ONLINE";
-    onDisconnect(statusRef).set("OFFLINE");
+    // Login logic
+    window.checkLogin = () => {
+        if(document.getElementById('adminPass').value === "admin123") {
+            document.getElementById('loginOverlay').style.display='none';
+            set(ref(db, 'adminControl/status'), "ONLINE");
+            document.getElementById('adminStatusTag').innerText="ONLINE";
+            document.getElementById('adminStatusTag').style.color="green";
+        } else { alert("Wrong Password!"); }
+    };
 
-    // Sections
+    onDisconnect(ref(db, 'adminControl/status')).set("OFFLINE");
+
     window.showSection = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     };
 
-    // Rigging & User Table
+    // User Table Logic
     onValue(ref(db, 'users'), (snap) => {
         const tbody = document.getElementById('userTableBody'); tbody.innerHTML = "";
+        let count = 0;
         snap.forEach(c => {
-            const u = c.val();
-            tbody.innerHTML += `<tr><td>${u.phone}</td><td>₹${u.balance||0}</td>
-            <td><button class="btn ${u.rig==='win'?'btn-green':'btn-blue'}" onclick="setRig('${u.phone}','win')">W</button>
-            <button class="btn ${u.rig==='loss'?'btn-red':'btn-blue'}" onclick="setRig('${u.phone}','loss')">L</button></td>
-            <td>${u.banned?'Ban':'OK'}</td>
-            <td><input id="b_${u.phone}" style="width:40px"><button onclick="editBal('${u.phone}',1)">+</button></td></tr>`;
+            const u = c.val(); count++;
+            tbody.innerHTML += `<tr>
+                <td>${u.phone}</td>
+                <td>₹${(u.balance||0).toFixed(2)}</td>
+                <td>
+                    <button class="btn ${u.rig==='win'?'btn-green':'btn-blue'}" onclick="setRig('${u.phone}','win')">W</button>
+                    <button class="btn ${u.rig==='loss'?'btn-red':'btn-blue'}" onclick="setRig('${u.phone}','loss')">L</button>
+                    <button class="btn btn-blue" onclick="setRig('${u.phone}','none')">R</button>
+                </td>
+                <td><button class="btn ${u.banned?'btn-red':'btn-green'}" onclick="toggleBan('${u.phone}', ${u.banned||false})">${u.banned?'Unban':'Ban'}</button></td>
+                <td>
+                    <input type="number" id="bal_${u.phone}" class="small-input" placeholder="0">
+                    <button class="btn btn-green" onclick="editBal('${u.phone}')">Add</button>
+                </td>
+            </tr>`;
         });
+        document.getElementById('liveUsersCount').innerText = count;
     });
 
     window.setRig = (ph, t) => update(ref(db, `users/${ph}`), { rig: t });
-
-    // Save QR Logic
-    window.saveQR = () => {
-        const upi = document.getElementById('qr_upi').value;
-        const paytm = document.getElementById('qr_paytm').value;
-        const merchant = document.getElementById('qr_merchant').value;
-        set(ref(db, 'adminControl/paymentQR'), { upi, paytm, merchant });
-        alert("QR Codes Updated Successfully!");
+    window.toggleBan = (ph, stat) => update(ref(db, `users/${ph}`), { banned: !stat });
+    window.editBal = (ph) => {
+        const val = parseFloat(document.getElementById('bal_'+ph).value);
+        if(val) update(ref(db, `users/${ph}`), { balance: increment(val) });
     };
 
-    // Chat Toggle
-    window.toggleChat = () => { const p = document.getElementById('chatPanel'); p.style.display = p.style.display === 'flex' ? 'none' : 'flex'; };
+    // Game Force
+    window.applyGameForce = () => {
+        const mode = document.getElementById('forceMode').value;
+        const res = document.getElementById('forceResult').value;
+        set(ref(db, `adminControl/wingo/${mode}/forceNext`), res);
+        alert(`Result Forced for ${mode}Min: ${res}`);
+    };
 
-    // Stats
-    onValue(ref(db, 'userBets'), snap => {
-        let p=0, l=0; snap.forEach(u => u.forEach(b => {
-            const d = b.val(); if(d.status==='loss'){p+=d.amount; l+=d.amount;}
-            if(d.status==='win') p-=(d.winAmount-d.amount);
+    // Transactions
+    window.loadTx = async (type) => {
+        const head = document.getElementById('txHead');
+        const body = document.getElementById('txBody');
+        body.innerHTML = "Loading...";
+        
+        if(type === 'deposits') {
+            head.innerHTML = "<tr><th>User</th><th>Amount</th><th>UTR</th><th>Action</th></tr>";
+            onValue(ref(db, 'deposits'), snap => {
+                body.innerHTML = "";
+                snap.forEach(u => u.forEach(d => {
+                    const data = d.val();
+                    if(data.status === 'pending') {
+                        body.innerHTML += `<tr><td>${data.phone}</td><td>₹${data.amount}</td><td>${data.utr}</td>
+                        <td><button class="btn btn-green" onclick="approveDep('${data.phone}','${d.key}',${data.amount})">Approve</button></td></tr>`;
+                    }
+                }));
+            });
+        } else {
+            head.innerHTML = "<tr><th>User</th><th>Amount</th><th>Bank Details</th><th>Action</th></tr>";
+            onValue(ref(db, 'withdrawals'), snap => {
+                body.innerHTML = "";
+                snap.forEach(u => u.forEach(w => {
+                    const data = w.val();
+                    if(data.status === 'pending') {
+                        body.innerHTML += `<tr><td>${data.phone}</td><td>₹${data.amount}</td><td>${data.upi || 'Bank'}</td>
+                        <td><button class="btn btn-red" onclick="approveWith('${data.phone}','${w.key}')">Mark Paid</button></td></tr>`;
+                    }
+                }));
+            });
+        }
+    };
+
+    window.approveDep = (ph, id, amt) => {
+        update(ref(db, `deposits/${ph}/${id}`), { status: 'success' });
+        update(ref(db, `users/${ph}`), { balance: increment(amt) });
+    };
+    
+    window.approveWith = (ph, id) => update(ref(db, `withdrawals/${ph}/${id}`), { status: 'success' });
+
+    // Profit & Live Monitor
+    onValue(query(ref(db, 'userBets'), limitToLast(20)), snap => {
+        const live = document.getElementById('liveBetsBody'); live.innerHTML = "";
+        let totalP = 0;
+        snap.forEach(user => user.forEach(bet => {
+            const b = bet.val();
+            if(b.status === 'loss') totalP += b.amount;
+            if(b.status === 'win') totalP -= (b.winAmount - b.amount);
+            live.innerHTML += `<tr><td>${b.phone || 'User'}</td><td>${b.period}</td><td>${b.type}</td><td>₹${b.amount}</td><td>${b.status}</td></tr>`;
         }));
-        document.getElementById('adminProfitDisplay').innerText = "₹"+p.toFixed(2);
-        document.getElementById('totalLossDisplay').innerText = "₹"+l.toFixed(2);
+        document.getElementById('adminProfitDisplay').innerText = "₹" + totalP.toFixed(2);
     });
 
-    // Reset All Rigging
-    window.resetAllRigging = () => {
+    // QR & Sliders
+    window.saveQR = () => {
+        set(ref(db, 'adminControl/paymentQR'), {
+            upi: document.getElementById('qr_upi').value,
+            paytm: document.getElementById('qr_paytm').value,
+            merchant: document.getElementById('qr_merchant').value
+        });
+        alert("QR Saved!");
+    };
+
+    window.resetAllRigging = async () => {
+        const uSnap = await get(ref(db, 'users'));
+        uSnap.forEach(u => update(ref(db, `users/${u.key}`), { rig: 'none' }));
         set(ref(db, 'adminControl/wingo/1/forceNext'), 'none');
         set(ref(db, 'adminControl/wingo/3/forceNext'), 'none');
         set(ref(db, 'adminControl/wingo/5/forceNext'), 'none');
-        alert("Reset Complete!");
-    }
+        alert("All rigging cleared!");
+    };
 
-    // Load Sliders
+    // Slider setup
     const sGrid = document.getElementById('sliderGrid');
-    for(let i=1; i<=10; i++) sGrid.innerHTML += `<div>Img ${i}: <input type="text" id="sl_${i}" style="width:100%"></div>`;
-
+    for(let i=1; i<=4; i++) sGrid.innerHTML += `<div class="qr-card">Slide ${i}: <input type="text" id="sl_${i}" placeholder="Image URL"></div>`;
 </script>
 </body>
 </html>
