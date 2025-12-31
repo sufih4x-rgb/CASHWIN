@@ -12,7 +12,6 @@
         .balance-card { background: linear-gradient(135deg, #ff8e8e, #ff5252); margin: 15px; padding: 25px; border-radius: 15px; color: white; position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(255,82,82,0.2); }
         .balance-card h2 { font-size: 28px; margin: 10px 0; }
         
-        /* 3 QR Sections Styling */
         .channel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px; margin-top: 10px; }
         .channel-box { background: white; padding: 12px 5px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; transition: 0.3s; }
         .channel-box.active { border-color: var(--p-red); background: #fff5f5; border-width: 2px; transform: scale(1.05); }
@@ -30,17 +29,15 @@
         .total-get { color: var(--p-red); font-size: 20px; font-weight: bold; }
         .deposit-btn { background: #ff5252; color: white; border: none; width: 100%; padding: 15px; border-radius: 30px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,82,82,0.3); margin-top: 15px; }
 
-        /* Payment Modal Styling */
+        /* Payment Modal */
         #paymentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: white; width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 20px; position: relative; text-align: center; }
         .timer-box { color: var(--p-red); font-weight: bold; font-size: 20px; margin-bottom: 10px; border: 1px solid #eee; display: inline-block; padding: 5px 15px; border-radius: 15px; }
-        .qr-display { width: 200px; height: 200px; border: 4px solid #f1f1f1; margin: 10px auto; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .qr-display img { width: 90%; height: 90%; object-fit: contain; }
-        .qr-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px 0; }
+        .qr-display { width: 220px; height: 220px; border: 4px solid #f1f1f1; margin: 10px auto; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .qr-display img { width: 100%; height: 100%; object-fit: contain; }
         
         .upi-box { background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px dashed #ccc; margin: 10px 0; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .utr-input { width: 90%; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; margin-bottom: 15px; outline: none; text-align: center; }
-        .utr-input:focus { border-color: var(--p-red); }
+        .utr-input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; margin-bottom: 15px; outline: none; text-align: center; }
 
         .history-section { background: white; margin: 15px; border-radius: 15px; padding: 20px; }
         .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
@@ -85,12 +82,12 @@
             <div class="amt-btn" onclick="updateCalc(500, 80)">₹500 <span class="amt-bonus">HOT</span></div>
             <div class="amt-btn" onclick="updateCalc(1000, 180)">₹1K <span class="amt-bonus">+180</span></div>
             <div class="amt-btn" onclick="updateCalc(5000, 900)">₹5K <span class="amt-bonus">+900</span></div>
-            <div class="amt-btn" onclick="updateCalc(100000, 20000)">₹1L <span class="amt-bonus">+20K</span></div>
+            <div class="amt-btn" onclick="updateCalc(10000, 2000)">₹10K <span class="amt-bonus">+2K</span></div>
         </div>
 
         <div class="calc-box">
             <div class="calc-row"><span>Deposit Amount</span> <span id="youPay">₹100</span></div>
-            <div class="calc-row"><span>First Deposit Bonus</span> <span id="bonusShow" style="color:#2ecc71;">+₹0</span></div>
+            <div class="calc-row"><span>Bonus</span> <span id="bonusShow" style="color:#2ecc71;">+₹0</span></div>
             <div class="calc-row" style="margin-top:10px; border-top: 1px dashed #eee; padding-top:10px;">
                 <span style="font-weight:bold; color:#333;">Estimated Credit</span> 
                 <span class="total-get">₹<span id="totalGet">100</span></span>
@@ -109,38 +106,29 @@
     <div id="paymentModal">
         <div class="modal-content">
             <div class="timer-box" id="timer">10:00</div>
-            <p style="color:#666; font-size:14px; margin-bottom: 5px;">Scan QR to Pay</p>
-            <h2 style="margin:0 0 15px 0; color:#333;">₹<span id="payAmt">100</span></h2>
+            <p style="color:#666; font-size:14px;">Scan QR & Pay</p>
+            <h2 style="margin:5px 0; color:#333;">₹<span id="payAmt">100</span></h2>
             
             <div class="qr-display">
-                <img id="displayQR" src="https://placehold.co/200x200?text=Loading+QR..." alt="Payment QR">
-                <div class="qr-label" id="qrTypeLabel">UPI QR</div>
+                <img id="displayQR" src="" alt="Payment QR">
             </div>
 
             <div class="upi-box">
                 <span id="activeUPI">Loading...</span>
-                <i class="far fa-copy" onclick="copyUPI()" style="color:var(--p-red); cursor:pointer; font-size: 18px;"></i>
+                <i class="far fa-copy" onclick="copyUPI()" style="color:var(--p-red); cursor:pointer; font-size: 20px;"></i>
             </div>
             
-            <div style="text-align: left; margin: 15px 0;">
-                <label style="font-size: 12px; color: #ff5252; font-weight: bold;">Step 1: Copy UPI/Scan QR and Pay</label><br>
-                <label style="font-size: 12px; color: #666;">Step 2: Enter 12-digit UTR below</label>
-            </div>
-
-            <input type="number" id="utr" class="utr-input" placeholder="Enter 12-digit UTR Number">
+            <input type="number" id="utr" class="utr-input" placeholder="Enter 12-digit UTR/Ref No.">
             <button class="deposit-btn" style="margin-top:0;" onclick="submitUTR()">Confirm Payment</button>
-            <p onclick="closeModal()" style="color:#999; margin-top:15px; font-size:14px; cursor:pointer; text-decoration: underline;">Cancel Request</p>
+            <p onclick="closeModal()" style="color:#999; margin-top:15px; font-size:14px; cursor:pointer;">Cancel Request</p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, set, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
-            databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com"
-        };
-
+        const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const userPhone = localStorage.getItem('userPhone') || '9117748052';
@@ -152,19 +140,16 @@
         let currentChannel = 'upi';
         let adminPayments = {};
 
-        // 1. Initial Data Load
+        // 1. User Balance & Bonus Check
         onValue(ref(db, `users/${userPhone}`), (snap) => {
             const data = snap.val();
             if(data) {
                 document.getElementById('balDisplay').innerText = (data.balance || 0).toFixed(2);
                 isFirstDep = (!data.totalDeposit || data.totalDeposit <= 0);
-                if(!isFirstDep) {
-                    document.querySelectorAll('.amt-bonus').forEach(b => b.style.display = 'none');
-                }
             }
         });
 
-        // 2. Load Admin Payment Settings (3 types)
+        // 2. Load Admin Payment Settings (FIXED PATH)
         onValue(ref(db, 'admin/settings/payment'), (s) => {
             adminPayments = s.val() || {};
             updatePaymentUI();
@@ -178,22 +163,19 @@
         };
 
         function updatePaymentUI() {
-            const label = document.getElementById('qrTypeLabel');
             const qrImg = document.getElementById('displayQR');
             const upiTxt = document.getElementById('activeUPI');
 
+            // Default to standard QR if specific ones aren't set
             if(currentChannel === 'upi') {
-                label.innerText = "UPI QR";
-                qrImg.src = adminPayments.qr || "";
-                upiTxt.innerText = adminPayments.upi || "UPI NOT SET";
+                qrImg.src = adminPayments.qr || "https://placehold.co/200x200?text=No+QR+Set";
+                upiTxt.innerText = adminPayments.upi || "No UPI Set";
             } else if(currentChannel === 'paytm') {
-                label.innerText = "Paytm Business QR";
-                qrImg.src = adminPayments.paytm_qr || adminPayments.qr || "";
-                upiTxt.innerText = adminPayments.paytm_upi || adminPayments.upi || "";
+                qrImg.src = adminPayments.paytm_qr || adminPayments.qr || "https://placehold.co/200x200?text=No+Paytm+QR";
+                upiTxt.innerText = adminPayments.paytm_upi || adminPayments.upi || "No UPI Set";
             } else {
-                label.innerText = "Merchant All-in-One";
-                qrImg.src = adminPayments.merchant_qr || adminPayments.qr || "";
-                upiTxt.innerText = adminPayments.merchant_upi || adminPayments.upi || "";
+                qrImg.src = adminPayments.merchant_qr || adminPayments.qr || "https://placehold.co/200x200?text=No+Merchant+QR";
+                upiTxt.innerText = adminPayments.merchant_upi || adminPayments.upi || "No UPI Set";
             }
         }
 
@@ -201,55 +183,49 @@
             depositAmt = a;
             bonusAmt = isFirstDep ? b : 0;
             document.getElementById('youPay').innerText = "₹" + a;
-            document.getElementById('bonusShow').innerText = isFirstDep ? "+₹" + bonusAmt : "+₹0 (Already Used)";
+            document.getElementById('bonusShow').innerText = "+₹" + bonusAmt;
             document.getElementById('totalGet').innerText = a + bonusAmt;
             
             document.querySelectorAll('.amt-btn').forEach(btn => {
                 if(btn.innerText.includes(a) || (a >= 1000 && btn.innerText.includes(a/1000 + 'K'))) {
                     btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                } else { btn.classList.remove('active'); }
             });
         };
 
         window.openPayment = () => {
-            if(depositAmt < 100 || depositAmt > 100000) return alert("Min: 100, Max: 1,00,000");
             document.getElementById('payAmt').innerText = depositAmt;
             document.getElementById('paymentModal').style.display = 'flex';
             updatePaymentUI();
-
-            update(ref(db, `admin/realtime_activity/${userPhone}`), {
-                status: `Paying ₹${depositAmt} via ${currentChannel}`,
-                lastSeen: serverTimestamp()
-            });
-
+            
+            // Start Timer
             let t = 600;
             clearInterval(timerInt);
             timerInt = setInterval(() => {
                 let m = Math.floor(t/60), s = t%60;
                 document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
-                if(--t < 0) { closeModal(); alert("Session Expired!"); }
+                if(--t < 0) { closeModal(); alert("Time Out!"); }
             }, 1000);
         };
 
         window.closeModal = () => {
             document.getElementById('paymentModal').style.display = 'none';
             clearInterval(timerInt);
-            update(ref(db, `admin/realtime_activity/${userPhone}`), { status: "Selecting Deposit Amount" });
+        };
+
+        window.copyUPI = () => {
+            const upi = document.getElementById('activeUPI').innerText;
+            if(upi.includes("Loading") || upi.includes("No")) return;
+            navigator.clipboard.writeText(upi).then(() => alert("UPI Copied!"));
         };
 
         window.submitUTR = () => {
             const utrVal = document.getElementById('utr').value.trim();
-            if(utrVal.length !== 12) {
-                alert("Please enter exactly 12-digit UTR/Ref Number");
-                return;
-            }
+            if(utrVal.length !== 12) return alert("Enter 12-digit UTR!");
 
-            const requestId = "DEP_" + Date.now();
+            const requestId = "DEP" + Date.now();
             const requestData = {
                 id: requestId,
-                uid: userPhone,
                 phone: userPhone,
                 amount: Number(depositAmt),
                 bonus: Number(bonusAmt),
@@ -260,11 +236,8 @@
                 timestamp: serverTimestamp()
             };
 
-            update(ref(db), {
-                [`/requests/deposits/${requestId}`]: requestData,
-                [`admin/realtime_activity/${userPhone}/status`]: `Deposit Submitted: ₹${depositAmt}`
-            }).then(() => {
-                alert("Payment submitted! Wait for admin approval.");
+            set(ref(db, `requests/deposits/${requestId}`), requestData).then(() => {
+                alert("Deposit Submitted Successfully!");
                 document.getElementById('utr').value = "";
                 closeModal();
             });
@@ -280,23 +253,16 @@
                 if(r.phone === userPhone) records.push(r);
             });
             records.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
-            if(records.length === 0) body.innerHTML = "<center style='padding:20px; color:#999;'>No history found</center>";
+            if(records.length === 0) body.innerHTML = "<center style='padding:20px; color:#999;'>No history</center>";
             records.forEach(r => {
                 const sLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1);
                 body.innerHTML += `
                 <div class="hist-item">
-                    <div><b>₹${r.amount}</b> <small style="color:var(--paytm-blue)">+₹${r.bonus || 0}</small><br><small style="color:#999">${r.time}</small></div>
+                    <div><b>₹${r.amount}</b> <small style="color:green">+${r.bonus}</small><br><small style="color:#999">${r.time}</small></div>
                     <span class="status-badge status-${sLabel}">${sLabel}</span>
                 </div>`;
             });
         });
-
-        window.copyUPI = () => {
-            const upi = document.getElementById('activeUPI').innerText;
-            if(upi.includes("NOT SET")) return;
-            navigator.clipboard.writeText(upi);
-            alert("UPI ID Copied!");
-        };
     </script>
 </body>
 </html>
