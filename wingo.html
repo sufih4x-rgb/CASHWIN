@@ -3,282 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN - Ultimate Control Center</title>
+    <title>CASHWIN PRO - Elite 1M</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ff4757; --green: #2ed573; --red: #ff4757; --violet: #a55eea; --gold: #ff9f43; --bg: #f8f9fc; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: var(--bg); overflow-x: hidden; }
+        :root { --primary: #ff4757; --green: #2ed573; --red: #ff4757; --violet: #a55eea; --gold: #ff9f43; --bg: #f1f2f6; --white: #ffffff; --dark: #2f3542; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--dark); user-select: none; }
 
-        /* Full Screen Lock */
-        #fullScreenLock { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .lock-timer { font-size: 100px; font-weight: 900; color: var(--primary); text-shadow: 0 0 20px rgba(255,71,87,0.5); }
-
-        /* Header & Wallet */
-        .header-top { background: linear-gradient(135deg, #ff4757, #ff6b81); padding: 40px 20px 80px; color: white; border-radius: 0 0 50px 50px; text-align: center; }
-        .wallet-box { background: white; margin: -60px 20px 20px; border-radius: 25px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .header-card { background: linear-gradient(135deg, #1e272e, #485460); padding: 30px 20px 80px; color: white; border-radius: 0 0 40px 40px; text-align: center; }
+        .balance-card { background: white; margin: -60px 15px 15px; border-radius: 25px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; z-index: 10; }
+        .bal-amt { font-size: 36px; font-weight: 900; color: #2d3436; margin: 10px 0; }
         
-        /* Game Tabs */
-        .modes-container { display: flex; background: #eee; margin: 15px; border-radius: 15px; padding: 5px; gap: 5px; }
-        .mode-btn { flex: 1; padding: 12px 5px; text-align: center; font-size: 11px; cursor: pointer; border-radius: 12px; color: #666; font-weight: bold; }
-        .mode-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .tab-box { display: flex; background: white; margin: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #eee; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: none; font-weight: 700; color: #747d8c; cursor: pointer; }
+        .tab-btn.active { background: var(--primary); color: white; }
 
-        /* Timer Card */
-        .timer-card { background: white; margin: 15px; border-radius: 20px; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--primary); }
-        .time-rem { font-size: 24px; font-weight: 900; color: var(--primary); }
+        .game-bar { background: white; margin: 15px; border-radius: 20px; padding: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
+        .timer-val { font-size: 24px; font-weight: 900; color: var(--primary); font-family: monospace; }
 
-        /* Betting Grid */
-        .betting-grid { background: white; margin: 15px; border-radius: 25px; padding: 20px; }
-        .color-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn-color { flex: 1; border: none; padding: 15px; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; }
-        .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-        .btn-num { aspect-ratio: 1; border-radius: 50%; border: none; color: white; font-weight: bold; font-size: 18px; cursor: pointer; }
+        .bet-box { background: white; margin: 15px; border-radius: 25px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+        .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 15px 0; }
+        .n-btn { aspect-ratio: 1; border-radius: 50%; border: none; color: white; font-weight: 900; font-size: 18px; cursor: pointer; }
 
-        /* SVG Chart & History */
-        .chart-section { background: white; margin: 15px; border-radius: 20px; padding: 15px; position: relative; min-height: 450px; overflow: hidden; }
-        #trendSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        .history-table { width: 100%; border-collapse: collapse; position: relative; z-index: 10; }
-        .history-table td { padding: 15px 0; text-align: center; border-bottom: 1px solid #f1f2f6; }
-        .dot { width: 22px; height: 22px; border-radius: 50%; background: #f1f2f6; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: #999; }
-        .dot.active { color: white; font-weight: bold; z-index: 20; position: relative; }
+        /* Status Colors */
+        .bg-red { background: var(--red); }
+        .bg-green { background: var(--green); }
+        .bg-violet { background: var(--violet); }
+        .bg-mix-red { background: linear-gradient(45deg, var(--red) 50%, var(--violet) 50%); }
+        .bg-mix-green { background: linear-gradient(45deg, var(--green) 50%, var(--violet) 50%); }
 
-        /* My History Section */
-        .my-bets-section { margin: 15px; background: white; border-radius: 20px; padding: 15px; }
-        .bet-card { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-
-        /* Win/Loss Popup (image_8251d0.png Style) */
-        #resultPopup { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 100000; }
-        .res-card { width: 320px; padding: 30px; border-radius: 30px; text-align: center; color: white; }
-        .win-bg { background: linear-gradient(180deg, #ff8e53, #ff4757); }
-        .loss-bg { background: linear-gradient(180deg, #57606f, #2f3542); }
-
-        /* Gradients */
-        .g-0 { background: linear-gradient(135deg, var(--red) 50%, var(--violet) 50%); }
-        .g-5 { background: linear-gradient(135deg, var(--green) 50%, var(--violet) 50%); }
-        .g-red { background: var(--red); }
-        .g-green { background: var(--green); }
+        .h-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; padding: 12px; border-bottom: 1px solid #f1f2f6; text-align: center; font-size: 13px; align-items: center; }
+        .my-bet-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; padding: 12px; border-bottom: 1px solid #f1f2f6; text-align: center; font-size: 13px; }
         
-        #betPopup { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 10000; transition: 0.4s; border-radius: 30px 30px 0 0; padding: 30px; box-shadow: 0 -10px 30px rgba(0,0,0,0.2); }
-        #betPopup.open { bottom: 0; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; color: white; }
+        .badge-win { background: var(--green); }
+        .badge-loss { background: var(--primary); }
+        .badge-pending { background: var(--gold); }
+
+        #betSheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; z-index: 3000; border-radius: 30px 30px 0 0; padding: 25px; transition: 0.4s ease; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+        #betSheet.open { bottom: 0; }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2500; display: none; }
+        #blocker { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 4000; display: none; align-items: center; justify-content: center; color: white; font-size: 80px; font-weight: 900; }
+        
+        #resPopup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .res-card { width: 85%; max-width: 320px; background: white; border-radius: 30px; text-align: center; overflow: hidden; animation: popScale 0.4s ease; }
+        @keyframes popScale { from { transform: scale(0.5); } to { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-<div id="fullScreenLock">
-    <div class="lock-timer" id="lockDigit">5</div>
-    <p>RESULT UPDATING...</p>
-</div>
+<div id="blocker">5</div>
+<div id="overlay" onclick="closeSheet()"></div>
 
-<div id="resultPopup">
-    <div id="resCard" class="res-card">
-        <h2 id="resTitle" style="font-size:28px;">Congratulations</h2>
-        <div style="background:white; color:#333; border-radius:20px; padding:20px; margin:20px 0;">
-            <p id="resSub" style="font-size:12px; color:#999;">Win Amount</p>
-            <h1 id="resAmount" style="font-size:35px; color:var(--primary);">₹0.00</h1>
+<div id="resPopup">
+    <div class="res-card">
+        <div id="resHead" style="padding: 30px; color: white; font-size: 24px; font-weight: 900;">RESULT</div>
+        <div style="padding: 25px;">
+            <p id="resDesc" style="color:#747d8c; font-weight:600;"></p>
+            <div id="resWinAmt" style="font-size: 40px; font-weight: 900; margin: 15px 0;">₹0.00</div>
+            <button onclick="closeRes()" style="width:100%; padding:15px; border:none; background:#f1f2f6; border-radius:15px; font-weight:800;">CONTINUE</button>
         </div>
-        <button onclick="document.getElementById('resultPopup').style.display='none'" style="width:100%; padding:15px; border-radius:30px; border:none; background:white; font-weight:bold;">CLOSE</button>
     </div>
 </div>
 
-<div id="betPopup">
-    <h3 id="betTargetDisplay" style="color:var(--primary);">Bet on: Green</h3>
-    <input type="number" id="betAmount" value="10" min="1" max="100000" style="width:100%; padding:15px; margin:15px 0; border:2px solid #eee; border-radius:15px; font-size:20px; font-weight:bold;">
+<div id="betSheet">
+    <div style="text-align:center; font-weight:800; font-size:18px;">Join <span id="sheetChoice" style="color:var(--primary)">-</span></div>
+    <input type="number" id="baseAmount" value="10" style="width:100%; padding:15px; margin-top:15px; border-radius:12px; border:2px solid #eee; font-size:20px; font-weight:800; text-align: center;">
+    <div style="display:flex; gap:10px; margin:15px 0;">
+        <button class="tab-btn active" style="border:1px solid #eee" onclick="setMult(1, this)">1X</button>
+        <button class="tab-btn" style="border:1px solid #eee" onclick="setMult(5, this)">5X</button>
+        <button class="tab-btn" style="border:1px solid #eee" onclick="setMult(10, this)">10X</button>
+    </div>
+    <div style="display:flex; justify-content:space-between; font-weight:800;">
+        <span>Payable:</span><span style="color:var(--primary)">₹<span id="totalDisplay">10</span></span>
+    </div>
+    <button onclick="confirmBet()" style="width:100%; padding:18px; border:none; background:var(--primary); color:white; border-radius:15px; font-weight:800; margin-top:15px;">CONFIRM</button>
+</div>
+
+<div class="header-card"><h2>CASHWIN PRO</h2></div>
+
+<div class="balance-card">
+    <div style="color:#747d8c; font-size:12px; font-weight:700;"><i class="fas fa-wallet"></i> TOTAL BALANCE</div>
+    <div class="bal-amt">₹<span id="userBal">0.00</span></div>
+    <div style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="handleDeposit()" style="flex:1; padding:12px; border-radius:12px; border:none; background:var(--green); color:white; font-weight:700;">RECHARGE</button>
+        <button onclick="handleWithdraw()" style="flex:1; padding:12px; border-radius:12px; border:none; background:var(--gold); color:white; font-weight:700;">WITHDRAW</button>
+    </div>
+</div>
+
+<div class="game-bar">
+    <div>
+        <p style="font-size:10px; color:#a4b0be; font-weight:700;">PERIOD</p>
+        <p id="currPeriod" style="font-weight:800;">---</p>
+    </div>
+    <div style="text-align:right">
+        <p style="font-size:10px; color:#ff4757; font-weight:700;">COUNTDOWN</p>
+        <p id="timer" class="timer-val">00:00</p>
+    </div>
+</div>
+
+<div class="bet-box">
     <div style="display:flex; gap:10px;">
-        <button onclick="closeBetPopup()" style="flex:1; padding:15px; border-radius:15px; border:none; background:#eee;">Cancel</button>
-        <button onclick="confirmBet()" style="flex:1; padding:15px; border-radius:15px; border:none; background:var(--primary); color:white; font-weight:bold;">Confirm Bet</button>
-    </div>
-</div>
-
-<div class="header-top"><h2>CASHWIN</h2></div>
-
-<div class="wallet-box">
-    <p style="font-size:13px; color:#888;">Wallet Balance</p>
-    <h1 style="font-size:35px; margin:10px 0;">₹ <span id="uBal">0.00</span></h1>
-    <div style="display:flex; gap:10px;">
-        <button style="flex:1; padding:12px; border-radius:30px; border:none; background:var(--green); color:white; font-weight:bold;">Deposit</button>
-        <button style="flex:1; padding:12px; border-radius:30px; border:1px solid #ddd; background:none; font-weight:bold;">Withdraw</button>
-    </div>
-</div>
-
-<div class="modes-container" id="modeTabs">
-    <div class="mode-btn active" onclick="changeMode('30s', this)">30s</div>
-    <div class="mode-btn" onclick="changeMode('1m', this)">1m</div>
-    <div class="mode-btn" onclick="changeMode('3m', this)">3m</div>
-    <div class="mode-btn" onclick="changeMode('5m', this)">5m</div>
-</div>
-
-<div class="timer-card">
-    <div><p style="font-size:11px; color:#999;">Period ID</p><div class="p-id" id="pIdDisplay">Loading...</div></div>
-    <div style="text-align:right;"><p style="font-size:11px; color:#999;">Countdown</p><div class="time-rem" id="timer">00:00</div></div>
-</div>
-
-<div class="betting-grid">
-    <div class="color-row">
-        <button class="btn-color g-green" onclick="openBetPopup('Green')">Green</button>
-        <button class="btn-color" style="background:var(--violet)" onclick="openBetPopup('Violet')">Violet</button>
-        <button class="btn-color g-red" onclick="openBetPopup('Red')">Red</button>
+        <button class="tab-btn bg-green" style="color:white; border-radius:10px" onclick="openBetSheet('Green')">Green</button>
+        <button class="tab-btn bg-violet" style="color:white; border-radius:10px" onclick="openBetSheet('Violet')">Violet</button>
+        <button class="tab-btn bg-red" style="color:white; border-radius:10px" onclick="openBetSheet('Red')">Red</button>
     </div>
     <div class="num-grid" id="numGrid"></div>
+    <div style="display:flex; gap:10px;">
+        <button class="tab-btn" style="background:#ffa502; color:white; border-radius:10px" onclick="openBetSheet('Big')">Big</button>
+        <button class="tab-btn" style="background:#2f3542; color:white; border-radius:10px" onclick="openBetSheet('Small')">Small</button>
+    </div>
 </div>
 
-<h3 style="margin:20px 15px 5px;">Trend Statistics</h3>
-<div class="chart-section">
-    <svg id="trendSvg"></svg>
-    <table class="history-table">
-        <tbody id="chartBody"></tbody>
-    </table>
+<div class="tab-box">
+    <button class="tab-btn active" id="btnHist" onclick="showTab('hist')">Game History</button>
+    <button class="tab-btn" id="btnMyBet" onclick="showTab('my')">My Bets</button>
 </div>
 
-<h3 style="margin:20px 15px 5px;">My Betting History</h3>
-<div class="my-bets-section" id="myHistoryBody">
-    <p style="text-align:center; color:#999; padding:20px;">No bets placed yet.</p>
+<div id="histView" style="background:white; margin:0 15px 30px; border-radius:15px; overflow:hidden;">
+    <div class="h-row" style="background:#f9f9f9; font-weight:700;">
+        <div>Period</div><div>Num</div><div>Size</div><div>Color</div>
+    </div>
+    <div id="historyList"></div>
+</div>
+
+<div id="myView" style="display:none; background:white; margin:0 15px 30px; border-radius:15px; overflow:hidden;">
+    <div class="my-bet-row" style="background:#f9f9f9; font-weight:700;">
+        <div>Period</div><div>Choice</div><div>Amt</div><div>Status</div>
+    </div>
+    <div id="myBetsList"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, get, update, set, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, set, update, get, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let userId = localStorage.getItem("userId") || "U" + Math.floor(Math.random()*900000);
-    localStorage.setItem("userId", userId);
-    let currentMode = '30s';
-    let currentBetTarget = "";
+    const uid = localStorage.getItem("winUserId") || "U" + Math.floor(Math.random() * 90000);
+    localStorage.setItem("winUserId", uid);
 
-    // Build Grid
-    const grid = document.getElementById('numGrid');
+    let userBalance = 0;
+    const gameMode = 60; 
+    let currentPeriod = "";
+    let lastProcessed = "";
+    let activeChoice = "";
+    let activeMult = 1;
+
+    // UI: Numbers
+    const nGrid = document.getElementById('numGrid');
     for(let i=0; i<=9; i++) {
-        let cls = i===0 ? 'g-0' : (i===5 ? 'g-5' : (i%2===0 ? 'g-red' : 'g-green'));
-        grid.innerHTML += `<button class="btn-num ${cls}" onclick="openBetPopup(${i})">${i}</button>`;
+        let clr = (i===0)?'bg-mix-red':(i===5)?'bg-mix-green':(i%2===0?'bg-red':'bg-green');
+        nGrid.innerHTML += `<button class="n-btn ${clr}" onclick="openBetSheet(${i})">${i}</button>`;
     }
 
-    // Chart Line Drawer
-    function drawLine() {
-        const svg = document.getElementById('trendSvg');
-        const dots = document.querySelectorAll('.dot.active');
-        if(dots.length < 2) return;
-        let path = "";
-        dots.forEach((dot, i) => {
-            const rect = dot.getBoundingClientRect();
-            const box = svg.getBoundingClientRect();
-            const x = rect.left - box.left + (rect.width/2);
-            const y = rect.top - box.top + (rect.height/2);
-            path += (i === 0 ? 'M' : 'L') + `${x},${y} `;
-        });
-        svg.innerHTML = `<path d="${path}" fill="none" stroke="var(--primary)" stroke-width="2" />`;
-    }
-
-    // Timer Logic
+    // Engine
     setInterval(() => {
         const now = new Date();
-        const dur = (currentMode === '30s' ? 30 : 60);
-        const rem = dur - (now.getSeconds() % dur);
-        document.getElementById('timer').innerText = `00:${rem.toString().padStart(2,'0')}`;
+        const totalSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        const rem = gameMode - (totalSec % gameMode);
+        document.getElementById('timer').innerText = `00:${String(rem).padStart(2, '0')}`;
+        currentPeriod = "202512" + String(now.getDate()).padStart(2,'0') + String(Math.floor(totalSec / gameMode)).padStart(4, '0');
+        document.getElementById('currPeriod').innerText = currentPeriod.slice(-4);
 
         if(rem <= 5) {
-            document.getElementById('fullScreenLock').style.display = 'flex';
-            document.getElementById('lockDigit').innerText = rem;
+            document.getElementById('blocker').style.display = 'flex';
+            document.getElementById('blocker').innerText = rem;
         } else {
-            document.getElementById('fullScreenLock').style.display = 'none';
+            document.getElementById('blocker').style.display = 'none';
         }
 
-        const pId = "202512" + now.getDate() + String(Math.floor((now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds())/dur)).padStart(4,'0');
-        document.getElementById('pIdDisplay').innerText = pId;
+        if(rem === gameMode && lastProcessed !== currentPeriod) {
+            processResult();
+            lastProcessed = currentPeriod;
+        }
     }, 1000);
 
-    // Sync Game & My Bets
-    function sync() {
-        // Balance
-        onValue(ref(db, `users/${userId}/balance`), s => document.getElementById('uBal').innerText = (s.val()||0).toFixed(2));
-        
-        // Game History & Chart
-        onValue(query(ref(db, `history/${currentMode}`), limitToLast(10)), snap => {
-            const body = document.getElementById('chartBody');
-            body.innerHTML = "";
-            if(!snap.exists()) return;
-            Object.values(snap.val()).reverse().forEach(item => {
-                let row = `<tr><td style="font-size:10px; color:#999;">${item.pId.slice(-4)}</td>`;
-                for(let i=0; i<=9; i++) {
-                    let active = (item.n == i);
-                    let clr = i===0?'g-0':(i===5?'g-5':(i%2==0?'g-red':'g-green'));
-                    row += `<td><div class="dot ${active?'active '+clr:''}"> ${i} </div></td>`;
-                }
-                body.innerHTML += row + `</tr>`;
-            });
-            setTimeout(drawLine, 500);
-        });
+    async function processResult() {
+        const myBetSnap = await get(ref(db, `bets/m60/${currentPeriod}/${uid}`));
+        const myBet = myBetSnap.val();
+        const rigSnap = await get(ref(db, 'admin/rigging'));
+        const rig = rigSnap.val();
 
-        // My Betting History
-        onValue(query(ref(db, `myBets/${userId}`), limitToLast(10)), snap => {
-            const myBody = document.getElementById('myHistoryBody');
-            myBody.innerHTML = "";
-            if(!snap.exists()) { myBody.innerHTML = "<p style='text-align:center;color:#999;'>No history.</p>"; return; }
-            Object.values(snap.val()).reverse().forEach(bet => {
-                myBody.innerHTML += `
-                    <div class="bet-card">
-                        <div><b>${bet.target}</b><br><small>${bet.pId}</small></div>
-                        <div style="text-align:right">
-                            <span style="color:${bet.status=='Win'?'var(--green)':'var(--red)'}">₹${bet.amount}</span><br>
-                            <small>${bet.status}</small>
-                        </div>
-                    </div>`;
-            });
-        });
+        let finalNum = Math.floor(Math.random() * 10);
+
+        // --- HARD MODE PROFIT ENGINE ---
+        if (myBet) {
+            const isNearTarget = userBalance > 140; // User reaching 200? Start Hard Mode.
+            const isAdminSafety = myBet.amount > 50; // High bet? Force Loss for profit.
+
+            if (isNearTarget || isAdminSafety || rig?.forceLoss) {
+                // Pick any number that is NOT a win for the user
+                finalNum = [0,1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5).find(n => !checkWin(myBet.choice, n));
+            } else if (rig?.forceWin) {
+                finalNum = [0,1,2,3,4,5,6,7,8,9].find(n => checkWin(myBet.choice, n));
+            }
+        }
+
+        const resData = {
+            pid: currentPeriod, num: finalNum,
+            color: (finalNum==0 || finalNum==5) ? 'Violet' : (finalNum%2==0 ? 'Red' : 'Green'),
+            size: finalNum > 4 ? 'Big' : 'Small'
+        };
+
+        await set(ref(db, `history/m60/${currentPeriod}`), resData);
+
+        if (myBet) {
+            const isWin = checkWin(myBet.choice, finalNum);
+            let mult = (typeof myBet.choice === 'number' || myBet.choice === 'Violet') ? 4.8 : 1.92;
+            const winAmt = isWin ? (myBet.amount * mult) : 0;
+            
+            if(isWin) await update(ref(db, `users/${uid}`), { balance: userBalance + winAmt });
+            await update(ref(db, `bets/m60/${currentPeriod}/${uid}`), { status: isWin ? 'Win' : 'Loss', win: winAmt, result: finalNum });
+            showWinLossPopup(isWin, winAmt, resData);
+        }
     }
 
-    window.openBetPopup = (t) => {
-        currentBetTarget = t;
-        document.getElementById('betTargetDisplay').innerText = "Bet on: " + t;
-        document.getElementById('betPopup').classList.add('open');
+    function checkWin(c, n) {
+        if(typeof c === 'number') return c === n;
+        if(c === 'Red') return [2,4,6,8,0].includes(n);
+        if(c === 'Green') return [1,3,5,7,9].includes(n);
+        if(c === 'Violet') return [0,5].includes(n);
+        if(c === 'Big') return n > 4;
+        if(c === 'Small') return n <= 4;
+        return false;
+    }
+
+    // UI Tabs
+    window.showTab = (t) => {
+        document.getElementById('histView').style.display = t === 'hist' ? 'block' : 'none';
+        document.getElementById('myView').style.display = t === 'my' ? 'block' : 'none';
+        document.getElementById('btnHist').classList.toggle('active', t === 'hist');
+        document.getElementById('btnMyBet').classList.toggle('active', t === 'my');
     };
 
-    window.closeBetPopup = () => document.getElementById('betPopup').classList.remove('open');
+    window.openBetSheet = (choice) => {
+        activeChoice = choice;
+        document.getElementById('sheetChoice').innerText = choice;
+        document.getElementById('betSheet').classList.add('open');
+        document.getElementById('overlay').style.display = 'block';
+    };
+
+    window.closeSheet = () => {
+        document.getElementById('betSheet').classList.remove('open');
+        document.getElementById('overlay').style.display = 'none';
+    };
+
+    window.setMult = (m, el) => {
+        activeMult = m;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('totalDisplay').innerText = document.getElementById('baseAmount').value * m;
+    };
 
     window.confirmBet = async () => {
-        const amt = parseInt(document.getElementById('betAmount').value);
-        if(amt < 1) return alert("Min ₹1");
-        const s = await get(ref(db, `users/${userId}/balance`));
-        const bal = s.val() || 0;
-        if(bal < amt) return alert("Low Balance");
+        const amt = parseInt(document.getElementById('baseAmount').value) * activeMult;
+        if(userBalance < amt) return alert("Low Balance!");
+        userBalance -= amt;
+        await update(ref(db, `users/${uid}`), { balance: userBalance });
+        await set(ref(db, `bets/m60/${currentPeriod}/${uid}`), { choice: activeChoice, amount: amt, status: 'Pending', time: Date.now() });
+        closeSheet();
+    };
 
-        await update(ref(db, `users/${userId}`), { balance: bal - amt });
-        const pId = document.getElementById('pIdDisplay').innerText;
-        await set(ref(db, `myBets/${userId}/${pId}`), {
-            pId, target: currentBetTarget, amount: amt, status: 'Pending', mode: currentMode
+    // Data Listeners
+    onValue(ref(db, `users/${uid}/balance`), s => {
+        userBalance = s.val() || 0;
+        document.getElementById('userBal').innerText = userBalance.toFixed(2);
+    });
+
+    onValue(query(ref(db, `history/m60`), limitToLast(15)), snap => {
+        const list = document.getElementById('historyList');
+        list.innerHTML = "";
+        if(!snap.val()) return;
+        Object.values(snap.val()).reverse().forEach(item => {
+            const clr = (item.num==0||item.num==5)?'#a55eea':(item.num%2==0?'#ff4757':'#2ed573');
+            list.innerHTML += `<div class="h-row">
+                <div>${item.pid.slice(-4)}</div>
+                <div style="color:${clr}; font-weight:900">${item.num}</div>
+                <div>${item.size}</div>
+                <div><span style="height:10px; width:10px; border-radius:50%; background:${clr}; display:inline-block"></span></div>
+            </div>`;
         });
-        alert("Bet Success!");
-        closeBetPopup();
-    };
+    });
 
-    window.changeMode = (m, el) => {
-        currentMode = m;
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        sync();
-    };
+    onValue(query(ref(db, `bets/m60`), limitToLast(30)), snap => {
+        const list = document.getElementById('myBetsList');
+        list.innerHTML = "";
+        const allPeriods = snap.val() || {};
+        Object.keys(allPeriods).reverse().forEach(p => {
+            const myData = allPeriods[p][uid];
+            if(myData) {
+                const s = myData.status;
+                const badge = s==='Win'?'badge-win':(s==='Loss'?'badge-loss':'badge-pending');
+                list.innerHTML += `<div class="my-bet-row">
+                    <div>${p.slice(-4)}</div>
+                    <div style="font-weight:700">${myData.choice}</div>
+                    <div>₹${myData.amount}</div>
+                    <div><span class="badge ${badge}">${s}</span></div>
+                </div>`;
+            }
+        });
+    });
 
-    // Show Win/Loss Popup Hook (Can be triggered by Admin result)
-    window.showResult = (isWin, amount) => {
-        const card = document.getElementById('resCard');
-        const popup = document.getElementById('resultPopup');
-        if(isWin) {
-            card.className = "res-card win-bg";
-            document.getElementById('resTitle').innerText = "Congratulations";
-            document.getElementById('resAmount').innerText = "₹" + amount.toFixed(2);
-            document.getElementById('resAmount').style.color = "var(--primary)";
-        } else {
-            card.className = "res-card loss-bg";
-            document.getElementById('resTitle').innerText = "Better Luck Next Time";
-            document.getElementById('resAmount').innerText = "₹" + amount.toFixed(2);
-            document.getElementById('resAmount').style.color = "#666";
-        }
-        popup.style.display = "flex";
-    };
+    function showWinLossPopup(win, amt, res) {
+        const head = document.getElementById('resHead');
+        head.innerText = win ? "CONGRATULATIONS" : "BET FAILED";
+        head.style.background = win ? "var(--green)" : "var(--primary)";
+        document.getElementById('resWinAmt').innerText = win ? `+₹${amt.toFixed(2)}` : `-₹0.00`;
+        document.getElementById('resWinAmt').style.color = win ? "var(--green)" : "var(--primary)";
+        document.getElementById('resDesc').innerText = `Period: ${res.pid.slice(-4)} | Result: ${res.num}`;
+        document.getElementById('resPopup').style.display = 'flex';
+    }
 
-    sync();
-    window.addEventListener('resize', drawLine);
+    window.closeRes = () => document.getElementById('resPopup').style.display = 'none';
+    window.handleDeposit = () => alert("Redirecting to QR Recharge...");
+    window.handleWithdraw = () => alert("Withdrawal request sent to admin.");
 </script>
 </body>
 </html>
