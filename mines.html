@@ -4,68 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Mines Pro - CASHWIN</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --accent: #fbbf24; --danger: #ef4444; --success: #22c55e; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
-        body { background: var(--bg); color: white; display: flex; justify-content: center; min-height: 100vh; }
+        body { background: var(--bg); color: white; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
         
         .container { width: 100%; max-width: 450px; padding: 15px; }
 
-        /* Header & Wallet */
         .header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px; }
         .balance-amt { font-size: 20px; font-weight: 900; color: var(--accent); }
-        .user-info { font-size: 12px; color: #94a3b8; }
 
-        /* Grid System */
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; perspective: 1000px; }
+        /* Grid & Animations */
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
         .slot { 
             aspect-ratio: 1; background: #1e293b; border-radius: 10px; border: 2px solid #334155; 
             display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer;
-            transition: 0.3s; transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s;
         }
-        .slot.revealed { transform: rotateY(180deg); background: #2d3748; border-color: #4a5568; }
-        .slot.diamond { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        .slot.bomb { color: var(--danger); text-shadow: 0 0 10px var(--danger); }
+        .slot:active { transform: scale(0.9); }
+        .slot.revealed { transform: rotateY(180deg); background: #2d3748; }
+        .slot.diamond { color: var(--accent); animation: glow 1s infinite alternate; }
+        .slot.bomb { color: var(--danger); animation: shake 0.2s infinite; }
 
-        /* Controls */
+        @keyframes glow { from { text-shadow: 0 0 5px #fff; } to { text-shadow: 0 0 15px var(--accent); } }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(1px, 1px); } }
+
         .controls { background: #1e293b; padding: 20px; border-radius: 20px; border: 1px solid #334155; }
-        .multiplier-badge { background: var(--primary); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 15px; display: inline-block; }
-        
-        input { width: 100%; padding: 15px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 12px; margin-bottom: 15px; text-align: center; font-size: 20px; font-weight: bold; outline: none; }
+        input { width: 100%; padding: 15px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 12px; margin-bottom: 15px; text-align: center; font-size: 20px; font-weight: bold; }
         
         .btn-stack { display: flex; gap: 10px; }
-        .main-btn { flex: 2; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .main-btn { flex: 2; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .cashout-btn { flex: 1; padding: 15px; background: var(--success); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: none; }
         
-        .disabled { opacity: 0.5; pointer-events: none; }
+        .disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <div class="user-info">
-            <span style="color: white; font-weight: bold;">CASHWIN PLAYER</span><br>
-            <span id="userMobile" style="color: var(--accent);">+91 0000000000</span>
-        </div>
-        <div class="balance-box" style="text-align: right;">
-            <div style="font-size: 10px; opacity: 0.7;">WALLET</div>
-            <div class="balance-amt">₹<span id="balDisplay">0.00</span></div>
-        </div>
+        <div><small style="color: #94a3b8;">CASHWIN MINES</small><br><span id="userMobile">+91 0000000000</span></div>
+        <div style="text-align: right;"><small style="opacity: 0.7;">WALLET</small><br><div class="balance-amt">₹<span id="balDisplay">0.00</span></div></div>
     </div>
 
     <div class="grid" id="mineGrid"></div>
 
     <div class="controls">
-        <div id="statusInfo" style="margin-bottom: 10px; text-align: center;">
-            <span class="multiplier-badge" id="multiTag">Next: 1.25x</span>
+        <div style="text-align: center; margin-bottom: 10px;">
+            <span id="multiTag" style="background: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 12px;">Multiplier: 1.00x</span>
         </div>
-        
-        <input type="number" id="betInput" value="100" placeholder="Bet Amount">
-        
+        <input type="number" id="betInput" value="100">
         <div class="btn-stack">
             <button class="main-btn" id="startBtn" onclick="startGame()">BET</button>
             <button class="cashout-btn" id="cashBtn" onclick="cashOut()">CASHOUT</button>
@@ -75,86 +66,75 @@
 
 <script>
     const firebaseConfig = {
-        apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
-        authDomain: "testing-26b8c.firebaseapp.com",
         databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
-        projectId: "testing-26b8c",
-        appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const userId = localStorage.getItem('userPhone');
+    const userId = localStorage.getItem('userPhone') || '9117748052'; // Default for testing
 
     let currentBalance = 0;
     let gameActive = false;
-    let currentMultiplier = 1;
+    let currentMultiplier = 1.00;
     let betAmount = 0;
-    let revealedCount = 0;
-    let userRigging = "normal"; // Default rigging
+    let userRigging = "normal";
 
-    // 1. Sync User Data & Admin Rigging
     function initApp() {
-        if (!userId) return window.location.href = "login.html";
-
-        db.ref("users/" + userId).on('value', (snapshot) => {
-            const data = snapshot.val();
+        db.ref("users/" + userId).on('value', (snap) => {
+            const data = snap.val();
             if (data) {
-                currentBalance = data.balance;
-                userRigging = data.rigging || "normal"; // Get rigging status from admin
+                currentBalance = data.balance || 0;
+                userRigging = data.rig || "normal"; // Matches Admin "rig" field
                 document.getElementById("balDisplay").innerText = currentBalance.toFixed(2);
-                document.getElementById("userMobile").innerText = "+91 " + (data.phone || "User");
+                document.getElementById("userMobile").innerText = "+91 " + data.phone;
             }
         });
+        createGrid();
     }
 
-    // 2. Initialize 5x5 Grid
     function createGrid() {
         const grid = document.getElementById("mineGrid");
         grid.innerHTML = '';
+        grid.classList.remove("disabled");
         for (let i = 0; i < 25; i++) {
             const slot = document.createElement('div');
             slot.className = 'slot';
-            slot.dataset.index = i;
             slot.onclick = () => revealSlot(slot);
             grid.appendChild(slot);
         }
     }
 
-    // 3. Start Game Logic
     window.startGame = function() {
         betAmount = Number(document.getElementById("betInput").value);
-        if (betAmount < 10 || betAmount > currentBalance) return alert("Invalid Balance or Amount!");
+        if (betAmount < 10) return alert("Minimum bet ₹10");
+        if (betAmount > currentBalance) return alert("Insufficient Balance!");
 
-        // Deduct Balance
-        db.ref("users/" + userId).update({ balance: currentBalance - betAmount });
-
-        gameActive = true;
-        revealedCount = 0;
-        currentMultiplier = 1;
-        
-        document.getElementById("startBtn").style.display = "none";
-        document.getElementById("cashBtn").style.display = "block";
-        document.getElementById("betInput").classList.add("disabled");
-        updateMulti();
-        createGrid();
+        // Update Balance in DB
+        db.ref("users/" + userId).update({ balance: currentBalance - betAmount })
+        .then(() => {
+            gameActive = true;
+            currentMultiplier = 1.00;
+            document.getElementById("startBtn").style.display = "none";
+            document.getElementById("cashBtn").style.display = "block";
+            document.getElementById("betInput").disabled = true;
+            document.getElementById("cashBtn").innerText = `CASHOUT (₹${betAmount})`;
+            createGrid();
+        })
+        .catch(e => alert("Betting Error: " + e.message));
     }
 
-    // 4. Reveal Slot with Admin Rigging
     function revealSlot(slot) {
         if (!gameActive || slot.classList.contains('revealed')) return;
 
-        revealedCount++;
         let isBomb = false;
-
-        // --- ADMIN RIGGING LOGIC ---
-        if (userRigging === "always_lose") {
-            isBomb = true; // Forcing loss
-        } else if (userRigging === "always_win") {
-            isBomb = false; // Forcing win
+        
+        // ADMIN RIGGING LOGIC
+        if (userRigging === "loss") {
+            isBomb = true; // Always bomb if rigged to lose
+        } else if (userRigging === "win") {
+            isBomb = false; // Never bomb if rigged to win
         } else {
-            // Normal Random Logic (1 Bomb in 25 slots example)
-            isBomb = Math.random() < 0.15; 
+            isBomb = Math.random() < 0.20; // 20% Chance for bomb
         }
 
         slot.classList.add('revealed');
@@ -166,36 +146,31 @@
         } else {
             slot.innerHTML = '<i class="fas fa-gem"></i>';
             slot.classList.add('diamond');
-            currentMultiplier += 0.25;
-            updateMulti();
+            // SLOW PROFIT: Only 0.05 increase per diamond
+            currentMultiplier += 0.05; 
+            document.getElementById("multiTag").innerText = `Multiplier: ${currentMultiplier.toFixed(2)}x`;
             document.getElementById("cashBtn").innerText = `CASHOUT (₹${(betAmount * currentMultiplier).toFixed(2)})`;
         }
     }
 
-    function updateMulti() {
-        document.getElementById("multiTag").innerText = `Current: ${currentMultiplier.toFixed(2)}x`;
-    }
-
-    // 5. Cashout Logic
     window.cashOut = function() {
         if (!gameActive) return;
         const winAmt = betAmount * currentMultiplier;
         db.ref("users/" + userId).update({ balance: currentBalance + winAmt });
-        alert(`Congratulations! You won ₹${winAmt.toFixed(2)}`);
+        alert(`Cashout Success! You won ₹${winAmt.toFixed(2)}`);
         gameOver(true);
     }
 
-    // 6. Game Over reset
     function gameOver(win) {
         gameActive = false;
+        document.getElementById("mineGrid").classList.add("disabled");
         document.getElementById("startBtn").style.display = "block";
         document.getElementById("cashBtn").style.display = "none";
-        document.getElementById("betInput").classList.remove("disabled");
-        if (!win) alert("BOOM! You lost.");
+        document.getElementById("betInput").disabled = false;
+        if (!win) alert("BOMB! Game Over.");
     }
 
     initApp();
-    createGrid();
 </script>
 </body>
 </html>
