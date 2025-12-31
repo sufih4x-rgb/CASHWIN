@@ -2,259 +2,256 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>CASHWIN - Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASHWIN - Master Control Center v2</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --p-red: #ff6b6b; --g-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); --bg: #f8f9fe; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: var(--bg); padding-bottom: 90px; }
-        #main-dashboard { display: none; }
+        :root { --primary: #2c3e50; --accent: #e74c3c; --success: #27ae60; --bg: #f4f7f6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); display: flex; height: 100vh; }
 
-        /* Popup Style */
-        .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-        .modal-content { background: white; width: 85%; max-width: 350px; margin: 20% auto; border-radius: 20px; text-align: center; padding: 20px; position: relative; animation: zoomIn 0.3s; }
-        @keyframes zoomIn { from {transform: scale(0.5)} to {transform: scale(1)} }
-        .close-btn { position: absolute; top: -10px; right: -10px; background: white; border-radius: 50%; width: 30px; height: 30px; line-height: 30px; font-weight: bold; }
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; }
+        .sidebar h2 { color: var(--accent); margin-bottom: 30px; text-align: center; font-style: italic; }
+        .nav-link { padding: 12px; color: #ecf0f1; text-decoration: none; border-radius: 8px; margin-bottom: 5px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: var(--accent); }
 
-        /* Header & Slider */
-        .top-header { background: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .wallet-box { background: #fff5f5; padding: 8px 15px; border-radius: 20px; border: 1px solid var(--p-red); color: var(--p-red); font-weight: bold; }
+        /* Main Content */
+        .main-content { flex: 1; overflow-y: auto; padding: 30px; }
+        .header-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--accent); }
+        .stat-card.profit { border-left-color: var(--success); }
         
-        /* Updated Slider CSS for 10 Images */
-        .slider-container { margin: 15px; border-radius: 20px; overflow: hidden; height: 160px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .slider { display: flex; transition: transform 0.5s ease-in-out; height: 100%; width: 1000%; /* 10 images * 100% */ }
-        .slider img { width: 10%; /* 1/10th of container width */ height: 100%; object-fit: cover; cursor: pointer; }
+        .section { display: none; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .section.active { display: block; }
 
-        /* Admin Status Badge */
-        .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; color: white; margin-left: 5px; vertical-align: middle; }
-        .online { background: #4cd964; box-shadow: 0 0 5px #4cd964; }
-        .offline { background: #999; }
+        /* Tables & UI */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { background: #f9f9f9; color: #777; }
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-green { background: var(--success); }
+        .btn-red { background: var(--accent); }
+        .btn-reset { background: #3498db; width: 100%; margin-top: 15px; }
 
-        /* Category Tabs */
-        .game-tabs { display: flex; justify-content: space-around; background: white; margin: 10px 15px; padding: 10px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .tab-btn { padding: 8px 12px; font-size: 13px; font-weight: bold; color: #777; border-radius: 10px; cursor: pointer; transition: 0.3s; }
-        .tab-btn.active { background: var(--g-red); color: white; }
-
-        /* Game Grids */
-        .game-section { display: none; padding: 0 15px; }
-        .game-section.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .game-card { background: white; border-radius: 12px; overflow: hidden; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .game-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
-        .game-card p { font-size: 10px; padding: 5px; font-weight: 600; }
-
-        /* Support Chat UI */
-        #chatBtn { position: fixed; bottom: 100px; right: 20px; width: 55px; height: 55px; background: var(--g-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; box-shadow: 0 5px 15px rgba(255,107,107,0.4); z-index: 4000; cursor: pointer; }
-        #chatWindow { position: fixed; bottom: 100px; right: 20px; width: 300px; height: 400px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 4001; overflow: hidden; border: 1px solid #eee; }
-        .chat-header { background: var(--g-red); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; }
-        #msgArea { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; }
-        .chat-input { display: flex; padding: 10px; gap: 5px; border-top: 1px solid #eee; background: white; }
-        .chat-input input { flex: 1; border: 1px solid #ddd; padding: 8px; border-radius: 20px; outline: none; font-size: 13px; }
-        .m-user { align-self: flex-end; background: var(--p-red); color: white; padding: 8px 12px; border-radius: 15px 15px 0 15px; font-size: 12px; max-width: 80%; }
-        .m-admin { align-self: flex-start; background: #e9e9e9; color: #333; padding: 8px 12px; border-radius: 15px 15px 15px 0; font-size: 12px; max-width: 80%; }
-
-        /* Leaderboard */
-        .leaderboard { background: white; margin: 20px 15px; border-radius: 20px; padding: 15px; }
-        .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-        .win-amt { color: #4cd964; font-weight: bold; font-size: 14px; }
-
-        /* Bottom Nav */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
-        .nav-item { text-align: center; color: #999; text-decoration: none; font-size: 12px; }
-        .nav-item.active { color: var(--p-red); }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-right: 10px; }
+        .badge { padding: 4px 8px; border-radius: 10px; font-size: 11px; color: white; font-weight: bold; }
+        .slider-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .rig-box { border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-top: 15px; display: flex; align-items: center; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-<div id="bonusPopup" class="modal">
-    <div class="modal-content">
-        <div class="close-btn" onclick="closePopup()">X</div>
-        <img src="https://i.ibb.co/v6mYvXf/bonus-gift.png" style="width:80px; margin-bottom:15px;">
-        <h3 style="color:var(--p-red)">First Deposit Bonus</h3>
-        <p style="font-size:13px; margin:10px 0; color:#555;">Get up to ₹100 Extra on your first deposit today!</p>
-        <button onclick="location.href='deposit.html'" style="background:var(--g-red); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">DEPOSIT NOW</button>
+    <div class="sidebar">
+        <h2>CASHWIN ADMIN</h2>
+        <div class="nav-link active" onclick="showSection('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</div>
+        <div class="nav-link" onclick="showSection('users')"><i class="fas fa-users"></i> User Management</div>
+        <div class="nav-link" onclick="showSection('wingo')"><i class="fas fa-gamepad"></i> WinGo Control</div>
+        <div class="nav-link" onclick="showSection('slider')"><i class="fas fa-images"></i> Slider & URLs</div>
+        <div class="nav-link" onclick="showSection('transactions')"><i class="fas fa-wallet"></i> Transactions History</div>
+        <div class="nav-link" onclick="showSection('recharge')"><i class="fas fa-sim-card"></i> SIM Recharge</div>
     </div>
-</div>
 
-<div id="main-dashboard">
-    <div class="top-header">
-        <div>
-            <h2 style="font-style: italic; color: var(--p-red); display: inline-block;">CASHWIN</h2>
-            <span id="admStatus" class="status-badge offline">Offline</span>
+    <div class="main-content">
+        <div class="header-stats">
+            <div class="stat-card"><h3>Admin Profit</h3><h2 id="adminTotalProfit" style="color:var(--success)">₹0</h2></div>
+            <div class="stat-card"><h3>User Total Loss</h3><h2 id="userTotalLoss" style="color:var(--accent)">₹0</h2></div>
+            <div class="stat-card"><h3>Total Deposits</h3><h2 id="totalDeposits">₹0</h2></div>
+            <div class="stat-card"><h3>Admin Status</h3><select id="adminStatusSet" onchange="updateAdminStatus()"><option value="online">Online</option><option value="offline">Offline</option></select></div>
         </div>
-        <div class="wallet-box">₹<span id="userBalance">0.00</span></div>
-    </div>
 
-    <div id="chatBtn" onclick="toggleChat()"><i class="fas fa-comment-dots"></i></div>
-    <div id="chatWindow">
-        <div class="chat-header"><span>Live Support</span> <i class="fas fa-times" onclick="toggleChat()" style="cursor:pointer"></i></div>
-        <div id="msgArea"></div>
-        <div class="chat-input">
-            <input type="text" id="chatMsgInp" placeholder="Type message...">
-            <button onclick="sendMsg()" style="border:none; background:none; color:var(--p-red); font-size:20px;"><i class="fas fa-paper-plane"></i></button>
+        <div id="dashboard" class="section active">
+            <h2>Real-time Live Bets (Global)</h2>
+            <table id="liveBetsTable">
+                <thead><tr><th>Phone</th><th>Game Mode</th><th>Bet On</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody id="liveBetsBody"></tbody>
+            </table>
         </div>
-    </div>
 
-    <div class="slider-container">
-        <div class="slider" id="mainSlider">
+        <div id="users" class="section">
+            <h2>User Management</h2>
+            <div style="margin-bottom:20px;">
+                <input type="text" id="userSearch" placeholder="Search Phone Number...">
+                <button class="btn btn-green" onclick="searchUser()">Search</button>
             </div>
+            <table>
+                <thead><tr><th>Phone</th><th>Balance</th><th>Vault</th><th>Status</th><th>Edit Balance</th><th>Action</th></tr></thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+        </div>
+
+        <div id="wingo" class="section">
+            <h2>WinGo Result Manipulation</h2>
+            <div class="rig-box" style="background: #fff5f5;">
+                <div>
+                    <strong>Manual Control (Next Period)</strong><br>
+                    <small>Force a specific result to maximize profit.</small>
+                </div>
+                <div>
+                    <select id="forceMode"><option value="1">1 Min</option><option value="3">3 Min</option><option value="5">5 Min</option></select>
+                    <select id="forceResult">
+                        <option value="none">Auto (Min Loss)</option>
+                        <option value="Red">Force Red</option>
+                        <option value="Green">Force Green</option>
+                        <option value="0">Force 0 (Violet/Red)</option>
+                        <option value="5">Force 5 (Violet/Green)</option>
+                    </select>
+                    <button class="btn btn-red" onclick="applyForce()">Apply Force</button>
+                </div>
+            </div>
+            <button class="btn btn-reset" onclick="resetAllRigging()">ONE-CLICK RESET ALL RIGGING</button>
+        </div>
+
+        <div id="slider" class="section">
+            <h2>Slider Image Control</h2>
+            <div class="slider-grid" id="sliderInputs"></div>
+            <button class="btn btn-green" style="margin-top:20px; width:100%" onclick="saveSliderData()">Save Slider Settings</button>
+        </div>
+
+        <div id="transactions" class="section">
+            <h2>Last 50 Transactions</h2>
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-reset" style="width:auto" onclick="loadTx('deposits')">Deposits (Pending/Paid)</button>
+                <button class="btn btn-reset" style="width:auto; background:#7f8c8d" onclick="loadTx('withdrawals')">Withdrawals (Pending/Paid)</button>
+            </div>
+            <table id="txTable">
+                <thead id="txHead"></thead>
+                <tbody id="txBody"></tbody>
+            </table>
+        </div>
+
+        <div id="recharge" class="section">
+            <h2>SIM Recharge Management</h2>
+            <table>
+                <thead><tr><th>Phone</th><th>Plan</th><th>Operator</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="rechargeBody"></tbody>
+            </table>
+        </div>
     </div>
-
-    <div class="game-tabs">
-        <div class="tab-btn active" onclick="showCat('popular')"><i class="fas fa-fire"></i> Popular</div>
-        <div class="tab-btn" onclick="showCat('hot')"><i class="fas fa-bolt"></i> Hot</div>
-        <div class="tab-btn" onclick="showCat('slots')"><i class="fas fa-dice"></i> Slots</div>
-    </div>
-
-    <div id="popular" class="game-section active"></div>
-    <div id="hot" class="game-section"></div>
-    <div id="slots" class="game-section"></div>
-
-    <div class="leaderboard">
-        <h4 style="margin-bottom:10px;"><i class="fas fa-trophy" style="color:#ffd700"></i> Recent Withdrawals</h4>
-        <div id="leaderboardList"></div>
-    </div>
-
-    <nav class="bottom-nav">
-        <a href="#" class="nav-item active"><i class="fas fa-home"></i>Home</a>
-        <a href="promotion.html" class="nav-item"><i class="fas fa-gift"></i>Gift</a>
-        <a href="invite.html" class="nav-item"><i class="fas fa-share-alt"></i>Invite</a>
-        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i>Account</a>
-    </nav>
-</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
-    const app = initializeApp(firebaseConfig);
+    const fbConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
+    const app = initializeApp(fbConfig);
     const db = getDatabase(app);
-    const userPhone = localStorage.getItem('userPhone');
 
-    if (!userPhone) { window.location.href = "register.html"; } 
-    else { document.getElementById('main-dashboard').style.display = 'block'; checkDailyPopup(); initSlider(); }
-
-    // --- Dynamic Slider System (10 Images & Redirects) ---
-    function initSlider() {
-        const slider = document.getElementById('mainSlider');
-        // Edit these URLs and Redirects as needed
-        const sliderData = [
-            { img: "https://picsum.photos/400/160?random=1", url: "game.html?id=wingo" },
-            { img: "https://picsum.photos/400/160?random=2", url: "deposit.html" },
-            { img: "https://picsum.photos/400/160?random=3", url: "promotion.html" },
-            { img: "https://picsum.photos/400/160?random=4", url: "invite.html" },
-            { img: "https://picsum.photos/400/160?random=5", url: "game.html?id=slots" },
-            { img: "https://picsum.photos/400/160?random=6", url: "game.html?id=hot" },
-            { img: "https://picsum.photos/400/160?random=7", url: "profile.html" },
-            { img: "https://picsum.photos/400/160?random=8", url: "deposit.html" },
-            { img: "https://picsum.photos/400/160?random=9", url: "promotion.html" },
-            { img: "https://picsum.photos/400/160?random=10", url: "game.html?id=popular" }
-        ];
-
-        slider.innerHTML = sliderData.map(d => `<img src="${d.img}" onclick="location.href='${d.url}'">`).join('');
-
-        let counter = 0;
-        setInterval(() => {
-            counter++;
-            if(counter >= 10) counter = 0;
-            slider.style.transform = `translateX(-${counter * 10}%)`; // Shift by 10% because width is 1000%
-        }, 3000);
-    }
-
-    // --- Admin Status Check ---
-    onValue(ref(db, 'admin/status'), (snap) => {
-        const status = snap.val() || 'offline';
-        const badge = document.getElementById('admStatus');
-        badge.innerText = status.toUpperCase();
-        badge.className = 'status-badge ' + (status === 'online' ? 'online' : 'offline');
-    });
-
-    // --- Chat System ---
-    window.toggleChat = () => {
-        const win = document.getElementById('chatWindow');
-        win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
-        if(win.style.display === 'flex') {
-            const area = document.getElementById('msgArea');
-            area.scrollTop = area.scrollHeight;
-        }
-    };
-
-    window.sendMsg = () => {
-        const inp = document.getElementById('chatMsgInp');
-        if(inp.value.trim() !== "") {
-            push(ref(db, 'admin/chats'), {
-                phone: userPhone,
-                text: inp.value,
-                sender: 'user',
-                timestamp: serverTimestamp()
-            });
-            inp.value = "";
-        }
-    };
-
-    onValue(ref(db, 'admin/chats'), (snap) => {
-        const area = document.getElementById('msgArea');
-        area.innerHTML = "";
-        if(snap.exists()){
-            Object.values(snap.val()).forEach(m => {
-                if(m.phone === userPhone || m.sender === 'admin') {
-                   const div = document.createElement('div');
-                   div.className = m.sender === 'user' ? 'm-user' : 'm-admin';
-                   div.innerText = m.text;
-                   area.appendChild(div);
-                }
-            });
-            area.scrollTop = area.scrollHeight;
-        }
-    });
-
-    // --- Generic Functions ---
-    function checkDailyPopup() {
-        const lastSeen = localStorage.getItem('lastPopup');
-        const today = new Date().toDateString();
-        if (lastSeen !== today) {
-            document.getElementById('bonusPopup').style.display = 'block';
-            localStorage.setItem('lastPopup', today);
-        }
-    }
-    window.closePopup = () => { document.getElementById('bonusPopup').style.display = 'none'; };
-
-    window.showCat = (catId) => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
+    // Navigation
+    window.showSection = (id) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
         event.currentTarget.classList.add('active');
-        document.getElementById(catId).classList.add('active');
     };
 
-    const categories = ['popular', 'hot', 'slots'];
-    categories.forEach(cat => {
-        const container = document.getElementById(cat);
-        for(let i=1; i<=20; i++) {
-            container.innerHTML += `<div class="game-card" onclick="location.href='game.html?id=${cat}${i}'">
-                <img src="https://picsum.photos/200?random=${cat}${i}"><p>${cat.toUpperCase()} ${i}</p></div>`;
-        }
-    });
-
-    onValue(ref(db, 'users/' + userPhone), (snap) => {
-        if(snap.exists()) document.getElementById('userBalance').innerText = parseFloat(snap.val().balance).toFixed(2);
-    });
-
-    onValue(ref(db, 'users'), (snap) => {
-        const lbList = document.getElementById('leaderboardList');
-        let items = [];
-        for(let i=0; i<10; i++) { items.push({ p: "987***"+Math.floor(Math.random()*900), b: (Math.random()*5000 + 500).toFixed(2) }); }
-        snap.forEach(child => {
-            let u = child.val();
-            if(u.balance > 100) items.push({ p: u.phone.slice(0,6)+"***", b: u.balance });
+    // Calculate Admin Profit & User Loss
+    onValue(ref(db, 'userBets'), (snap) => {
+        let profit = 0; let loss = 0;
+        snap.forEach(user => {
+            user.forEach(bet => {
+                const b = bet.val();
+                if(b.status === 'loss') { profit += b.amount; loss += b.amount; }
+                if(b.status === 'win') { profit -= (b.winAmount - b.amount); }
+            });
         });
-        items.sort(() => Math.random() - 0.5);
-        lbList.innerHTML = items.slice(0, 8).map(item => `
-            <div class="rank-item">
-                <span>User ${item.p}</span>
-                <span class="win-amt">Withdraw ₹${item.b}</span>
-            </div>`).join('');
+        document.getElementById('adminTotalProfit').innerText = "₹" + profit.toFixed(2);
+        document.getElementById('userTotalLoss').innerText = "₹" + loss.toFixed(2);
     });
+
+    // User Management
+    onValue(ref(db, 'users'), (snap) => {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = "";
+        snap.forEach(child => {
+            const u = child.val();
+            tbody.innerHTML += `<tr>
+                <td>${u.phone}</td><td>₹${u.balance || 0}</td><td>₹${u.vault || 0}</td>
+                <td><span class="badge ${u.banned?'btn-red':'btn-green'}">${u.banned?'Banned':'Active'}</span></td>
+                <td><input type="number" id="bal_${u.phone}" style="width:60px"> 
+                    <button class="btn btn-green" onclick="editBalance('${u.phone}',1)">+</button>
+                    <button class="btn btn-red" onclick="editBalance('${u.phone}',-1)">-</button></td>
+                <td><button class="btn btn-red" onclick="toggleBan('${u.phone}',${u.banned})">${u.banned?'Unban':'Ban'}</button></td>
+            </tr>`;
+        });
+    });
+
+    // Live Bets Tracking
+    onValue(query(ref(db, 'userBets'), limitToLast(20)), (snap) => {
+        const body = document.getElementById('liveBetsBody');
+        body.innerHTML = "";
+        snap.forEach(user => {
+            user.forEach(bet => {
+                const b = bet.val();
+                body.innerHTML += `<tr><td>${user.key}</td><td>${b.mode}M</td><td>${b.type}</td><td>₹${b.amount}</td><td><span class="badge" style="background:#999">${b.status}</span></td></tr>`;
+            });
+        });
+    });
+
+    // Load Last 50 Transactions
+    window.loadTx = (type) => {
+        const head = document.getElementById('txHead');
+        const body = document.getElementById('txBody');
+        const txRef = query(ref(db, `requests/${type}`), limitToLast(50));
+        
+        if(type === 'deposits') {
+            head.innerHTML = "<tr><th>Phone</th><th>Amount</th><th>Status</th><th>Time</th><th>Action</th></tr>";
+            onValue(txRef, snap => {
+                body.innerHTML = "";
+                snap.forEach(c => {
+                    const d = c.val();
+                    body.innerHTML += `<tr><td>${d.phone}</td><td>₹${d.amount}</td>
+                    <td><span class="badge ${d.status==='Paid'?'btn-green':'btn-red'}">${d.status}</span></td>
+                    <td>${new Date(d.time).toLocaleDateString()}</td>
+                    <td>${d.status!=='Paid'?`<button class="btn btn-green" onclick="updateTx('deposits','${c.key}','Paid','${d.phone}',${d.amount})">Approve</button>`:'--'}</td></tr>`;
+                });
+            });
+        } else {
+            head.innerHTML = "<tr><th>Phone</th><th>Bank Details</th><th>Amount</th><th>Status</th><th>Action</th></tr>";
+            onValue(txRef, snap => {
+                body.innerHTML = "";
+                snap.forEach(c => {
+                    const d = c.val();
+                    body.innerHTML += `<tr><td>${d.phone}</td><td>Acc: ${d.accNum}<br>IFSC: ${d.ifsc}</td><td>₹${d.amount}</td>
+                    <td><span class="badge ${d.status==='Paid'?'btn-green':'btn-red'}">${d.status}</span></td>
+                    <td>${d.status!=='Paid'?`<button class="btn btn-red" onclick="updateTx('withdrawals','${c.key}','Paid')">Mark Paid</button>`:'--'}</td></tr>`;
+                });
+            });
+        }
+    };
+
+    window.updateTx = async (path, id, status, phone, amt) => {
+        await update(ref(db, `requests/${path}/${id}`), { status: status });
+        if(path === 'deposits' && status === 'Paid') {
+            const userRef = ref(db, `users/${phone}/balance`);
+            const snap = await get(userRef);
+            update(ref(db, `users/${phone}`), { balance: (snap.val() || 0) + amt });
+        }
+        alert("Transaction Updated!");
+    };
+
+    // Helper functions (Admin profit stats, slider loop, rigging)
+    window.applyForce = () => {
+        const m = document.getElementById('forceMode').value;
+        const r = document.getElementById('forceResult').value;
+        set(ref(db, `adminControl/wingo/${m}/forceNext`), r);
+        alert("Next period result rigged!");
+    };
+
+    const sliderGrid = document.getElementById('sliderInputs');
+    for(let i=1; i<=10; i++) {
+        sliderGrid.innerHTML += `<div style="border:1px solid #ddd; padding:8px; border-radius:8px;">
+        <strong>S${i}</strong> <input type="text" id="s_img_${i}" placeholder="Img URL" style="width:70px">
+        <input type="text" id="s_url_${i}" placeholder="Redirect" style="width:70px"></div>`;
+    }
+
+    window.editBalance = async (ph, s) => {
+        const a = parseFloat(document.getElementById('bal_'+ph).value); if(!a) return;
+        const r = ref(db, `users/${ph}/balance`); const sn = await get(r);
+        update(ref(db, `users/${ph}`), { balance: (sn.val()||0) + (a*s) });
+    };
+
+    window.showSection('dashboard');
 </script>
 </body>
 </html>
