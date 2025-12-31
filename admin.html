@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN - Master Control Center v3</title>
+    <title>CASHWIN - Master Control Center v4</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #2c3e50; --accent: #e74c3c; --success: #27ae60; --bg: #f4f7f6; }
@@ -29,29 +29,34 @@
         .section { display: none; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .section.active { display: block; }
 
-        /* Tables */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
-        th { background: #f9f9f9; color: #777; }
+        /* QR Upload Styling */
+        .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+        .qr-card { border: 2px dashed #ccc; padding: 15px; border-radius: 10px; text-align: center; }
+        .qr-card input { width: 100%; margin-top: 10px; font-size: 11px; }
 
+        /* Floating Chat Simulation */
+        .chat-bubble { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        #chatPanel { position: fixed; bottom: 100px; right: 30px; width: 300px; height: 400px; background: white; border-radius: 15px; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 999; }
+
+        /* All-over Buttons */
         .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
         .btn-green { background: var(--success); }
         .btn-red { background: var(--accent); }
         .btn-blue { background: #3498db; }
         .btn-reset { background: #f39c12; width: 100%; margin-top: 15px; padding: 15px; font-size: 16px; }
 
-        .rig-controls { display: flex; gap: 5px; }
-        .badge { padding: 4px 8px; border-radius: 10px; font-size: 11px; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
         <div class="login-card">
-            <h2 style="margin-bottom: 20px;">Admin Login</h2>
+            <h2>Admin Login</h2>
             <input type="password" id="adminPass" placeholder="Enter Admin Password">
-            <button class="btn btn-blue" style="width:100%; padding: 12px;" onclick="checkLogin()">Login</button>
-            <p style="margin-top: 15px; font-size: 12px; color: var(--accent); cursor: pointer;" onclick="resetPass()">Reset Password</p>
+            <button class="btn btn-blue" style="width:100%;" onclick="checkLogin()">Login</button>
+            <p onclick="alert('Contact Dev')">Reset Password</p>
         </div>
     </div>
 
@@ -60,68 +65,83 @@
         <div class="nav-link active" onclick="showSection('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</div>
         <div class="nav-link" onclick="showSection('users')"><i class="fas fa-users"></i> User Control</div>
         <div class="nav-link" onclick="showSection('wingo')"><i class="fas fa-gamepad"></i> WinGo Rigging</div>
-        <div class="nav-link" onclick="showSection('transactions')"><i class="fas fa-wallet"></i> Payments</div>
-        <div class="nav-link" onclick="showSection('slider')"><i class="fas fa-images"></i> App Settings</div>
+        <div class="nav-link" onclick="showSection('paymentConfig')"><i class="fas fa-qrcode"></i> QR & Payments</div>
+        <div class="nav-link" onclick="showSection('transactions')"><i class="fas fa-wallet"></i> Transactions</div>
+        <div class="nav-link" onclick="showSection('slider')"><i class="fas fa-images"></i> App Banners</div>
     </div>
 
     <div class="main-content">
         <div class="header-stats">
-            <div class="stat-card"><h3>Admin Profit</h3><h2 id="adminProfitDisplay" style="color:var(--success)">₹0</h2></div>
+            <div class="stat-card"><h3>Profit</h3><h2 id="adminProfitDisplay">₹0</h2></div>
             <div class="stat-card"><h3>Live Users</h3><h2 id="liveUsersCount">0</h2></div>
-            <div class="stat-card"><h3>Admin Status</h3><h2 id="adminStatusTag" style="color:var(--success)">OFFLINE</h2></div>
-            <div class="stat-card"><h3>Total Loss</h3><h2 id="totalLossDisplay" style="color:var(--accent)">₹0</h2></div>
+            <div class="stat-card"><h3>Admin Status</h3><h2 id="adminStatusTag" style="color:green">OFFLINE</h2></div>
+            <div class="stat-card"><h3>Total Loss</h3><h2 id="totalLossDisplay">₹0</h2></div>
         </div>
 
         <div id="dashboard" class="section active">
-            <h2>Live Global Bets</h2>
-            <table>
-                <thead><tr><th>Phone</th><th>Mode</th><th>Bet On</th><th>Amount</th><th>Action</th></tr></thead>
-                <tbody id="liveBetsBody"></tbody>
-            </table>
+            <h2>Live Betting Monitor</h2>
+            <table id="liveBetsTable"><thead><tr><th>Phone</th><th>Mode</th><th>Bet</th><th>Amount</th></tr></thead><tbody id="liveBetsBody"></tbody></table>
+        </div>
+
+        <div id="paymentConfig" class="section">
+            <h2>Payment QR Settings (3 Sections)</h2>
+            <div class="qr-grid">
+                <div class="qr-card">
+                    <i class="fas fa-university" style="font-size:30px; color:#673ab7"></i>
+                    <h4>UPI / PhonePe QR</h4>
+                    <input type="text" id="qr_upi" placeholder="Image URL / Base64">
+                </div>
+                <div class="qr-card">
+                    <i class="fab fa-paypal" style="font-size:30px; color:#00bcd4"></i>
+                    <h4>Paytm QR</h4>
+                    <input type="text" id="qr_paytm" placeholder="Image URL / Base64">
+                </div>
+                <div class="qr-card">
+                    <i class="fas fa-store" style="font-size:30px; color:#ff9800"></i>
+                    <h4>All-in-One Merchant</h4>
+                    <input type="text" id="qr_merchant" placeholder="Image URL / Base64">
+                </div>
+            </div>
+            <button class="btn btn-green" style="width:100%; margin-top:20px;" onclick="saveQR()">Save All QR Codes</button>
         </div>
 
         <div id="users" class="section">
-            <h2>User Management (Force Win/Loss)</h2>
-            <table>
-                <thead><tr><th>Phone</th><th>Balance</th><th>Rigging</th><th>Status</th><th>Edit Balance</th><th>Action</th></tr></thead>
-                <tbody id="userTableBody"></tbody>
-            </table>
+            <h2>User Rigging & Control</h2>
+            <table><thead><tr><th>Phone</th><th>Balance</th><th>Rigging</th><th>Status</th><th>Edit</th></tr></thead><tbody id="userTableBody"></tbody></table>
         </div>
 
         <div id="wingo" class="section">
-            <h2>Manual Game Control</h2>
-            <div style="background:#fff5f5; padding:20px; border-radius:10px; border:1px solid #ffdada;">
-                <strong>Next Result Setting:</strong><br><br>
-                <select id="forceMode"><option value="1">WinGo 1 Min</option><option value="3">WinGo 3 Min</option><option value="5">WinGo 5 Min</option></select>
+            <h2>WinGo Result Force</h2>
+            <div style="background:#fff5f5; padding:20px; border-radius:10px;">
+                <select id="forceMode"><option value="1">1 Min</option><option value="3">3 Min</option><option value="5">5 Min</option></select>
                 <select id="forceResult">
-                    <option value="none">Automatic (Auto Profit)</option>
-                    <option value="Red">Force Red</option>
-                    <option value="Green">Force Green</option>
-                    <option value="0">Force Number 0</option>
-                    <option value="5">Force Number 5</option>
+                    <option value="none">Auto</option>
+                    <option value="Red">Red</option><option value="Green">Green</option>
+                    <option value="0">0 (Red/V)</option><option value="5">5 (Grn/V)</option>
                 </select>
-                <button class="btn btn-red" onclick="applyGameForce()">Apply Result</button>
+                <button class="btn btn-red" onclick="applyGameForce()">Apply</button>
             </div>
-            <button class="btn btn-reset" onclick="resetAllRigging()">ONE-CLICK RESET ALL RIGGING (GLOBAL)</button>
+            <button class="btn btn-reset" onclick="resetAllRigging()">RESET ALL RIGGING</button>
         </div>
 
         <div id="transactions" class="section">
-            <h2>Payment Requests</h2>
-            <div style="margin-bottom:15px; display:flex; gap:10px;">
-                <button class="btn btn-blue" onclick="loadTx('deposits')">Deposits</button>
-                <button class="btn btn-blue" style="background:#666" onclick="loadTx('withdrawals')">Withdrawals</button>
-            </div>
-            <table id="txTable">
-                <thead id="txHead"></thead>
-                <tbody id="txBody"></tbody>
-            </table>
+            <h2>Pending Requests</h2>
+            <div style="margin-bottom:10px;"><button class="btn btn-blue" onclick="loadTx('deposits')">Dep</button> <button class="btn btn-blue" onclick="loadTx('withdrawals')">With</button></div>
+            <table><thead id="txHead"></thead><tbody id="txBody"></tbody></table>
         </div>
 
         <div id="slider" class="section">
-            <h2>Slider & Banners</h2>
-            <div id="sliderGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
-            <button class="btn btn-green" style="width:100%; margin-top:20px;" onclick="saveSliders()">Save All Banners</button>
+            <h2>Home Sliders</h2>
+            <div id="sliderGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+            <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="saveSliders()">Save Sliders</button>
         </div>
+    </div>
+
+    <div class="chat-bubble" onclick="toggleChat()"><i class="fas fa-comments"></i></div>
+    <div id="chatPanel">
+        <div style="background:var(--primary); color:white; padding:15px; border-radius:15px 15px 0 0;">Live Chat Admin</div>
+        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:10px; font-size:12px;"></div>
+        <div style="padding:10px; display:flex;"><input type="text" id="chatInput" style="flex:1; padding:5px;"><button onclick="sendMsg()">Send</button></div>
     </div>
 
 <script type="module">
@@ -132,140 +152,68 @@
     const app = initializeApp(fbConfig);
     const db = getDatabase(app);
 
-    // --- ADMIN ONLINE STATUS ---
-    const adminStatusRef = ref(db, 'adminControl/status');
-    set(adminStatusRef, "ONLINE");
-    document.getElementById('adminStatusTag').innerText = "ONLINE";
-    onDisconnect(adminStatusRef).set("OFFLINE");
+    // Login
+    window.checkLogin = () => { if(document.getElementById('adminPass').value === "admin123") document.getElementById('loginOverlay').style.display='none'; };
+    
+    // Online Status
+    const statusRef = ref(db, 'adminControl/status');
+    set(statusRef, "ONLINE"); document.getElementById('adminStatusTag').innerText="ONLINE";
+    onDisconnect(statusRef).set("OFFLINE");
 
-    // --- LOGIN SYSTEM ---
-    window.checkLogin = () => {
-        const pass = document.getElementById('adminPass').value;
-        if(pass === "admin123") { // Change psw here
-            document.getElementById('loginOverlay').style.display = 'none';
-        } else { alert("Wrong Password!"); }
-    };
-    window.resetPass = () => { alert("Contact Developer to reset database password."); };
-
-    // --- NAVIGATION ---
+    // Sections
     window.showSection = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        event.currentTarget.classList.add('active');
     };
 
-    // --- USER CONTROL (RIGGING INCLUDED) ---
+    // Rigging & User Table
     onValue(ref(db, 'users'), (snap) => {
-        const tbody = document.getElementById('userTableBody');
-        tbody.innerHTML = "";
-        let count = 0;
-        snap.forEach(child => {
-            const u = child.val(); count++;
-            tbody.innerHTML += `<tr>
-                <td>${u.phone}</td>
-                <td>₹${u.balance || 0}</td>
-                <td class="rig-controls">
-                    <button class="btn ${u.rig==='win'?'btn-green':'btn-blue'}" onclick="setUserRig('${u.phone}','win')">W</button>
-                    <button class="btn ${u.rig==='loss'?'btn-red':'btn-blue'}" onclick="setUserRig('${u.phone}','loss')">L</button>
-                    <button class="btn btn-blue" onclick="setUserRig('${u.phone}','normal')">R</button>
-                </td>
-                <td><span class="badge" style="background:${u.banned?'red':'green'}">${u.banned?'Banned':'Active'}</span></td>
-                <td><input type="number" id="b_${u.phone}" style="width:50px"> <button onclick="editBal('${u.phone}',1)">+</button></td>
-                <td><button class="btn btn-red" onclick="toggleBan('${u.phone}',${u.banned})">Ban/Un</button></td>
-            </tr>`;
+        const tbody = document.getElementById('userTableBody'); tbody.innerHTML = "";
+        snap.forEach(c => {
+            const u = c.val();
+            tbody.innerHTML += `<tr><td>${u.phone}</td><td>₹${u.balance||0}</td>
+            <td><button class="btn ${u.rig==='win'?'btn-green':'btn-blue'}" onclick="setRig('${u.phone}','win')">W</button>
+            <button class="btn ${u.rig==='loss'?'btn-red':'btn-blue'}" onclick="setRig('${u.phone}','loss')">L</button></td>
+            <td>${u.banned?'Ban':'OK'}</td>
+            <td><input id="b_${u.phone}" style="width:40px"><button onclick="editBal('${u.phone}',1)">+</button></td></tr>`;
         });
-        document.getElementById('liveUsersCount').innerText = count;
     });
 
-    window.setUserRig = (ph, type) => {
-        update(ref(db, `users/${ph}`), { rig: type });
-        alert("User Set to " + type.toUpperCase());
+    window.setRig = (ph, t) => update(ref(db, `users/${ph}`), { rig: t });
+
+    // Save QR Logic
+    window.saveQR = () => {
+        const upi = document.getElementById('qr_upi').value;
+        const paytm = document.getElementById('qr_paytm').value;
+        const merchant = document.getElementById('qr_merchant').value;
+        set(ref(db, 'adminControl/paymentQR'), { upi, paytm, merchant });
+        alert("QR Codes Updated Successfully!");
     };
 
+    // Chat Toggle
+    window.toggleChat = () => { const p = document.getElementById('chatPanel'); p.style.display = p.style.display === 'flex' ? 'none' : 'flex'; };
+
+    // Stats
+    onValue(ref(db, 'userBets'), snap => {
+        let p=0, l=0; snap.forEach(u => u.forEach(b => {
+            const d = b.val(); if(d.status==='loss'){p+=d.amount; l+=d.amount;}
+            if(d.status==='win') p-=(d.winAmount-d.amount);
+        }));
+        document.getElementById('adminProfitDisplay').innerText = "₹"+p.toFixed(2);
+        document.getElementById('totalLossDisplay').innerText = "₹"+l.toFixed(2);
+    });
+
+    // Reset All Rigging
     window.resetAllRigging = () => {
-        if(confirm("Are you sure? This will reset all game and user rigging!")) {
-            set(ref(db, 'adminControl/wingo/1/forceNext'), 'none');
-            set(ref(db, 'adminControl/wingo/3/forceNext'), 'none');
-            set(ref(db, 'adminControl/wingo/5/forceNext'), 'none');
-            alert("All Rigging Reset!");
-        }
-    };
-
-    // --- STATS ENGINE ---
-    onValue(ref(db, 'userBets'), (snap) => {
-        let p = 0; let l = 0;
-        snap.forEach(u => u.forEach(b => {
-            const d = b.val();
-            if(d.status==='loss') { p += d.amount; l += d.amount; }
-            if(d.status==='win') { p -= (d.winAmount - d.amount); }
-        }));
-        document.getElementById('adminProfitDisplay').innerText = "₹" + p.toFixed(2);
-        document.getElementById('totalLossDisplay').innerText = "₹" + l.toFixed(2);
-    });
-
-    // --- LIVE BETS ---
-    onValue(query(ref(db, 'userBets'), limitToLast(15)), (snap) => {
-        const body = document.getElementById('liveBetsBody'); body.innerHTML = "";
-        snap.forEach(user => user.forEach(bet => {
-            const b = bet.val();
-            body.innerHTML += `<tr><td>${user.key}</td><td>${b.mode}M</td><td>${b.type}</td><td>₹${b.amount}</td><td><button class="btn btn-blue" onclick="showUser('${user.key}')">View</button></td></tr>`;
-        }));
-    });
-
-    // --- TRANSACTIONS ---
-    window.loadTx = (type) => {
-        const head = document.getElementById('txHead');
-        const body = document.getElementById('txBody');
-        onValue(query(ref(db, `requests/${type}`), limitToLast(50)), snap => {
-            body.innerHTML = "";
-            if(type==='deposits') {
-                head.innerHTML = "<tr><th>Phone</th><th>Amount</th><th>Status</th><th>Action</th></tr>";
-                snap.forEach(c => {
-                    const d = c.val();
-                    body.innerHTML += `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.status}</td>
-                    <td>${d.status==='Pending'?`<button class="btn btn-green" onclick="approveDep('${c.key}','${d.phone}',${d.amount})">Approve</button>`:'--'}</td></tr>`;
-                });
-            } else {
-                head.innerHTML = "<tr><th>Phone</th><th>Details</th><th>Amount</th><th>Action</th></tr>";
-                snap.forEach(c => {
-                    const d = c.val();
-                    body.innerHTML += `<tr><td>${d.phone}</td><td>${d.accNum}<br>${d.ifsc}</td><td>₹${d.amount}</td>
-                    <td><button class="btn btn-red" onclick="markPaid('${c.key}')">Mark Paid</button></td></tr>`;
-                });
-            }
-        });
-    };
-
-    window.approveDep = async (id, ph, amt) => {
-        await update(ref(db, `requests/deposits/${id}`), { status: 'Paid' });
-        const r = ref(db, `users/${ph}/balance`);
-        const s = await get(r);
-        update(ref(db, `users/${ph}`), { balance: (s.val()||0) + amt });
-        alert("Approved!");
-    };
-
-    // --- SLIDERS ---
-    const grid = document.getElementById('sliderGrid');
-    for(let i=1; i<=10; i++) {
-        grid.innerHTML += `<div style="background:#eee; padding:10px; border-radius:10px;">
-            S${i} Img: <input type="text" id="img_${i}" style="width:100px"><br>
-            S${i} Url: <input type="text" id="url_${i}" style="width:100px">
-        </div>`;
+        set(ref(db, 'adminControl/wingo/1/forceNext'), 'none');
+        set(ref(db, 'adminControl/wingo/3/forceNext'), 'none');
+        set(ref(db, 'adminControl/wingo/5/forceNext'), 'none');
+        alert("Reset Complete!");
     }
 
-    window.editBal = async (ph, s) => {
-        const val = parseFloat(document.getElementById('b_'+ph).value); if(!val) return;
-        const r = ref(db, `users/${ph}/balance`); const sn = await get(r);
-        update(ref(db, `users/${ph}`), { balance: (sn.val()||0) + (val*s) });
-    };
-
-    window.applyGameForce = () => {
-        const m = document.getElementById('forceMode').value;
-        const r = document.getElementById('forceResult').value;
-        set(ref(db, `adminControl/wingo/${m}/forceNext`), r);
-        alert("Game result set to: " + r);
-    };
+    // Load Sliders
+    const sGrid = document.getElementById('sliderGrid');
+    for(let i=1; i<=10; i++) sGrid.innerHTML += `<div>Img ${i}: <input type="text" id="sl_${i}" style="width:100%"></div>`;
 
 </script>
 </body>
