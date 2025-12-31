@@ -6,83 +6,88 @@
     <title>CASHWIN - Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary-red: #ff6b6b; --gradient-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); --bg-light: #f8f9fe; }
+        :root { --p-red: #ff6b6b; --g-red: linear-gradient(180deg, #ff8e8e 0%, #ff5252 100%); --bg: #f8f9fe; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: var(--bg-light); padding-bottom: 90px; }
-
-        /* Security: Hide body initially */
+        body { background-color: var(--bg); padding-bottom: 90px; }
         #main-dashboard { display: none; }
 
-        /* Banner Slider */
-        .slider-container { margin: 15px; border-radius: 20px; overflow: hidden; height: 160px; position: relative; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .slider { display: flex; transition: transform 0.8s ease-in-out; height: 100%; }
+        /* Popup Style */
+        .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-content { background: white; width: 85%; max-width: 350px; margin: 20% auto; border-radius: 20px; text-align: center; padding: 20px; position: relative; animation: zoomIn 0.3s; }
+        @keyframes zoomIn { from {transform: scale(0.5)} to {transform: scale(1)} }
+        .close-btn { position: absolute; top: -10px; right: -10px; background: white; border-radius: 50%; width: 30px; height: 30px; line-height: 30px; font-weight: bold; }
+
+        /* Header & Slider */
+        .top-header { background: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; sticky: top; z-index: 1000; }
+        .wallet-box { background: #fff5f5; padding: 8px 15px; border-radius: 20px; border: 1px solid var(--p-red); color: var(--p-red); font-weight: bold; }
+        .slider-container { margin: 15px; border-radius: 20px; overflow: hidden; height: 160px; position: relative; }
+        .slider { display: flex; transition: 0.8s; height: 100%; }
         .slider img { min-width: 100%; object-fit: cover; }
 
-        /* Deposit Bonus Board */
-        .bonus-board { background: #fffde7; margin: 15px; padding: 12px; border-radius: 15px; border: 1px dashed #fbc02d; font-size: 12px; color: #856404; display: flex; align-items: center; gap: 10px; }
-        
-        /* Layout Fixes */
-        .top-header { background: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .wallet-box { background: #fff5f5; padding: 8px 15px; border-radius: 20px; border: 1px solid var(--primary-red); color: var(--primary-red); font-weight: bold; }
-        
-        .floating-chat { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--gradient-red); color: white; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 3000; cursor: pointer; }
-        .status-dot { position: absolute; top: 5px; right: 5px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; background: #ccc; }
-        .status-dot.online { background: #4cd964; box-shadow: 0 0 10px #4cd964; }
+        /* Category Tabs */
+        .game-tabs { display: flex; justify-content: space-around; background: white; margin: 10px 15px; padding: 10px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .tab-btn { padding: 8px 12px; font-size: 13px; font-weight: bold; color: #777; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--g-red); color: white; }
 
-        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px; }
-        .game-card { background: white; border-radius: 15px; overflow: hidden; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        /* Game Grids */
+        .game-section { display: none; padding: 0 15px; }
+        .game-section.active { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .game-card { background: white; border-radius: 12px; overflow: hidden; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .game-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
-        .game-card p { font-size: 11px; padding: 8px 2px; font-weight: 600; }
+        .game-card p { font-size: 10px; padding: 5px; font-weight: 600; }
 
-        .section-title { font-size: 16px; font-weight: bold; margin: 20px 15px 10px; display: flex; align-items: center; gap: 8px; }
-        .section-title i { color: var(--primary-red); }
+        /* Leaderboard */
+        .leaderboard { background: white; margin: 20px 15px; border-radius: 20px; padding: 15px; }
+        .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .win-amt { color: #4cd964; font-weight: bold; font-size: 14px; }
 
         /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
         .nav-item { text-align: center; color: #999; text-decoration: none; font-size: 12px; }
-        .nav-item.active { color: var(--primary-red); }
-        .nav-item i { display: block; font-size: 22px; margin-bottom: 3px; }
+        .nav-item.active { color: var(--p-red); }
     </style>
 </head>
 <body>
 
+<div id="bonusPopup" class="modal">
+    <div class="modal-content">
+        <div class="close-btn" onclick="closePopup()">X</div>
+        <img src="https://i.ibb.co/v6mYvXf/bonus-gift.png" style="width:80px; margin-bottom:15px;">
+        <h3 style="color:var(--p-red)">First Deposit Bonus</h3>
+        <p style="font-size:13px; margin:10px 0; color:#555;">Get up to ₹100 Extra on your first deposit today!</p>
+        <button onclick="location.href='deposit.html'" style="background:var(--g-red); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:bold;">DEPOSIT NOW</button>
+    </div>
+</div>
+
 <div id="main-dashboard">
     <div class="top-header">
-        <h2 style="font-style: italic; color: var(--primary-red);">CASHWIN</h2>
+        <h2 style="font-style: italic; color: var(--p-red);">CASHWIN</h2>
         <div class="wallet-box">₹<span id="userBalance">0.00</span></div>
     </div>
 
     <div class="slider-container">
         <div class="slider" id="mainSlider">
-            <img src="https://via.placeholder.com/400x160?text=Welcome+to+CashWin">
+            <img src="https://via.placeholder.com/400x160?text=Mega+Win+Event">
         </div>
     </div>
 
-    <div class="bonus-board">
-        <i class="fas fa-gift fa-2x"></i>
-        <div>
-            <b>Daily Bonus:</b> Dep ₹200 (+₹20), ₹300 (+₹40), ₹600 (+₹80), ₹900 (+₹100).
-        </div>
+    <div class="game-tabs">
+        <div class="tab-btn active" onclick="showCat('popular')"><i class="fas fa-fire"></i> Popular</div>
+        <div class="tab-btn" onclick="showCat('hot')"><i class="fas fa-bolt"></i> Hot</div>
+        <div class="tab-btn" onclick="showCat('slots')"><i class="fas fa-dice"></i> Slots</div>
     </div>
 
-    <div class="section-title"><i class="fas fa-fire"></i> Popular Games</div>
-    <div class="game-grid">
-        <div class="game-card" onclick="location.href='wingo.html'"><img src="https://i.ibb.co/v6mYvXf/wingo.jpg"><p>WinGo 1M</p></div>
-        <div class="game-card" onclick="location.href='mines.html'"><img src="https://i.ibb.co/v6mYvXf/mines.jpg"><p>Mines Pro</p></div>
-        <div class="game-card" onclick="location.href='plinko.html'"><img src="https://i.ibb.co/v6mYvXf/plinko.jpg"><p>Plinko</p></div>
-    </div>
+    <div id="popular" class="game-section active"></div>
+    <div id="hot" class="game-section"></div>
+    <div id="slots" class="game-section"></div>
 
-    <div class="section-title"><i class="fas fa-dice"></i> Premium Slots (20+)</div>
-    <div class="game-grid" id="slotGrid">
-        </div>
-
-    <div class="floating-chat" onclick="window.open('https://t.me/your_admin', '_blank')">
-        <div id="adminStatus" class="status-dot"></div>
-        <i class="fas fa-headset fa-lg"></i>
+    <div class="leaderboard">
+        <h4 style="margin-bottom:10px;"><i class="fas fa-trophy" style="color:#ffd700"></i> Recent Withdrawals</h4>
+        <div id="leaderboardList"></div>
     </div>
 
     <nav class="bottom-nav">
-        <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i>Home</a>
+        <a href="#" class="nav-item active"><i class="fas fa-home"></i>Home</a>
         <a href="promotion.html" class="nav-item"><i class="fas fa-gift"></i>Gift</a>
         <a href="invite.html" class="nav-item"><i class="fas fa-share-alt"></i>Invite</a>
         <a href="profile.html" class="nav-item"><i class="fas fa-user"></i>Account</a>
@@ -91,69 +96,69 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
-        databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
-        projectId: "testing-26b8c"
-    };
+    const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const userPhone = localStorage.getItem('userPhone');
 
-    // 1. LOGIN PROTECTION
-    if (!userPhone) {
-        window.location.href = "register.html";
-    } else {
-        document.getElementById('main-dashboard').style.display = 'block';
-    }
+    if (!userPhone) { window.location.href = "register.html"; } 
+    else { document.getElementById('main-dashboard').style.display = 'block'; checkDailyPopup(); }
 
-    // 2. ADMIN SLIDER (Auto-scroll 30s)
-    const slider = document.getElementById('mainSlider');
-    onValue(ref(db, 'adminControl/banners'), (snap) => {
-        const banners = snap.val(); // Expecting array of 10 links
-        if(banners) {
-            slider.innerHTML = banners.map(url => `<img src="${url}">`).join('');
+    function checkDailyPopup() {
+        const lastSeen = localStorage.getItem('lastPopup');
+        const today = new Date().toDateString();
+        if (lastSeen !== today) {
+            document.getElementById('bonusPopup').style.display = 'block';
+            localStorage.setItem('lastPopup', today);
+        }
+    }
+    window.closePopup = () => { document.getElementById('bonusPopup').style.display = 'none'; };
+
+    // Categories Logic (Load 20 games in each)
+    window.showCat = (catId) => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById(catId).classList.add('active');
+    };
+
+    const categories = ['popular', 'hot', 'slots'];
+    categories.forEach(cat => {
+        const container = document.getElementById(cat);
+        for(let i=1; i<=20; i++) {
+            container.innerHTML += `<div class="game-card" onclick="location.href='game.html?id=${cat}${i}'">
+                <img src="https://picsum.photos/200?random=${cat}${i}"><p>${cat.toUpperCase()} ${i}</p></div>`;
         }
     });
 
-    let slideIdx = 0;
-    setInterval(() => {
-        const slides = slider.querySelectorAll('img');
-        if(slides.length > 0) {
-            slideIdx = (slideIdx + 1) % slides.length;
-            slider.style.transform = `translateX(-${slideIdx * 100}%)`;
+    // Hybrid Leaderboard (Real + Fake)
+    const lbList = document.getElementById('leaderboardList');
+    onValue(ref(db, 'users'), (snap) => {
+        let items = [];
+        // Fake Data
+        for(let i=0; i<10; i++) {
+            items.push({ p: "987***"+Math.floor(Math.random()*900), b: (Math.random()*5000 + 500).toFixed(2) });
         }
-    }, 30000); // 30 seconds
-
-    // 3. ADMIN ONLINE STATUS
-    onValue(ref(db, 'adminControl/status'), (snap) => {
-        const status = snap.val();
-        document.getElementById('adminStatus').className = (status === 'online') ? 'status-dot online' : 'status-dot';
+        // Real Data
+        snap.forEach(child => {
+            let u = child.val();
+            if(u.balance > 100) items.push({ p: u.phone.slice(0,6)+"***", b: u.balance });
+        });
+        
+        items.sort(() => Math.random() - 0.5); // Shuffle for realism
+        lbList.innerHTML = items.slice(0, 8).map(item => `
+            <div class="rank-item">
+                <span>User ${item.p}</span>
+                <span class="win-amt">Withdraw ₹${item.b}</span>
+            </div>`).join('');
     });
 
-    // 4. LOAD 20 SLOTS (3 per row)
-    const slotGrid = document.getElementById('slotGrid');
-    for(let i=1; i<=20; i++) {
-        slotGrid.innerHTML += `
-            <div class="game-card" onclick="location.href='slot${i}.html'">
-                <img src="https://picsum.photos/200?random=${i+10}">
-                <p>Slot Game ${i}</p>
-            </div>`;
-    }
-
-    // 5. USER SYNC (Balance & Ban)
+    // Balance Sync
     onValue(ref(db, 'users/' + userPhone), (snap) => {
-        const data = snap.val();
-        if(!data || data.status === 'banned') {
-            localStorage.clear();
-            window.location.href = "login.html";
-            return;
-        }
-        document.getElementById('userBalance').innerText = parseFloat(data.balance).toFixed(2);
+        if(snap.exists()) document.getElementById('userBalance').innerText = parseFloat(snap.val().balance).toFixed(2);
     });
-
 </script>
 </body>
 </html>
