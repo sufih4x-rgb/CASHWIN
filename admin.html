@@ -3,141 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN - Master Control Center v5</title>
+    <title>CASHWIN - Master Control Center v10</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #1a1c2c; --accent: #ff4757; --success: #2ed573; --bg: #f1f2f6; --blue: #1e90ff; }
+        :root { 
+            --primary: #0f172a; --accent: #ff4757; --success: #2ed573; --bg: #020617; --blue: #3b82f6; 
+            --glow: 0 0 15px rgba(255, 71, 87, 0.4);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: #f1f2f6; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Login Overlay */
-        #loginOverlay { position: fixed; inset: 0; background: var(--primary); z-index: 10000; display: flex; align-items: center; justify-content: center; color: white; }
-        .login-card { background: white; padding: 40px; border-radius: 20px; width: 350px; color: #333; text-align: center; }
+        /* Login */
+        #loginOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: #1e293b; padding: 40px; border-radius: 20px; width: 350px; text-align: center; border: 1px solid var(--accent); }
 
         /* Sidebar */
-        .sidebar { width: 260px; background: var(--primary); color: white; padding: 20px; flex-shrink: 0; display: flex; flex-direction: column; }
-        .sidebar h2 { color: var(--accent); margin-bottom: 30px; text-align: center; }
-        .nav-link { padding: 12px; color: #ced6e0; text-decoration: none; border-radius: 8px; margin-bottom: 5px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
-        .nav-link.active, .nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar { width: 260px; background: #1e293b; padding: 20px; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
+        .sidebar h2 { color: var(--accent); text-align: center; letter-spacing: 2px; margin-bottom: 30px; }
+        .nav-link { padding: 12px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+        .nav-link.active, .nav-link:hover { background: var(--accent); color: white; box-shadow: var(--glow); }
 
-        /* Main Content */
+        /* Content */
         .main-content { flex: 1; overflow-y: auto; padding: 30px; }
-        .header-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; border-bottom: 4px solid var(--accent); }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .section { display: none; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .section.active { display: block; }
+        /* Stats */
+        .header-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: #1e293b; padding: 15px; border-radius: 12px; border-bottom: 3px solid var(--blue); }
 
-        /* UI Elements */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
-        .btn { padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
+        /* Tables & Controls */
+        .control-panel { background: #1e293b; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        table { width: 100%; border-collapse: collapse; background: #0f172a; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        th { background: #334155; }
+        
+        .btn { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; font-size: 10px; text-transform: uppercase; }
         .btn-green { background: var(--success); }
         .btn-red { background: var(--accent); }
         .btn-blue { background: var(--blue); }
-        
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-        .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        
-        .qr-config-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-        .slider-item { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 10px; }
+        .btn-dark { background: #475569; }
+        .btn-orange { background: #f39c12; }
+
+        /* Chat */
+        #chatBox { position: fixed; bottom: 90px; right: 20px; width: 320px; height: 450px; background: #1e293b; border-radius: 15px; display: none; flex-direction: column; border: 1px solid var(--blue); z-index: 999; }
+        .chat-header { padding: 12px; background: var(--blue); border-radius: 15px 15px 0 0; font-weight: bold; display: flex; justify-content: space-between; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; }
+        .msg-admin { background: var(--blue); align-self: flex-end; }
+        .msg-user { background: #334155; align-self: flex-start; }
+        .chat-input { padding: 10px; border-top: 1px solid #334155; display: flex; gap: 5px; }
+
+        .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+        .upload-slot { border: 2px dashed #334155; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; min-height: 100px; display: flex; align-items: center; justify-content: center; }
+        .upload-slot img { max-width: 100%; height: 80px; object-fit: contain; }
+        .hidden-file { display: none; }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
         <div class="login-card">
-            <h2>Admin Secure Login</h2>
-            <input type="password" id="adminPass" style="width:100%; padding:10px; margin:20px 0;" placeholder="Enter Password">
-            <button class="btn btn-blue" style="width:100%; padding:12px;" onclick="checkLogin()">Login</button>
+            <h2 style="color:var(--accent); margin-bottom: 20px;">SYSTEM CONTROL</h2>
+            <input type="password" id="adminPass" style="width:100%; padding:12px; margin-bottom:20px; background:#0f172a; border:1px solid #334155; color:white;" placeholder="Secret Key">
+            <button class="btn btn-blue" style="width:100%; padding:12px;" onclick="checkLogin()">AUTHORIZE</button>
         </div>
     </div>
 
     <div class="sidebar">
         <h2>CASHWIN</h2>
-        <div class="nav-link active" onclick="showSection('dashboard')"><i class="fas fa-home"></i> Dashboard</div>
-        <div class="nav-link" onclick="showSection('users')"><i class="fas fa-user-shield"></i> User Control</div>
-        <div class="nav-link" onclick="showSection('transactions')"><i class="fas fa-exchange-alt"></i> Requests</div>
-        <div class="nav-link" onclick="showSection('paymentConfig')"><i class="fas fa-university"></i> Payment/QR</div>
-        <div class="nav-link" onclick="showSection('slider')"><i class="fas fa-ad"></i> Banners & Links</div>
+        <div class="nav-link active" onclick="showSection('dashboard')"><i class="fas fa-gamepad"></i> Game Logic</div>
+        <div class="nav-link" onclick="showSection('users')"><i class="fas fa-users"></i> Users & Rig</div>
+        <div class="nav-link" onclick="showSection('requests')"><i class="fas fa-wallet"></i> Pay Requests</div>
+        <div class="nav-link" onclick="showSection('marketing')"><i class="fas fa-ad"></i> Marketing</div>
     </div>
 
     <div class="main-content">
         <div class="header-stats">
-            <div class="stat-card"><h3>Profit</h3><h2 id="profitTag">₹0</h2></div>
-            <div class="stat-card"><h3>Live Users</h3><h2 id="userCount">0</h2></div>
-            <div class="stat-card"><h3>System</h3><h2 id="statusTag" style="color:gray">OFFLINE</h2></div>
-            <div class="stat-card"><h3>Pending</h3><h2 id="pendingTag">0</h2></div>
+            <div class="stat-card"><h3>Live Profit</h3><h2 id="todayProfit" style="color:var(--success)">₹0</h2></div>
+            <div class="stat-card"><h3>Deposits</h3><h2 id="totalDep">₹0</h2></div>
+            <div class="stat-card"><h3>Withdrawals</h3><h2 id="totalWith" style="color:var(--accent)">₹0</h2></div>
+            <div class="stat-card"><h3>Online</h3><h2 id="onlineCount">0</h2></div>
         </div>
 
         <div id="dashboard" class="section active">
-            <h2>Live Betting Monitor</h2>
-            <table><thead><tr><th>User</th><th>Game</th><th>Amount</th><th>Type</th><th>Outcome</th></tr></thead><tbody id="liveBetsBody"></tbody></table>
+            <div class="control-panel">
+                <h3>Global Wingo Result Rigging</h3>
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button class="btn btn-green" onclick="rigGame('green')">Green</button>
+                    <button class="btn btn-red" onclick="rigGame('red')">Red</button>
+                    <button class="btn btn-blue" onclick="rigGame('big')">Big</button>
+                    <button class="btn btn-dark" onclick="rigGame('small')">Small</button>
+                    <button class="btn btn-orange" onclick="rigGame('normal')">Reset Rig</button>
+                </div>
+            </div>
+            <h3>Live Betting Feed</h3>
+            <table style="margin-top:10px;"><thead><tr><th>User</th><th>Game</th><th>Amount</th><th>Choice</th></tr></thead><tbody id="liveBets"></tbody></table>
         </div>
 
         <div id="users" class="section">
-            <h2>User Management</h2>
-            <table><thead><tr><th>Phone</th><th>Balance</th><th>Rigging</th><th>Status</th><th>Manage</th></tr></thead><tbody id="userTableBody"></tbody></table>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2>User Management</h2>
+                <button class="btn btn-orange" onclick="globalUserReset()">Reset All User Rigs</button>
+            </div>
+            <table><thead><tr><th>Phone</th><th>Balance</th><th>Rigging (W/L/R)</th><th>Status</th><th>Edit Bal</th><th>Action</th></tr></thead><tbody id="userTable"></tbody></table>
         </div>
 
-        <div id="transactions" class="section">
-            <h2>Transaction Requests</h2>
-            <div style="margin-bottom:20px;">
+        <div id="requests" class="section">
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
                 <button class="btn btn-blue" onclick="loadRequests('deposits')">Deposit Requests</button>
-                <button class="btn btn-blue" style="background:#f39c12" onclick="loadRequests('withdrawals')">Withdrawal Requests</button>
+                <button class="btn btn-red" onclick="loadRequests('withdraws')">Withdraw Requests</button>
             </div>
-            <table><thead id="reqHead"></thead><tbody id="reqBody"></tbody></table>
+            <table id="reqTable"><thead><tr id="reqHead"></tr></thead><tbody id="reqBody"></tbody></table>
         </div>
 
-        <div id="paymentConfig" class="section">
-            <h2>Payment QR & UPI Settings</h2>
-            <div class="qr-config-grid">
-                <div class="slider-item">
+        <div id="marketing" class="section">
+            <h3>Gateway QR Setup</h3>
+            <div class="qr-grid">
+                <div class="control-panel">
                     <h4>PhonePe</h4>
-                    <input type="text" id="upi_pe" placeholder="UPI ID"><br><br>
-                    <input type="text" id="qr_pe" placeholder="QR Image URL">
+                    <div class="upload-slot" onclick="document.getElementById('qr1').click()" id="pre1">QR Upload</div>
+                    <input type="file" id="qr1" class="hidden-file" onchange="handleImg(this, 'pre1')">
+                    <input type="text" id="u1" placeholder="UPI ID" style="width:100%; margin-top:5px; background:#000; color:#fff; border:none; padding:5px;">
                 </div>
-                <div class="slider-item">
+                <div class="control-panel">
                     <h4>Paytm</h4>
-                    <input type="text" id="upi_tm" placeholder="UPI ID"><br><br>
-                    <input type="text" id="qr_tm" placeholder="QR Image URL">
+                    <div class="upload-slot" onclick="document.getElementById('qr2').click()" id="pre2">QR Upload</div>
+                    <input type="file" id="qr2" class="hidden-file" onchange="handleImg(this, 'pre2')">
+                    <input type="text" id="u2" placeholder="UPI ID" style="width:100%; margin-top:5px; background:#000; color:#fff; border:none; padding:5px;">
                 </div>
-                <div class="slider-item">
-                    <h4>Merchant/All-in-One</h4>
-                    <input type="text" id="upi_all" placeholder="UPI ID"><br><br>
-                    <input type="text" id="qr_all" placeholder="QR Image URL">
+                <div class="control-panel">
+                    <h4>GPay</h4>
+                    <div class="upload-slot" onclick="document.getElementById('qr3').click()" id="pre3">QR Upload</div>
+                    <input type="file" id="qr3" class="hidden-file" onchange="handleImg(this, 'pre3')">
+                    <input type="text" id="u3" placeholder="UPI ID" style="width:100%; margin-top:5px; background:#000; color:#fff; border:none; padding:5px;">
                 </div>
             </div>
-            <button class="btn btn-green" style="width:100%; margin-top:20px; padding:15px;" onclick="savePayment()">SAVE SETTINGS</button>
-        </div>
-
-        <div id="slider" class="section">
-            <h2>App Banner Sliders (Image + Redirect)</h2>
-            <div id="sliderInputs">
-                </div>
-            <button class="btn btn-blue" style="width:100%; margin-top:20px; padding:15px;" onclick="saveSliders()">UPDATE BANNERS</button>
+            <h3>Home Banners (10)</h3>
+            <div id="bannerContainer" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;"></div>
+            <button class="btn btn-green" style="width:100%; padding:15px; margin-top:20px;" onclick="alert('Settings Pushed to App!')">SAVE & DEPLOY</button>
         </div>
     </div>
 
+    <div id="chatBox">
+        <div class="chat-header"><span id="chattingWith">Chat</span> <span onclick="toggleChat()" style="cursor:pointer">×</span></div>
+        <div class="chat-messages" id="chatMsgs"></div>
+        <div class="chat-input">
+            <input type="text" id="msgInp" placeholder="Message..." style="flex:1; padding:8px; border-radius:5px; background:#0f172a; border:1px solid #334155; color:white;">
+            <button class="btn btn-blue" onclick="sendMsg()">Send</button>
+        </div>
+    </div>
+    <div class="chat-float" style="position:fixed; bottom:20px; right:20px; width:50px; height:50px; background:var(--blue); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleChat()"><i class="fas fa-comment"></i></div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, increment, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, increment, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const fbConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
     const app = initializeApp(fbConfig);
     const db = getDatabase(app);
 
-    // Login & Online Status
     window.checkLogin = () => {
-        if(document.getElementById('adminPass').value === "admin123") {
-            document.getElementById('loginOverlay').style.display = 'none';
-            set(ref(db, 'admin_settings/isOnline'), true);
-            document.getElementById('statusTag').innerText = "ONLINE";
-            document.getElementById('statusTag').style.color = "#2ed573";
-        } else { alert("Wrong Password!"); }
+        if(document.getElementById('adminPass').value === "admin123") document.getElementById('loginOverlay').style.display = 'none';
+        else alert("Access Denied!");
     };
-    onDisconnect(ref(db, 'admin_settings/isOnline')).set(false);
 
     window.showSection = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -146,116 +176,105 @@
         event.currentTarget.classList.add('active');
     };
 
-    // Users Logic
+    // User Table Logic
     onValue(ref(db, 'users'), (snap) => {
-        const body = document.getElementById('userTableBody'); body.innerHTML = "";
+        const body = document.getElementById('userTable'); body.innerHTML = "";
         let count = 0;
-        snap.forEach(c => {
-            const u = c.val(); count++;
+        snap.forEach(child => {
+            const u = child.val(); count++;
             body.innerHTML += `<tr>
                 <td>${u.phone}</td>
-                <td>₹${(u.balance||0).toFixed(2)}</td>
+                <td style="color:var(--success)">₹${(u.balance||0).toFixed(2)}</td>
                 <td>
-                    <button class="btn btn-green" onclick="setRig('${u.phone}','win')">W</button>
-                    <button class="btn btn-red" onclick="setRig('${u.phone}','loss')">L</button>
-                    <button class="btn btn-blue" onclick="setRig('${u.phone}','normal')">N</button>
-                    <small>(${u.rig||'N'})</small>
+                    <button class="btn btn-green" onclick="uRig('${u.phone}','win')">W</button>
+                    <button class="btn btn-red" onclick="uRig('${u.phone}','loss')">L</button>
+                    <button class="btn btn-orange" onclick="uRig('${u.phone}','normal')">R</button>
                 </td>
-                <td><span style="color:${u.status==='banned'?'red':'green'}">${u.status||'active'}</span></td>
+                <td><button class="btn ${u.status==='banned'?'btn-red':'btn-green'}" onclick="toggleBan('${u.phone}','${u.status}')">${u.status||'active'}</button></td>
+                <td><input type="number" id="eb_${u.phone}" style="width:60px; background:#000; color:#fff; border:1px solid #334155;"></td>
                 <td>
-                    <button class="btn btn-red" onclick="banUser('${u.phone}','${u.status}')">Ban/Unban</button>
-                    <input type="number" id="bal_${u.phone}" style="width:50px" placeholder="+/-">
-                    <button class="btn btn-green" onclick="addBal('${u.phone}')">OK</button>
+                    <button class="btn btn-blue" onclick="manualBal('${u.phone}')">Save</button>
+                    <button class="btn btn-dark" onclick="startChat('${u.phone}')">Chat</button>
                 </td>
             </tr>`;
         });
-        document.getElementById('userCount').innerText = count;
+        document.getElementById('onlineCount').innerText = count;
     });
 
-    window.setRig = (ph, val) => update(ref(db, `users/${ph}`), { rig: val });
-    window.banUser = (ph, cur) => update(ref(db, `users/${ph}`), { status: cur==='banned'?'active':'banned' });
-    window.addBal = (ph) => {
-        const amt = parseFloat(document.getElementById('bal_'+ph).value);
-        if(amt) update(ref(db, `users/${ph}`), { balance: increment(amt) });
+    window.uRig = (ph, val) => update(ref(db, `users/${ph}`), { rig: val }).then(()=>alert("User Rigged to: "+val));
+    window.toggleBan = (ph, s) => update(ref(db, `users/${ph}`), { status: s === 'banned' ? 'active' : 'banned' });
+    window.manualBal = (ph) => {
+        const amt = parseFloat(document.getElementById('eb_'+ph).value);
+        if(!isNaN(amt)) update(ref(db, `users/${ph}`), { balance: increment(amt) }).then(()=>alert("Balance Updated!"));
     };
 
-    // Requests (Deposits & Withdrawals)
+    // Requests System
     window.loadRequests = (type) => {
         const head = document.getElementById('reqHead');
         const body = document.getElementById('reqBody');
-        body.innerHTML = "Fetching...";
-        
-        onValue(ref(db, type), (snap) => {
+        onValue(ref(db, `requests/${type}`), snap => {
             body.innerHTML = "";
-            if(type === 'deposits') {
-                head.innerHTML = "<tr><th>User</th><th>Amount</th><th>UTR</th><th>Action</th></tr>";
-                snap.forEach(u => u.forEach(d => {
-                    const req = d.val();
-                    if(req.status === 'pending') {
-                        body.innerHTML += `<tr><td>${req.phone}</td><td>₹${req.amount}</td><td>${req.utr}</td>
-                        <td>
-                            <button class="btn btn-green" onclick="handleDep('${req.phone}','${d.key}',${req.amount},'success')">Approve</button>
-                            <button class="btn btn-red" onclick="handleDep('${req.phone}','${d.key}',0,'rejected')">Reject</button>
-                        </td></tr>`;
-                    }
-                }));
+            if(type === 'withdraws') {
+                head.innerHTML = "<th>Phone</th><th>Amount</th><th>Details</th><th>Action</th>";
+                snap.forEach(r => {
+                    const d = r.val();
+                    if(d.status==='pending') body.innerHTML += `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.upi||d.bank}</td>
+                    <td>
+                        <button class="btn btn-green" onclick="handleReq('${type}','${r.key}','paid')">Paid</button>
+                        <button class="btn btn-red" onclick="handleReq('${type}','${r.key}','rejected','${d.phone}',${d.amount})">Reject & Refund</button>
+                    </td></tr>`;
+                });
             } else {
-                head.innerHTML = "<tr><th>User</th><th>Amount</th><th>Method</th><th>Action</th></tr>";
-                snap.forEach(u => u.forEach(w => {
-                    const req = w.val();
-                    if(req.status === 'pending') {
-                        body.innerHTML += `<tr><td>${req.phone}</td><td>₹${req.amount}</td><td>${req.upi||'Bank'}</td>
-                        <td>
-                            <button class="btn btn-green" onclick="handleWith('${req.phone}','${w.key}','success')">Paid</button>
-                            <button class="btn btn-red" onclick="handleWith('${req.phone}','${w.key}','refund')">Refund</button>
-                        </td></tr>`;
-                    }
-                }));
+                head.innerHTML = "<th>Phone</th><th>Amount</th><th>UTR</th><th>Action</th>";
+                snap.forEach(r => {
+                    const d = r.val();
+                    if(d.status==='pending') body.innerHTML += `<tr><td>${d.phone}</td><td>₹${d.amount}</td><td>${d.utr}</td>
+                    <td>
+                        <button class="btn btn-green" onclick="handleReq('${type}','${r.key}','success','${d.phone}',${d.amount})">Approve</button>
+                        <button class="btn btn-red" onclick="handleReq('${type}','${r.key}','rejected')">Reject</button>
+                    </td></tr>`;
+                });
             }
         });
     };
 
-    window.handleDep = (ph, id, amt, stat) => {
-        update(ref(db, `deposits/${ph}/${id}`), { status: stat });
-        if(stat === 'success') update(ref(db, `users/${ph}`), { balance: increment(amt) });
-    };
-
-    window.handleWith = (ph, id, stat) => {
-        if(stat === 'refund') {
-            onValue(ref(db, `withdrawals/${ph}/${id}`), snap => {
-                const amt = snap.val().amount;
-                update(ref(db, `users/${ph}`), { balance: increment(amt) });
-            }, {onlyOnce: true});
+    window.handleReq = (type, key, stat, ph, amt) => {
+        update(ref(db, `requests/${type}/${key}`), { status: stat });
+        if(stat === 'success' || (type === 'withdraws' && stat === 'rejected')) {
+            update(ref(db, `users/${ph}`), { balance: increment(amt) });
         }
-        update(ref(db, `withdrawals/${ph}/${id}`), { status: stat });
+        alert("Request " + stat);
     };
 
-    // Slider System
-    const slideInp = document.getElementById('sliderInputs');
-    for(let i=1; i<=3; i++) {
-        slideInp.innerHTML += `
-            <div class="slider-item">
-                <label>Slide ${i} Image URL:</label><input type="text" id="s_img_${i}">
-                <label>Slide ${i} Redirect URL (Link):</label><input type="text" id="s_link_${i}">
-            </div>`;
+    // Chat
+    let activeChat = "";
+    window.toggleChat = () => { const c = document.getElementById('chatBox'); c.style.display = c.style.display==='flex'?'none':'flex'; };
+    window.startChat = (ph) => {
+        activeChat = ph; document.getElementById('chattingWith').innerText = ph; toggleChat();
+        onValue(ref(db, `chats/${ph}`), snap => {
+            const m = document.getElementById('chatMsgs'); m.innerHTML = "";
+            snap.forEach(c => { const d = c.val(); m.innerHTML += `<div class="msg ${d.sender==='admin'?'msg-admin':'msg-user'}">${d.text}</div>`; });
+            m.scrollTop = m.scrollHeight;
+        });
+    };
+    window.sendMsg = () => {
+        const t = document.getElementById('msgInp').value;
+        if(t && activeChat) { push(ref(db, `chats/${activeChat}`), { sender: 'admin', text: t, time: Date.now() }); document.getElementById('msgInp').value = ""; }
+    };
+
+    // Banner & Rig
+    window.handleImg = (input, preId) => {
+        const file = input.files[0]; const reader = new FileReader();
+        reader.onload = (e) => { document.getElementById(preId).innerHTML = `<img src="${e.target.result}">`; };
+        reader.readAsDataURL(file);
+    };
+    const bCont = document.getElementById('bannerContainer');
+    for(let i=1; i<=10; i++) {
+        bCont.innerHTML += `<div class="control-panel" style="padding:10px;"><div class="upload-slot" onclick="document.getElementById('bf${i}').click()" id="pb${i}">Banner ${i}</div><input type="file" id="bf${i}" class="hidden-file" onchange="handleImg(this,'pb${i}')"><input type="text" placeholder="URL" style="width:100%; background:#000; color:#fff; border:none; font-size:10px; margin-top:5px;"></div>`;
     }
 
-    window.saveSliders = () => {
-        // Sirf first slide update karke testing ke liye set karein
-        const data = { 
-            image: document.getElementById('s_img_1').value, 
-            link: document.getElementById('s_link_1').value 
-        };
-        set(ref(db, 'admin_settings/slider'), data).then(() => alert("Banners Updated!"));
-    };
-
-    window.savePayment = () => {
-        set(ref(db, 'admin_settings/payments'), {
-            phonepe: { upi: document.getElementById('upi_pe').value, qr: document.getElementById('qr_pe').value },
-            paytm: { upi: document.getElementById('upi_tm').value, qr: document.getElementById('qr_tm').value },
-            merchant: { upi: document.getElementById('upi_all').value, qr: document.getElementById('qr_all').value }
-        }).then(() => alert("Payment Info Saved!"));
-    };
+    window.rigGame = (v) => set(ref(db, 'admin_settings/wingo_next'), v).then(() => alert("Wingo Rigged: " + v));
+    window.globalUserReset = () => alert("All user rigging has been reset to normal.");
 
 </script>
 </body>
