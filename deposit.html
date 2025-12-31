@@ -3,33 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Deposit - CASHWIN</title>
+    <title>Deposit - CASHWIN PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --p-red: #ff6b6b; --bg: #f8f9fe; }
+        :root { --p-red: #ff6b6b; --bg: #f8f9fe; --paytm-blue: #00baf2; --upi-green: #2ecc71; }
         body { background: var(--bg); font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 30px; }
         .header { background: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top:0; z-index:100; border-bottom: 1px solid #eee; }
-        .balance-card { background: linear-gradient(135deg, #ff8e8e, #ff5252); margin: 15px; padding: 25px; border-radius: 15px; color: white; position: relative; overflow: hidden;}
+        .balance-card { background: linear-gradient(135deg, #ff8e8e, #ff5252); margin: 15px; padding: 25px; border-radius: 15px; color: white; position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(255,82,82,0.2); }
         .balance-card h2 { font-size: 28px; margin: 10px 0; }
+        
+        /* 3 QR Sections Styling */
         .channel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px; margin-top: 10px; }
-        .channel-box { background: white; padding: 12px 5px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; }
-        .channel-box.active { border-color: var(--p-red); background: #fff5f5; border-width: 2px; }
-        .channel-box img { width: 40px; margin-bottom: 5px; }
+        .channel-box { background: white; padding: 12px 5px; border-radius: 12px; text-align: center; border: 1px solid #eee; position: relative; cursor: pointer; transition: 0.3s; }
+        .channel-box.active { border-color: var(--p-red); background: #fff5f5; border-width: 2px; transform: scale(1.05); }
+        .channel-box img { width: 35px; height: 35px; margin-bottom: 5px; object-fit: contain; }
+        .channel-box small { font-size: 10px; font-weight: bold; display: block; line-height: 1.2; }
+
         .amount-section { background: white; margin: 15px; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .amount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .amt-btn { background: #f8f9fe; border: 1px solid #eee; padding: 15px 5px; border-radius: 8px; font-weight: bold; position: relative; cursor: pointer; text-align: center; font-size: 14px; }
+        .amt-btn { background: #f8f9fe; border: 1px solid #eee; padding: 15px 5px; border-radius: 8px; font-weight: bold; position: relative; cursor: pointer; text-align: center; font-size: 13px; }
         .amt-btn.active { border-color: var(--p-red); color: var(--p-red); background: #fff5f5; }
-        .amt-bonus { position: absolute; top: 0; right: 0; background: #ff5252; color: white; font-size: 9px; padding: 1px 4px; border-radius: 0 8px 0 8px; }
+        .amt-bonus { position: absolute; top: -5px; right: -5px; background: #2ecc71; color: white; font-size: 9px; padding: 2px 5px; border-radius: 5px; font-weight: 900; }
+
         .calc-box { margin-top: 20px; padding: 10px; border-top: 1px solid #f5f5f5; }
         .calc-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #666; }
         .total-get { color: var(--p-red); font-size: 20px; font-weight: bold; }
         .deposit-btn { background: #ff5252; color: white; border: none; width: 100%; padding: 15px; border-radius: 30px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,82,82,0.3); margin-top: 15px; }
+
+        /* Payment Modal Styling */
         #paymentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 88%; border-radius: 20px; padding: 25px; position: relative; text-align: center; }
-        .timer-box { color: var(--p-red); font-weight: bold; font-size: 22px; margin-bottom: 10px; border: 1px solid #eee; display: inline-block; padding: 5px 15px; border-radius: 15px;}
-        .qr-display { width: 180px; height: 180px; border: 4px solid #f1f1f1; margin: 15px auto; border-radius: 10px; background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .upi-box { background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px dashed #ccc; margin: 15px 0; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .utr-input { width: 90%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 15px; outline: none; }
+        .modal-content { background: white; width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 20px; position: relative; text-align: center; }
+        .timer-box { color: var(--p-red); font-weight: bold; font-size: 20px; margin-bottom: 10px; border: 1px solid #eee; display: inline-block; padding: 5px 15px; border-radius: 15px; }
+        .qr-display { width: 200px; height: 200px; border: 4px solid #f1f1f1; margin: 10px auto; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .qr-display img { width: 90%; height: 90%; object-fit: contain; }
+        .qr-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px 0; }
+        
+        .upi-box { background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px dashed #ccc; margin: 10px 0; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .utr-input { width: 90%; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; margin-bottom: 15px; outline: none; text-align: center; }
+        .utr-input:focus { border-color: var(--p-red); }
+
         .history-section { background: white; margin: 15px; border-radius: 15px; padding: 20px; }
         .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
         .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
@@ -42,8 +54,8 @@
 
     <div class="header">
         <i class="fas fa-chevron-left" onclick="history.back()"></i>
-        <span style="font-weight: bold;">Deposit</span>
-        <span onclick="location.reload()">History</span>
+        <span style="font-weight: bold;">Deposit Money</span>
+        <i class="fas fa-headset" style="color:var(--p-red)"></i>
     </div>
 
     <div class="balance-card">
@@ -52,63 +64,81 @@
     </div>
 
     <div class="channel-grid">
-        <div class="channel-box active"><img src="https://i.ibb.co/QD9jWvV/upi-logo.png"><br><small>UPI x QR</small></div>
-        <div class="channel-box"><img src="https://i.ibb.co/5vS2Y2T/paytm.png"><br><small>Paytm</small></div>
-        <div class="channel-box"><img src="https://i.ibb.co/hZzFzG0/bgcash.png"><br><small>BGCash</small></div>
+        <div class="channel-box active" onclick="selectChannel('upi', this)">
+            <img src="https://i.ibb.co/QD9jWvV/upi-logo.png">
+            <small>UPI QR<br>Fast Pay</small>
+        </div>
+        <div class="channel-box" onclick="selectChannel('paytm', this)">
+            <img src="https://i.ibb.co/5vS2Y2T/paytm.png">
+            <small>Paytm QR<br>Instant</small>
+        </div>
+        <div class="channel-box" onclick="selectChannel('merchant', this)">
+            <img src="https://i.ibb.co/hZzFzG0/bgcash.png">
+            <small>Merchant<br>All-in-One</small>
+        </div>
     </div>
 
     <div class="amount-section">
         <div class="amount-grid">
-            <div class="amt-btn active" onclick="updateCalc(100, 20)">₹100 <span class="amt-bonus">+20</span></div>
-            <div class="amt-btn" onclick="updateCalc(300, 58)">₹300 <span class="amt-bonus">+58</span></div>
-            <div class="amt-btn" onclick="updateCalc(500, 88)">₹500 <span class="amt-bonus">+88</span></div>
-            <div class="amt-btn" onclick="updateCalc(1000, 168)">₹1K <span class="amt-bonus">+168</span></div>
-            <div class="amt-btn" onclick="updateCalc(10000, 1288)">₹10K <span class="amt-bonus">+1288</span></div>
-            <div class="amt-btn" onclick="updateCalc(50000, 6388)">₹50K <span class="amt-bonus">+6388</span></div>
+            <div class="amt-btn active" onclick="updateCalc(100, 0)">₹100</div>
+            <div class="amt-btn" onclick="updateCalc(200, 20)">₹200 <span class="amt-bonus">NEW</span></div>
+            <div class="amt-btn" onclick="updateCalc(500, 80)">₹500 <span class="amt-bonus">HOT</span></div>
+            <div class="amt-btn" onclick="updateCalc(1000, 180)">₹1K <span class="amt-bonus">+180</span></div>
+            <div class="amt-btn" onclick="updateCalc(5000, 900)">₹5K <span class="amt-bonus">+900</span></div>
+            <div class="amt-btn" onclick="updateCalc(100000, 20000)">₹1L <span class="amt-bonus">+20K</span></div>
         </div>
 
         <div class="calc-box">
-            <div class="calc-row"><span>You pay</span> <span id="youPay">₹100</span></div>
-            <div class="calc-row"><span>Bonus</span> <span id="bonusShow" style="color:#2ecc71;">+₹20</span></div>
-            <div class="calc-row" style="margin-top:10px;">
-                <span style="font-weight:bold; color:#333;">Total You Get</span> 
-                <span class="total-get">₹<span id="totalGet">120</span></span>
+            <div class="calc-row"><span>Deposit Amount</span> <span id="youPay">₹100</span></div>
+            <div class="calc-row"><span>First Deposit Bonus</span> <span id="bonusShow" style="color:#2ecc71;">+₹0</span></div>
+            <div class="calc-row" style="margin-top:10px; border-top: 1px dashed #eee; padding-top:10px;">
+                <span style="font-weight:bold; color:#333;">Estimated Credit</span> 
+                <span class="total-get">₹<span id="totalGet">100</span></span>
             </div>
         </div>
         <button class="deposit-btn" onclick="openPayment()">Deposit Now</button>
     </div>
 
     <div class="history-section">
-        <h4 style="margin:0 0 15px 0;"><i class="fas fa-history"></i> Recent Transactions</h4>
-        <div id="histBody"></div>
+        <h4 style="margin:0 0 15px 0;"><i class="fas fa-history"></i> Transaction History</h4>
+        <div id="histBody">
+            <center style="color:#999; padding:20px;">Loading History...</center>
+        </div>
     </div>
 
     <div id="paymentModal">
         <div class="modal-content">
             <div class="timer-box" id="timer">10:00</div>
-            <p style="color:#666; font-size:14px;">Deposit Amount</p>
-            <h2 style="margin:5px 0 20px 0; color:#333;">₹<span id="payAmt">100</span></h2>
-            <div class="qr-display"><img id="adminQR" src="" style="width:100%; height:100%; object-fit: contain;"></div>
-            <div class="upi-box">
-                <span id="adminUPI">Loading...</span>
-                <i class="far fa-copy" onclick="copyUPI()" style="color:var(--p-red); cursor:pointer;"></i>
+            <p style="color:#666; font-size:14px; margin-bottom: 5px;">Scan QR to Pay</p>
+            <h2 style="margin:0 0 15px 0; color:#333;">₹<span id="payAmt">100</span></h2>
+            
+            <div class="qr-display">
+                <img id="displayQR" src="https://placehold.co/200x200?text=Loading+QR..." alt="Payment QR">
+                <div class="qr-label" id="qrTypeLabel">UPI QR</div>
             </div>
-            <input type="number" id="utr" class="utr-input" placeholder="Enter 12-digit UTR/Ref Number">
-            <button class="deposit-btn" style="margin-top:0;" onclick="submitUTR()">Submit Payment</button>
-            <p onclick="closeModal()" style="color:#999; margin-top:15px; font-size:14px; cursor:pointer;">Cancel Request</p>
+
+            <div class="upi-box">
+                <span id="activeUPI">Loading...</span>
+                <i class="far fa-copy" onclick="copyUPI()" style="color:var(--p-red); cursor:pointer; font-size: 18px;"></i>
+            </div>
+            
+            <div style="text-align: left; margin: 15px 0;">
+                <label style="font-size: 12px; color: #ff5252; font-weight: bold;">Step 1: Copy UPI/Scan QR and Pay</label><br>
+                <label style="font-size: 12px; color: #666;">Step 2: Enter 12-digit UTR below</label>
+            </div>
+
+            <input type="number" id="utr" class="utr-input" placeholder="Enter 12-digit UTR Number">
+            <button class="deposit-btn" style="margin-top:0;" onclick="submitUTR()">Confirm Payment</button>
+            <p onclick="closeModal()" style="color:#999; margin-top:15px; font-size:14px; cursor:pointer; text-decoration: underline;">Cancel Request</p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, get, update, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, set, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
-            authDomain: "testing-26b8c.firebaseapp.com",
-            databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
-            projectId: "testing-26b8c",
-            appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
+            databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -116,55 +146,65 @@
         const userPhone = localStorage.getItem('userPhone') || '9117748052';
         
         let depositAmt = 100;
-        let bonusAmt = 20;
+        let bonusAmt = 0;
         let isFirstDep = true;
         let timerInt;
+        let currentChannel = 'upi';
+        let adminPayments = {};
 
-        // TRACKING: Log user entry to Deposit Page
-        update(ref(db, `admin/realtime_activity/${userPhone}`), {
-            page: "Deposit Page",
-            lastSeen: serverTimestamp(),
-            status: "Selecting Amount"
-        });
-
-        // 1. Initial User Fetch & Bonus Eligibility Check
+        // 1. Initial Data Load
         onValue(ref(db, `users/${userPhone}`), (snap) => {
             const data = snap.val();
             if(data) {
                 document.getElementById('balDisplay').innerText = (data.balance || 0).toFixed(2);
-                
-                // Logic: Check if user has EVER had an approved deposit
-                // If totalDeposit > 0, bonus is disabled forever
                 isFirstDep = (!data.totalDeposit || data.totalDeposit <= 0);
-                
                 if(!isFirstDep) {
                     document.querySelectorAll('.amt-bonus').forEach(b => b.style.display = 'none');
-                    // Reset calculation to 0 bonus if it was active
-                    updateCalc(depositAmt, 0); 
                 }
             }
         });
 
-        // 2. Load Admin Settings
+        // 2. Load Admin Payment Settings (3 types)
         onValue(ref(db, 'admin/settings/payment'), (s) => {
-            const d = s.val();
-            if(d) {
-                document.getElementById('adminQR').src = d.qr || "";
-                document.getElementById('adminUPI').innerText = d.upi || "UPI NOT SET";
-            }
+            adminPayments = s.val() || {};
+            updatePaymentUI();
         });
 
-        // 3. Calculation Logic (Updated to respect isFirstDep)
+        window.selectChannel = (type, el) => {
+            currentChannel = type;
+            document.querySelectorAll('.channel-box').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            updatePaymentUI();
+        };
+
+        function updatePaymentUI() {
+            const label = document.getElementById('qrTypeLabel');
+            const qrImg = document.getElementById('displayQR');
+            const upiTxt = document.getElementById('activeUPI');
+
+            if(currentChannel === 'upi') {
+                label.innerText = "UPI QR";
+                qrImg.src = adminPayments.qr || "";
+                upiTxt.innerText = adminPayments.upi || "UPI NOT SET";
+            } else if(currentChannel === 'paytm') {
+                label.innerText = "Paytm Business QR";
+                qrImg.src = adminPayments.paytm_qr || adminPayments.qr || "";
+                upiTxt.innerText = adminPayments.paytm_upi || adminPayments.upi || "";
+            } else {
+                label.innerText = "Merchant All-in-One";
+                qrImg.src = adminPayments.merchant_qr || adminPayments.qr || "";
+                upiTxt.innerText = adminPayments.merchant_upi || adminPayments.upi || "";
+            }
+        }
+
         window.updateCalc = (a, b) => {
             depositAmt = a;
             bonusAmt = isFirstDep ? b : 0;
             document.getElementById('youPay').innerText = "₹" + a;
-            document.getElementById('bonusShow').innerText = isFirstDep ? "+₹" + b : "+₹0 (One-time bonus used)";
+            document.getElementById('bonusShow').innerText = isFirstDep ? "+₹" + bonusAmt : "+₹0 (Already Used)";
             document.getElementById('totalGet').innerText = a + bonusAmt;
             
-            // UI update for active button
-            const buttons = document.querySelectorAll('.amt-btn');
-            buttons.forEach(btn => {
+            document.querySelectorAll('.amt-btn').forEach(btn => {
                 if(btn.innerText.includes(a) || (a >= 1000 && btn.innerText.includes(a/1000 + 'K'))) {
                     btn.classList.add('active');
                 } else {
@@ -173,14 +213,14 @@
             });
         };
 
-        // 4. Modal Control
         window.openPayment = () => {
+            if(depositAmt < 100 || depositAmt > 100000) return alert("Min: 100, Max: 1,00,000");
             document.getElementById('payAmt').innerText = depositAmt;
             document.getElementById('paymentModal').style.display = 'flex';
-            
-            // TRACKING: Admin knows user is on payment screen
+            updatePaymentUI();
+
             update(ref(db, `admin/realtime_activity/${userPhone}`), {
-                status: `Viewing QR for ₹${depositAmt}`,
+                status: `Paying ₹${depositAmt} via ${currentChannel}`,
                 lastSeen: serverTimestamp()
             });
 
@@ -189,21 +229,20 @@
             timerInt = setInterval(() => {
                 let m = Math.floor(t/60), s = t%60;
                 document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
-                if(--t < 0) { closeModal(); alert("Time Expired!"); }
+                if(--t < 0) { closeModal(); alert("Session Expired!"); }
             }, 1000);
         };
 
         window.closeModal = () => {
             document.getElementById('paymentModal').style.display = 'none';
             clearInterval(timerInt);
-            update(ref(db, `admin/realtime_activity/${userPhone}`), { status: "Selecting Amount" });
+            update(ref(db, `admin/realtime_activity/${userPhone}`), { status: "Selecting Deposit Amount" });
         };
 
-        // 5. SUBMIT UTR LOGIC
         window.submitUTR = () => {
             const utrVal = document.getElementById('utr').value.trim();
-            if(utrVal.length < 12) {
-                alert("Please enter valid 12-digit UTR number");
+            if(utrVal.length !== 12) {
+                alert("Please enter exactly 12-digit UTR/Ref Number");
                 return;
             }
 
@@ -214,6 +253,7 @@
                 phone: userPhone,
                 amount: Number(depositAmt),
                 bonus: Number(bonusAmt),
+                channel: currentChannel,
                 utr: utrVal,
                 status: 'pending',
                 time: new Date().toLocaleString(),
@@ -221,18 +261,16 @@
             };
 
             update(ref(db), {
-                ['/requests/deposits/' + requestId]: requestData,
-                [`admin/realtime_activity/${userPhone}/status`]: `Submitted UTR: ${utrVal}`
+                [`/requests/deposits/${requestId}`]: requestData,
+                [`admin/realtime_activity/${userPhone}/status`]: `Deposit Submitted: ₹${depositAmt}`
             }).then(() => {
-                alert("Deposit Request Sent Successfully!");
+                alert("Payment submitted! Wait for admin approval.");
                 document.getElementById('utr').value = "";
                 closeModal();
-            }).catch((err) => {
-                alert("Error: " + err.message);
             });
         };
 
-        // 6. History Sync
+        // History Tracker
         onValue(ref(db, 'requests/deposits'), (snap) => {
             const body = document.getElementById('histBody');
             body.innerHTML = "";
@@ -241,26 +279,23 @@
                 const r = child.val();
                 if(r.phone === userPhone) records.push(r);
             });
-
             records.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
-
+            if(records.length === 0) body.innerHTML = "<center style='padding:20px; color:#999;'>No history found</center>";
             records.forEach(r => {
                 const sLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1);
                 body.innerHTML += `
                 <div class="hist-item">
-                    <div><b>₹${r.amount}</b><br><small style="color:#999">${r.time}</small></div>
+                    <div><b>₹${r.amount}</b> <small style="color:var(--paytm-blue)">+₹${r.bonus || 0}</small><br><small style="color:#999">${r.time}</small></div>
                     <span class="status-badge status-${sLabel}">${sLabel}</span>
                 </div>`;
             });
         });
 
         window.copyUPI = () => {
-            const upi = document.getElementById('adminUPI').innerText;
-            if(upi !== "Loading..." && upi !== "UPI NOT SET") {
-                navigator.clipboard.writeText(upi);
-                alert("UPI ID Copied!");
-                update(ref(db, `admin/realtime_activity/${userPhone}`), { status: "Copied UPI ID" });
-            }
+            const upi = document.getElementById('activeUPI').innerText;
+            if(upi.includes("NOT SET")) return;
+            navigator.clipboard.writeText(upi);
+            alert("UPI ID Copied!");
         };
     </script>
 </body>
