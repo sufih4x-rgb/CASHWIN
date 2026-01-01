@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Plinko Pro - Admin Tracking Enabled</title>
+    <title>Plinko Pro - Admin Control Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #0f212e;
@@ -15,80 +16,95 @@
             --text: #ffffff;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; user-select: none; }
         body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
 
-        /* Wallet & Header */
-        .header { width: 100%; max-width: 500px; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: var(--card); border-bottom: 2px solid var(--blue); position: sticky; top: 0; z-index: 100; }
-        .user-info { font-size: 11px; font-weight: bold; }
-        .bal-amt { color: var(--primary); font-weight: 900; font-size: 1.2rem; }
+        .header { width: 100%; max-width: 500px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--card); border-bottom: 2px solid var(--blue); position: sticky; top: 0; z-index: 1000; }
+        .bal-amt { color: var(--primary); font-weight: 900; font-size: 1.4rem; text-shadow: 0 0 10px rgba(0,231,1,0.3); }
+        .user-id { font-size: 10px; color: #9aa; background: #0f212e; padding: 2px 8px; border-radius: 4px; display: inline-block; }
 
-        /* Plinko Board */
-        #game-area { position: relative; width: 100%; max-width: 500px; height: 500px; background: radial-gradient(circle, #1a2c38 0%, #0f212e 100%); margin: 10px 0; }
+        #game-area { position: relative; width: 100%; max-width: 500px; height: 460px; background: radial-gradient(circle, #1a2c38 0%, #0f212e 100%); overflow: hidden; }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* Controls */
-        .controls { width: 100%; max-width: 500px; padding: 20px; background: var(--card); border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
-        .input-group { background: var(--bg); padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--blue); display: flex; justify-content: space-between; align-items: center; }
-        .bet-input { background: transparent; border: none; color: white; font-size: 18px; font-weight: 700; width: 60%; outline: none; }
+        /* WIN/LOSS ANIMATION */
+        #result-toast { 
+            position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
+            padding: 15px 35px; border-radius: 12px; font-weight: 900; font-size: 1.8rem;
+            display: none; z-index: 1001; text-align: center;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+        .animate-pop { animation: popResult 0.6s forwards; }
+        @keyframes popResult { 
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+            100% { transform: translate(-50%, -60%) scale(1); opacity: 0; }
+        }
+
+        #buckets-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; width: 94%; justify-content: center; }
+        .bucket { flex: 1; height: 26px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; color: #000; transition: 0.2s; }
+        .bucket.hit { transform: scale(1.3); filter: brightness(1.8); }
+
+        .controls { width: 100%; max-width: 500px; padding: 20px; background: var(--card); border-radius: 24px 24px 0 0; }
+        .bet-box { background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--blue); display: flex; align-items: center; margin-bottom: 15px; }
+        .bet-input { background: transparent; border: none; color: white; font-size: 18px; font-weight: 700; width: 100%; outline: none; }
         
-        .btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .drop-btn { flex: 1; padding: 15px; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .btn-green { background: var(--primary); color: #000; }
-        .btn-yellow { background: var(--yellow); color: #000; }
-        .btn-red { background: var(--red); color: #fff; }
+        .btn-row { display: flex; gap: 10px; }
+        .drop-btn { flex: 1; padding: 16px; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+        .btn-green { background: var(--primary); box-shadow: 0 4px 0 #00a001; }
+        .btn-yellow { background: var(--yellow); box-shadow: 0 4px 0 #c29d0b; }
+        .btn-red { background: var(--red); color: #fff; box-shadow: 0 4px 0 #b32d2d; }
 
-        /* Login Modal */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--card); width: 85%; max-width: 350px; padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--blue); }
-        .modal-input { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--blue); border-radius: 10px; color: white; font-size: 18px; margin: 20px 0; text-align: center; }
-
-        .status-badge { font-size: 10px; color: #9aa; background: var(--bg); padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-content { background: var(--card); width: 85%; max-width: 350px; padding: 30px; border-radius: 24px; text-align: center; }
+        .m-input { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--blue); border-radius: 12px; color: white; font-size: 1.2rem; margin: 20px 0; text-align: center; }
+        
+        .history-section { width: 100%; max-width: 500px; padding: 15px; background: var(--bg); }
+        .hist-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--blue); font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div id="authModal" class="modal" style="display: none;">
+<div id="result-toast"></div>
+
+<div id="authModal" class="modal">
     <div class="modal-content">
-        <h2 style="color:var(--primary)">Link Wallet</h2>
-        <p style="font-size: 12px; color: #9aa;">Enter registered mobile number</p>
-        <input type="tel" id="mobileInput" placeholder="Mobile Number" class="modal-input">
-        <button onclick="linkWallet()" class="drop-btn btn-green">Login & Sync</button>
+        <h2 style="color:var(--primary);">LINK WALLET</h2>
+        <input type="tel" id="mobileInput" placeholder="Phone Number" class="m-input" maxlength="10">
+        <button onclick="linkWallet()" class="drop-btn btn-green" style="width: 100%;">CONNECT NOW</button>
     </div>
 </div>
 
 <div class="header">
-    <div class="user-info">
-        <div id="userPhone" style="color: #9aa;">Identifying...</div>
-        <button onclick="unlinkDevice()" style="background:none; border:none; color:var(--red); font-size:10px; cursor: pointer;">UNLINK</button>
+    <div>
+        <div id="userDisplay" class="user-id">Guest User</div><br>
+        <button onclick="unlinkDevice()" style="background:none; border:none; color:var(--red); font-size:9px; cursor:pointer;">UNLINK DEVICE</button>
     </div>
-    <div style="text-align: center;">
-        <div style="font-size: 10px; color: #9aa;">BALANCE</div>
+    <div class="bal-container">
         <div class="bal-amt">₹<span id="displayBal">0.00</span></div>
     </div>
-    <div style="text-align: right">
-        <div id="sessionDisplay" style="font-size: 10px; color: var(--yellow);">Profit: ₹0</div>
-        <div id="timeDisplay" style="font-size: 9px; color: #9aa;">0m played</div>
-    </div>
+    <div id="profitTag" style="font-size: 10px; color: var(--yellow);">Session: ₹0</div>
 </div>
 
 <div id="game-area">
     <canvas id="plinkoCanvas"></canvas>
+    <div id="buckets-container"></div>
 </div>
 
 <div class="controls">
-    <div class="input-group">
-        <span style="font-size: 12px; color: #9aa;">BET</span>
+    <div class="bet-box">
         <input type="number" id="betAmount" value="10" class="bet-input">
-        <span style="font-weight: bold;">₹</span>
+        <span style="font-weight:900; color:var(--primary)">₹</span>
     </div>
-    
     <div class="btn-row">
         <button onclick="dropBall('green')" class="drop-btn btn-green">Low</button>
         <button onclick="dropBall('yellow')" class="drop-btn btn-yellow">Med</button>
         <button onclick="dropBall('red')" class="drop-btn btn-red">High</button>
     </div>
-    <center><span class="status-badge">Admin System: Active | IP: Tracking</span></center>
+</div>
+
+<div class="history-section">
+    <div id="gameHistory"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
@@ -96,76 +112,73 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, update, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8", 
-        databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com", 
-        projectId: "testing-26b8c" 
-    };
+    const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
     let CUR_USER = localStorage.getItem("PLINKO_USER");
-    let DEVICE_ID = localStorage.getItem("PLINKO_DEV_ID");
-    if(!DEVICE_ID){
-        DEVICE_ID = "dev_" + Math.random().toString(36).slice(2, 12);
-        localStorage.setItem("PLINKO_DEV_ID", DEVICE_ID);
-    }
+    let DEVICE_ID = localStorage.getItem("PLINKO_DEV_ID") || "dev_" + Math.random().toString(36).slice(2, 12);
+    localStorage.setItem("PLINKO_DEV_ID", DEVICE_ID);
 
     let balance = 0, sessionProfit = 0, startTime = Date.now();
     const mults = {
-        green: [11, 3.2, 1.6, 1.2, 1.1, 1, 0.5, 1, 1.1, 1.2, 1.6, 3.2, 11],
+        green:  [11, 3.2, 1.6, 1.2, 1.1, 1, 0.5, 1, 1.1, 1.2, 1.6, 3.2, 11],
         yellow: [25, 10, 5, 2, 1, 0.5, 0.2, 0.5, 1, 2, 5, 10, 25],
-        red: [100, 50, 10, 5, 2, 0.5, 0, 0.5, 2, 5, 10, 50, 100]
+        red:    [100, 50, 10, 5, 2, 0.5, 0, 0.5, 2, 5, 10, 50, 100]
     };
 
-    // --- REFINED AUTO-LOGIN LOGIC ---
-    async function checkAutoLogin() {
-        if (CUR_USER) {
-            const snap = await get(ref(db, `users/${CUR_USER}`));
-            if (snap.exists()) {
-                const data = snap.val();
-                // If the stored number belongs to this device, login directly
-                if (data.linkedDev === DEVICE_ID) {
-                    console.log("Auto-login successful for number: " + CUR_USER);
-                    initUser();
-                    return;
-                }
-            }
+    // --- Matter.js Setup ---
+    const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
+    const engine = Engine.create();
+    const canvas = document.getElementById('plinkoCanvas');
+    const render = Render.create({
+        canvas: canvas,
+        engine: engine,
+        options: { width: 500, height: 460, wireframes: false, background: 'transparent' }
+    });
+
+    // Boundaries
+    Composite.add(engine.world, [
+        Bodies.rectangle(10, 230, 20, 460, { isStatic: true, render: { visible: false } }),
+        Bodies.rectangle(490, 230, 20, 460, { isStatic: true, render: { visible: false } })
+    ]);
+
+    // Pegs
+    for (let i = 0; i < 12; i++) {
+        for (let j = 0; j <= i; j++) {
+            Composite.add(engine.world, Bodies.circle(250 + (j - i / 2) * 32, 50 + i * 32, 3, { isStatic: true, render: { fillStyle: '#4a5d6a' } }));
         }
-        // Show modal if no number or wrong device
-        document.getElementById('authModal').style.display = 'flex';
     }
-    checkAutoLogin();
+
+    Render.run(render);
+    Runner.run(Runner.create(), engine);
+
+    // --- Firebase & Wallet ---
+    async function validateSession() {
+        if (!CUR_USER) { document.getElementById('authModal').style.display = 'flex'; return; }
+        const snap = await get(ref(db, `users/${CUR_USER}`));
+        if (snap.exists() && snap.val().linkedDev === DEVICE_ID) { initUser(); } 
+        else { document.getElementById('authModal').style.display = 'flex'; }
+    }
 
     window.linkWallet = async () => {
         const phone = document.getElementById('mobileInput').value;
-        if(phone.length < 10) return alert("Enter valid 10-digit number");
-        
+        if (phone.length < 10) return alert("Invalid Number");
         const uRef = ref(db, `users/${phone}`);
         const snap = await get(uRef);
-        
-        if(snap.exists()) {
+        if (snap.exists()) {
             const d = snap.val();
-            // Security: Same number but different device check
-            if(d.linkedDev && d.linkedDev !== DEVICE_ID) {
+            if (d.linkedDev && d.linkedDev !== DEVICE_ID) {
                 const diff = Date.now() - (d.lastUnlink || 0);
-                if(diff < 259200000) {
-                    const hoursLeft = Math.ceil((259200000 - diff) / 3600000);
-                    return alert(`This account is tied to another device. Wait ${hoursLeft}h to switch.`);
-                }
+                if (diff < 259200000) return alert("Device Locked to another user.");
             }
         }
-        
-        // Link number to this device
-        await update(uRef, { linkedDev: DEVICE_ID, lastLogin: Date.now(), online: true });
+        await update(uRef, { linkedDev: DEVICE_ID, online: true });
         localStorage.setItem("PLINKO_USER", phone);
-        CUR_USER = phone;
-        document.getElementById('authModal').style.display = 'none';
-        initUser();
+        location.reload();
     };
 
     window.unlinkDevice = async () => {
-        if(!confirm("Unlink device? Security lock will apply for 3 days.")) return;
         await update(ref(db, `users/${CUR_USER}`), { linkedDev: null, lastUnlink: Date.now() });
         localStorage.removeItem("PLINKO_USER");
         location.reload();
@@ -173,68 +186,58 @@
 
     function initUser() {
         onValue(ref(db, `users/${CUR_USER}`), (s) => {
-            const d = s.val();
-            balance = d?.balance || 0;
-            document.getElementById('displayBal').innerText = balance.toLocaleString();
-            document.getElementById('userPhone').innerText = "ID: " + CUR_USER;
+            balance = s.val()?.balance || 0;
+            document.getElementById('displayBal').innerText = balance.toFixed(2);
+            document.getElementById('userDisplay').innerText = "ID: " + CUR_USER;
         });
+        renderBuckets('green');
+    }
+
+    function renderBuckets(risk) {
+        const container = document.getElementById('buckets-container');
+        container.innerHTML = '';
+        const colors = { green: '#00e701', yellow: '#f1c40f', red: '#ff4444' };
+        mults[risk].forEach((m, i) => {
+            const b = document.createElement('div');
+            b.className = 'bucket'; b.id = `bucket-${i}`;
+            b.style.backgroundColor = colors[risk];
+            b.innerText = m + 'x';
+            container.appendChild(b);
+        });
+    }
+
+    function triggerResultAnim(win, bet) {
+        const t = document.getElementById('result-toast');
+        t.style.display = 'block';
+        t.className = 'animate-pop';
         
-        setInterval(() => {
-            const mins = Math.floor((Date.now() - startTime) / 60000);
-            document.getElementById('timeDisplay').innerText = mins + "m played";
-        }, 10000);
-    }
-
-    // --- Physics ---
-    const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
-    const engine = Engine.create();
-    const canvas = document.getElementById('plinkoCanvas');
-    const render = Render.create({
-        canvas: canvas, engine: engine,
-        options: { width: 500, height: 500, wireframes: false, background: 'transparent' }
-    });
-
-    for (let i = 0; i < 12; i++) {
-        for (let j = 0; j <= i; j++) {
-            const x = 250 + (j - i / 2) * 35;
-            const y = 60 + i * 35;
-            Composite.add(engine.world, Bodies.circle(x, y, 3, { isStatic: true, render: { fillStyle: '#4a5d6a' } }));
+        if (win > bet) {
+            t.style.background = 'rgba(0, 231, 1, 0.9)';
+            t.style.color = '#000';
+            t.innerHTML = `BIG WIN<br>₹${win.toFixed(2)}`;
+        } else {
+            t.style.background = 'rgba(255, 68, 68, 0.9)';
+            t.style.color = '#fff';
+            t.innerHTML = `LOSS<br>₹${bet.toFixed(2)}`;
         }
+        setTimeout(() => { t.style.display = 'none'; t.className = ''; }, 1200);
     }
 
-    Render.run(render);
-    Runner.run(Runner.create(), engine);
-
-    // --- Result Calculation & Admin Logic ---
     window.dropBall = async (risk) => {
-        const bet = parseFloat(document.getElementById('betAmount').value);
-        if (isNaN(bet) || bet > balance || bet < 1) return alert("Check balance");
+        const betValue = parseFloat(document.getElementById('betAmount').value);
+        if (isNaN(betValue) || betValue < 1 || betValue > balance) return;
 
-        balance -= bet;
+        renderBuckets(risk);
+        balance -= betValue;
         await update(ref(db, `users/${CUR_USER}`), { balance: balance });
 
-        const rigSnap = await get(ref(db, 'admin/rigging'));
-        const rig = rigSnap.val() || {};
-        const userSnap = await get(ref(db, `users/${CUR_USER}`));
-        const userD = userSnap.val();
-        
-        let forceX = (Math.random() - 0.5) * 4;
-        const timePlayedHrs = (Date.now() - startTime) / 3600000;
+        const rig = (await get(ref(db, 'admin/rigging'))).val() || {};
+        const playedHrs = (Date.now() - startTime) / 3600000;
 
-        // --- RIGGING ENGINE ---
-        if (rig.forceLoss === CUR_USER) {
-            forceX = Math.random() > 0.5 ? 6.2 : -6.2;
-        } else if (rig.forceWin === CUR_USER) {
-            forceX = (Math.random() - 0.5) * 0.4;
-        } 
-        // Profit protection: ₹200/2hrs or ₹700 total
-        else if ((sessionProfit > 200 && timePlayedHrs < 2) || (sessionProfit > 700)) {
-            forceX = Math.random() > 0.5 ? 5.8 : -5.8; 
-        }
-        // Reward depositors
-        else if (userD.deposits >= 2 && Math.random() < 0.3) {
-            forceX = (Math.random() - 0.5) * 1.0;
-        }
+        let forceX = (Math.random() - 0.5) * 4;
+        if (rig.forceLoss === CUR_USER) forceX = Math.random() > 0.5 ? 12 : -12;
+        else if (rig.forceWin === CUR_USER) forceX = (Math.random() - 0.5) * 0.1;
+        else if ((sessionProfit > 200 && playedHrs < 3)) forceX = Math.random() > 0.5 ? 10 : -10;
 
         const ball = Bodies.circle(250 + forceX, 10, 6, {
             restitution: 0.5, friction: 0.01,
@@ -245,27 +248,49 @@
 
         Events.on(engine, 'collisionStart', (event) => {
             event.pairs.forEach(async (pair) => {
-                if ((pair.bodyA === ball || pair.bodyB === ball) && ball.position.y > 440) {
-                    const finalX = ball.position.x;
-                    const bucketIdx = Math.floor((finalX - 50) / 31);
-                    const safeIdx = Math.max(0, Math.min(bucketIdx, 12));
-                    const win = bet * mults[risk][safeIdx];
-                    
+                if ((pair.bodyA === ball || pair.bodyB === ball) && ball.position.y > 410) {
+                    const boardWidth = 420; 
+                    const startX = 250 - (boardWidth / 2);
+                    let idx = Math.floor((ball.position.x - startX) / (boardWidth / 13));
+                    idx = Math.max(0, Math.min(idx, 12));
+
+                    const multiplier = mults[risk][idx];
+                    const winAmount = betValue * multiplier;
+
                     Composite.remove(engine.world, ball);
-                    balance += win;
-                    sessionProfit += (win - bet);
-                    
-                    document.getElementById('sessionDisplay').innerText = `Profit: ₹${Math.floor(sessionProfit)}`;
+
+                    // INSTANT CREDIT TO WALLET
+                    balance += winAmount;
+                    sessionProfit += (winAmount - betValue);
                     await update(ref(db, `users/${CUR_USER}`), { balance: balance });
+
+                    // UI ANIMATIONS
+                    document.getElementById('profitTag').innerText = `Session: ₹${sessionProfit.toFixed(0)}`;
+                    triggerResultAnim(winAmount, betValue);
                     
-                    // Admin Log
-                    await set(ref(db, `admin/tracking/${CUR_USER}/${Date.now()}`), {
-                        bet: bet, win: win, risk: risk, dev: DEVICE_ID
-                    });
+                    const bucket = document.getElementById(`bucket-${idx}`);
+                    if(bucket) { bucket.classList.add('hit'); setTimeout(()=>bucket.classList.remove('hit'), 300); }
+
+                    // LOGGING
+                    set(ref(db, `admin/tracking/${CUR_USER}/${Date.now()}`), { bet: betValue, win: winAmount, mult: multiplier });
+                    addHistory(risk, multiplier, winAmount);
                 }
             });
         });
     };
+
+    function addHistory(r, m, w) {
+        const h = document.getElementById('gameHistory');
+        const item = `<div class="hist-item">
+            <span style="color:${w > 0 ? 'var(--primary)' : 'var(--red)'}">${r.toUpperCase()}</span>
+            <span>${m}x</span>
+            <span style="font-weight:bold;">₹${w.toFixed(2)}</span>
+        </div>`;
+        h.innerHTML = item + h.innerHTML;
+        if(h.children.length > 5) h.removeChild(h.lastChild);
+    }
+
+    validateSession();
 </script>
 </body>
 </html>
