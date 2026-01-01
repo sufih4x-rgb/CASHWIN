@@ -3,37 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASHWIN - Game Control</title>
+    <title>CASHWIN - Admin Master Control</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ff6b6b; --sidebar-bg: #1a1c23; --main-bg: #f4f7fe; --white: #ffffff; --text-muted: #8492a6; }
+        :root { --primary: #ff6b6b; --sidebar-bg: #1a1c23; --main-bg: #f4f7fe; --white: #ffffff; --success: #2ecc71; --danger: #e74c3c; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: var(--main-bg); display: flex; min-height: 100vh; }
 
+        /* Sidebar & Layout */
         .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 25px 0; position: fixed; height: 100vh; z-index: 100; }
         .sidebar-brand { padding: 0 25px 30px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        .sidebar-brand h2 { color: var(--primary); font-style: italic; letter-spacing: 1px; }
+        .sidebar-brand h2 { color: var(--primary); font-style: italic; }
         .nav-link { display: flex; align-items: center; padding: 12px 25px; color: #a0aec0; text-decoration: none; transition: 0.3s; gap: 12px; font-size: 14px; }
-        .nav-link:hover, .nav-link.active { background: rgba(255,107,107,0.1); color: var(--primary); border-right: 4px solid var(--primary); }
+        .nav-link.active { background: rgba(255,107,107,0.1); color: var(--primary); border-right: 4px solid var(--primary); }
 
         .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 30px; }
-        .top-header { background: var(--white); padding: 20px 30px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 30px; }
         
-        .category-card { background: var(--white); padding: 25px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.02); }
-        .category-title { font-size: 18px; font-weight: 600; color: #2d3748; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        /* Master Control Cards */
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); text-align: center; }
+        
+        /* User Management Table */
+        .table-card { background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.02); margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 12px; color: #8492a6; font-size: 13px; border-bottom: 1px solid #eee; }
+        td { padding: 15px 12px; font-size: 14px; border-bottom: 1px solid #f9f9f9; }
 
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .game-edit-box { border: 1px solid #edf2f7; padding: 20px; border-radius: 15px; background: #f8fafc; transition: 0.3s; text-align: center; }
+        /* Buttons */
+        .btn { padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; }
+        .btn-unlock { background: var(--success); color: white; }
+        .btn-reset { background: var(--primary); color: white; width: 100%; padding: 15px; margin-bottom: 20px; }
+        .btn-bonus { background: #3498db; color: white; }
         
-        .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; border: 2px solid #ddd; background: #eee; }
-        
-        label { font-size: 11px; font-weight: bold; color: #4a5568; display: block; margin-bottom: 5px; text-align: left; }
-        input[type="text"] { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; }
-        input[type="file"] { font-size: 11px; margin-bottom: 15px; width: 100%; }
+        .badge { padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; }
+        .bg-win { background: #d4edda; color: #155724; }
+        .bg-loss { background: #f8d7da; color: #721c24; }
 
-        .btn-update { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; font-size: 13px; }
-        
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1c23; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        #loginOverlay { position: fixed; inset: 0; background: #1a1c23; z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .login-box { background: white; padding: 40px; border-radius: 25px; text-align: center; width: 400px; }
         .toast { position: fixed; bottom: 20px; right: 20px; background: #2d3748; color: white; padding: 12px 25px; border-radius: 10px; display: none; z-index: 11000; }
     </style>
@@ -42,34 +48,54 @@
 
 <div id="loginOverlay">
     <div class="login-box">
-        <i class="fas fa-lock" style="font-size:40px; color:var(--primary); margin-bottom:20px;"></i>
-        <h2>Admin Login</h2>
-        <input type="password" id="adminPass" placeholder="Enter Password" style="width:100%; padding:12px; margin:20px 0; border-radius:10px; border:1px solid #ddd; text-align:center;">
-        <button class="btn-update" onclick="checkAuth()">LOGIN</button>
+        <i class="fas fa-user-shield" style="font-size:40px; color:var(--primary); margin-bottom:20px;"></i>
+        <h2>Master Admin</h2>
+        <input type="password" id="adminPass" placeholder="Enter Admin Key" style="width:100%; padding:12px; margin:20px 0; border-radius:10px; border:1px solid #ddd; text-align:center;">
+        <button class="btn btn-reset" onclick="checkAuth()">ENTER CONTROL CENTER</button>
     </div>
 </div>
 
 <div class="sidebar">
     <div class="sidebar-brand"><h2>CASHWIN</h2></div>
-    <a href="admin.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-    <a href="#" class="nav-link active"><i class="fas fa-image"></i> Game Images</a>
-    <a href="admin.html" class="nav-link" style="margin-top:200px;"><i class="fas fa-arrow-left"></i> Back</a>
+    <a href="#" class="nav-link active"><i class="fas fa-users-cog"></i> User Control</a>
+    <a href="game_images.html" class="nav-link"><i class="fas fa-image"></i> Game Content</a>
+    <a href="#" class="nav-link" onclick="resetAllRigging()"><i class="fas fa-sync"></i> Reset All Rigging</a>
 </div>
 
 <div class="main-content">
-    <div class="top-header">
-        <h1>Game Content Manager</h1>
-        <p>Password: <b>admin123</b></p>
+    <div class="grid-3">
+        <div class="stat-card">
+            <h3 id="totalUsers">0</h3>
+            <p style="font-size: 12px; color:#8492a6;">Total Registered</p>
+        </div>
+        <div class="stat-card">
+            <h3 id="totalVolume">₹0</h3>
+            <p style="font-size: 12px; color:#8492a6;">Total Play Volume</p>
+        </div>
+        <button class="btn btn-reset" onclick="resetAllRigging()">
+            <i class="fas fa-exclamation-triangle"></i> RESET ALL GAME RIGGING
+        </button>
     </div>
 
-    <div class="category-card">
-        <div class="category-title"><i class="fas fa-upload"></i> Popular Games</div>
-        <div class="game-grid" id="popularGrid"></div>
-    </div>
-
-    <div class="category-card">
-        <div class="category-title"><i class="fas fa-bolt"></i> Hot Games</div>
-        <div class="game-grid" id="hotGrid"></div>
+    <div class="table-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>User & Wallet Management</h3>
+            <input type="text" id="userSearch" placeholder="Search Mobile..." style="padding:8px; border-radius:8px; border:1px solid #ddd;">
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>User (Mobile)</th>
+                    <th>Balance</th>
+                    <th>Vault</th>
+                    <th>VIP Exp</th>
+                    <th>Device Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                </tbody>
+        </table>
     </div>
 </div>
 
@@ -77,7 +103,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
     const app = initializeApp(firebaseConfig);
@@ -88,63 +114,92 @@
     window.checkAuth = () => {
         if(document.getElementById('adminPass').value === FIXED_PASS){
             document.getElementById('loginOverlay').style.display = 'none';
-            loadEditors();
-        } else { alert("Wrong Password!"); }
+            loadUserData();
+        } else { alert("Access Denied!"); }
     };
 
-    function loadEditors() {
-        ['popular', 'hot'].forEach(cat => {
-            const grid = document.getElementById(cat + 'Grid');
-            grid.innerHTML = "";
-            for(let i=1; i<=10; i++){
-                const box = document.createElement('div');
-                box.className = 'game-edit-box';
-                box.innerHTML = `
-                    <h4>Slot #${i}</h4>
-                    <img id="prev_${cat}_${i}" class="preview-img" src="">
-                    <label>Upload Game Image</label>
-                    <input type="file" id="file_${cat}_${i}" accept="image/*" onchange="previewFile('${cat}', ${i})">
-                    <label>Game Title</label>
-                    <input type="text" id="name_${cat}_${i}" placeholder="Game Name">
-                    <label>Redirect URL</label>
-                    <input type="text" id="link_${cat}_${i}" placeholder="wingo.html">
-                    <button class="btn-update" onclick="uploadAndSave('${cat}', ${i})">SAVE DATA</button>
-                `;
-                grid.appendChild(box);
+    function loadUserData() {
+        onValue(ref(db, 'users'), (snap) => {
+            const users = snap.val();
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = "";
+            let count = 0;
+            let volume = 0;
 
-                onValue(ref(db, `admin/games/${cat}/game_${i}`), (snap) => {
-                    const d = snap.val();
-                    if(d) {
-                        document.getElementById(`name_${cat}_${i}`).value = d.name || "";
-                        document.getElementById(`link_${cat}_${i}`).value = d.link || "";
-                        document.getElementById(`prev_${cat}_${i}`).src = d.image || "";
-                    }
-                });
+            for(let id in users) {
+                const u = users[id];
+                count++;
+                volume += (u.totalBetAmount || 0);
+
+                const isLocked = u.lastUnlink && (Date.now() - u.lastUnlink < 259200000);
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${id}</b></td>
+                        <td style="color:var(--success)">₹${(u.balance || 0).toFixed(2)}</td>
+                        <td style="color:#f39c12">₹${(u.vault || 0).toFixed(2)}</td>
+                        <td><span class="badge" style="background:#eee">${u.totalBetAmount || 0}</span></td>
+                        <td>
+                            ${isLocked ? '<span class="badge bg-loss">3-DAY LOCKED</span>' : '<span class="badge bg-win">READY</span>'}
+                        </td>
+                        <td>
+                            <button class="btn btn-unlock" onclick="unlockDevice('${id}')">UNLOCK DEVICE</button>
+                            <button class="btn btn-bonus" onclick="sendBonus('${id}')">ADD ₹100</button>
+                            <button class="btn btn-reset" style="padding:5px 10px; background:#000" onclick="rigUser('${id}', 'win')">RIG WIN</button>
+                        </td>
+                    </tr>
+                `;
             }
+            document.getElementById('totalUsers').innerText = count;
+            document.getElementById('totalVolume').innerText = "₹" + volume.toLocaleString();
         });
     }
 
-    // Preview image before saving
-    window.previewFile = (cat, i) => {
-        const file = document.getElementById(`file_${cat}_${i}`).files[0];
-        const reader = new FileReader();
-        reader.onloadend = () => { document.getElementById(`prev_${cat}_${i}`).src = reader.result; };
-        if (file) reader.readAsDataURL(file);
+    // --- 1. Unlock Device Logic ---
+    window.unlockDevice = (phone) => {
+        // We set lastUnlink to 0. The Master Wallet code skips the 3-day check if lastUnlink is 0.
+        update(ref(db, `users/${phone}`), { 
+            lastUnlink: 0,
+            linkedDev: null 
+        }).then(() => showToast(`User ${phone} Device Unlocked!`));
     };
 
-    // Save Name, Link and Image (Base64) to Firebase
-    window.uploadAndSave = (cat, i) => {
-        const name = document.getElementById(`name_${cat}_${i}`).value;
-        const link = document.getElementById(`link_${cat}_${i}`).value;
-        const imageData = document.getElementById(`prev_${cat}_${i}`).src;
+    // --- 2. Rig User Logic ---
+    window.rigUser = (phone, type) => {
+        const path = type === 'win' ? 'forceWin' : 'forceLoss';
+        set(ref(db, `admin/rigging/${path}`), phone)
+            .then(() => showToast(`User ${phone} set to ${type.toUpperCase()} mode`));
+    };
 
-        if(!name || !imageData) return showToast("Name & Image required!", "red");
+    // --- 3. Global Reset Logic ---
+    window.resetAllRigging = () => {
+        if(confirm("This will reset all rigging and force-win settings. Continue?")) {
+            set(ref(db, 'admin/rigging'), {
+                forceWin: "none",
+                forceLoss: "none",
+                globalProfitThrottling: true
+            }).then(() => showToast("All Game Rigging Reset to Default!"));
+        }
+    };
 
-        set(ref(db, `admin/games/${cat}/game_${i}`), {
-            name: name,
-            link: link || "wingo.html",
-            image: imageData
-        }).then(() => showToast(`Slot ${i} Updated!`));
+    // --- 4. VIP Bonus Transaction ---
+    window.sendBonus = (phone) => {
+        const amt = 100;
+        const uRef = ref(db, `users/${phone}`);
+        onValue(uRef, (s) => {
+            const currentBal = s.val().balance || 0;
+            const newTx = {
+                amount: amt,
+                type: 'deposit',
+                game: 'VIP BONUS',
+                time: Date.now(),
+                status: 'Approved'
+            };
+            // Add balance and log history
+            update(uRef, { balance: currentBal + amt });
+            set(ref(db, `users/${phone}/history/${Date.now()}`), newTx);
+        }, { onlyOnce: true });
+        showToast("₹100 Bonus Added to History");
     };
 
     function showToast(m, c="#2ecc71") {
