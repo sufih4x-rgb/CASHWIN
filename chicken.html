@@ -1,1 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chicken Road - Enterprise Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg: #0a0a0a; --accent: #f1c40f; --gold: #ffd700; --win: #2ecc71; --loss: #e74c3c; }
+        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; overflow: hidden; }
+        
+        /* Registration & Linking Overlay */
+        #authOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .auth-card { background: #1a1a1a; padding: 40px; border-radius: 20px; text-align: center; width: 320px; border: 1px solid #333; }
+        .auth-card input { width: 100%; padding: 15px; margin: 20px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; font-size: 16px; }
 
+        /* Game UI */
+        #gameContainer { display: flex; flex-direction: column; height: 100vh; }
+        .stats-bar { padding: 15px 25px; background: #000; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        
+        .game-world { flex: 1; position: relative; background: #1b5e20; overflow: hidden; display: flex; align-items: center; }
+        #roadArea { 
+            display: flex; align-items: center; padding: 0 120px; height: 320px; 
+            background: #37474f; position: relative; transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            border-top: 12px solid #546e7a; border-bottom: 12px solid #546e7a;
+        }
+
+        .divider { min-width: 18px; height: 100%; background: #455a64; box-shadow: inset 4px 0 10px rgba(0,0,0,0.5); }
+
+        .plate { 
+            min-width: 95px; height: 95px; background: rgba(255,255,255,0.05); border-radius: 50%; 
+            border: 4px solid #78909c; margin: 0 25px; display: flex; align-items: center; 
+            justify-content: center; cursor: pointer; transition: 0.4s; position: relative; z-index: 20;
+        }
+        .plate.current { background: var(--gold) !important; box-shadow: 0 0 30px var(--gold); transform: scale(1.1); }
+        .plate.win { background: var(--win); border-color: #fff; }
+        .plate.loss { background: var(--loss); border-color: #fff; }
+        
+        /* POPUP SYSTEM */
+        #gamePopup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            background: rgba(0,0,0,0.9); padding: 30px; border-radius: 20px;
+            text-align: center; z-index: 3000; border: 2px solid var(--accent);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #gamePopup.active { transform: translate(-50%, -50%) scale(1); }
+
+        #mainChicken { width: 70px; height: 70px; position: absolute; z-index: 100; transition: all 0.5s ease; }
+        
+        .controls { background: #000; padding: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-play { background: var(--win); color: #000; font-weight: bold; height: 55px; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; }
+        .btn-cashout { background: var(--accent); color: #000; font-weight: bold; height: 55px; border: none; border-radius: 10px; cursor: pointer; display: none; }
+        
+        /* History Section */
+        #historyLog { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 10px; font-size: 11px; max-height: 100px; overflow-y: auto; width: 150px; }
+    </style>
+</head>
+<body>
+
+    <div id="authOverlay">
+        <div class="auth-card">
+            <h2 style="color:var(--accent); margin:0;">WALLET LINK</h2>
+            <p style="font-size: 12px; color: #888;">Enter your Cashwin registered number</p>
+            <input type="number" id="userPhone" placeholder="91XXXXXXXX">
+            <button onclick="linkWallet()" style="width:100%; padding:15px; background:var(--accent); border:none; font-weight:bold; border-radius: 8px;">VERIFY & CONNECT</button>
+            <p id="cooldownMsg" style="color:red; font-size:12px; margin-top:10px; display:none;">New device detected. Cooldown: 3 days remaining.</p>
+        </div>
+    </div>
+
+    <div id="gamePopup">
+        <h1 id="popupTitle">WINNER!</h1>
+        <p id="popupSubtext" style="font-size: 20px;">₹0.00</p>
+        <button onclick="closePopup()" style="padding:10px 30px; background:white; border:none; border-radius:5px; font-weight:bold;">CONTINUE</button>
+    </div>
+
+    <div id="gameContainer">
+        <div class="stats-bar">
+            <div><i class="fas fa-wallet" style="color:var(--accent)"></i> ₹<span id="displayBal">0.00</span></div>
+            <div style="font-weight:bold; letter-spacing: 3px;">CHICKEN ROAD PRO</div>
+            <div onclick="unlinkWallet()" style="cursor:pointer;"><i class="fas fa-sign-out-alt"></i></div>
+        </div>
+
+        <div class="game-world">
+            <div id="roadArea">
+                <img src="https://cdn-icons-png.flaticon.com/512/2632/2632713.png" id="mainChicken">
+                <div id="plateContainer" style="display: flex; align-items: center;"></div>
+            </div>
+            <div id="historyLog"><b>RECENT ACTIVITY:</b><div id="logContent"></div></div>
+        </div>
+
+        <div class="controls">
+            <div class="mode-selector" style="grid-column: span 2; display: flex; gap: 10px;">
+                <button class="mode-btn active" style="flex:1; padding:10px;" onclick="setMode('easy')">EASY</button>
+                <button class="mode-btn" style="flex:1; padding:10px;" onclick="setMode('medium')">HARD</button>
+            </div>
+            <input type="number" id="betAmount" value="50" style="background:#111; color:white; border:1px solid #333; padding:15px; border-radius:10px;">
+            <button class="btn-play" id="playBtn" onclick="startGame()">START SESSION</button>
+            <button class="btn-cashout" id="cashoutBtn" onclick="cashout()">CASHOUT</button>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, get, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const fbConfig = { databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com" };
+    const app = initializeApp(fbConfig);
+    const db = getDatabase(app);
+
+    let currentPhone = "", userBalance = 0, currentMode = 'easy', gameState = 'idle', currentStep = 0, pendingMult = 0;
+    const deviceId = localStorage.getItem('deviceId') || "DEV_" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('deviceId', deviceId);
+
+    const multipliers = { easy: [1.2, 1.5, 2.1, 3.2, 4.5, 6.0, 10.0], medium: [5.0, 12.0, 25.0, 50.0] };
+
+    // WALLET LINKING WITH 3-DAY COOLDOWN LOGIC
+    window.linkWallet = async () => {
+        const ph = document.getElementById('userPhone').value;
+        if(ph.length < 10) return;
+
+        const userRef = ref(db, `users/${ph}`);
+        const snap = await get(userRef);
+
+        if(snap.exists()){
+            const data = snap.val();
+            // Check Device Match
+            if(data.lastDeviceId && data.lastDeviceId !== deviceId){
+                const lastUnlink = data.unlinkTime || 0;
+                const threeDays = 3 * 24 * 60 * 60 * 1000;
+                if(Date.now() - lastUnlink < threeDays){
+                    document.getElementById('cooldownMsg').style.display = 'block';
+                    return;
+                }
+            }
+            
+            // Link Success
+            await update(userRef, { lastDeviceId: deviceId, lastLogin: Date.now() });
+            currentPhone = ph;
+            localStorage.setItem('activePhone', ph);
+            sync();
+            logHistory("Wallet Linked");
+        } else { alert("Number not found in Cashwin Database"); }
+    };
+
+    function sync() {
+        onValue(ref(db, `users/${currentPhone}`), (s) => {
+            if(s.exists()){
+                userBalance = s.val().balance;
+                document.getElementById('displayBal').innerText = userBalance.toFixed(2);
+                document.getElementById('authOverlay').style.display = 'none';
+            }
+        });
+    }
+
+    window.unlinkWallet = async () => {
+        await update(ref(db, `users/${currentPhone}`), { unlinkTime: Date.now() });
+        localStorage.removeItem('activePhone');
+        location.reload();
+    };
+
+    // GAME ENGINE
+    function generatePlates() {
+        const container = document.getElementById('plateContainer');
+        container.innerHTML = "";
+        multipliers[currentMode].forEach((m, i) => {
+            const d = document.createElement('div'); d.className = 'divider'; container.appendChild(d);
+            const p = document.createElement('div'); p.className = 'plate'; p.id = `p_${i}`;
+            p.innerHTML = `<span style="font-size:12px; font-weight:bold;">${m}x</span>`;
+            p.onclick = () => stepForward(i);
+            container.appendChild(p);
+        });
+        document.getElementById('mainChicken').src = "https://cdn-icons-png.flaticon.com/512/2632/2632713.png";
+        document.getElementById('mainChicken').style.left = "-80px";
+    }
+
+    window.startGame = async () => {
+        const bet = parseFloat(document.getElementById('betAmount').value);
+        if(bet > userBalance || bet < 10) return;
+        
+        await update(ref(db, `users/${currentPhone}`), { balance: increment(-bet), isOnline: true });
+        gameState = 'playing'; currentStep = 0; pendingMult = 0;
+        document.getElementById('playBtn').style.display = 'none';
+        document.getElementById('cashoutBtn').style.display = 'block';
+        document.getElementById('cashoutBtn').innerText = `CASHOUT (₹0)`;
+        generatePlates();
+    };
+
+    async function stepForward(idx) {
+        if(gameState !== 'playing' || idx !== currentStep) return;
+
+        const snap = await get(ref(db, 'admin'));
+        const admin = snap.val() || {};
+        const userSnap = await get(ref(db, `users/${currentPhone}`));
+        const user = userSnap.val();
+
+        // PROFIT LOGIC: 
+        // 1. Force Win/Loss from Admin
+        // 2. If user has 2+ deposits, give mercy (90% win) on early steps
+        // 3. Otherwise, 50/50 chance
+        let willWin = Math.random() > 0.5;
+        if(user.depCount >= 2 && idx < 3) willWin = true; 
+        if(admin.rigging?.forceWin === currentPhone) willWin = true;
+        if(admin.rigging?.forceLoss === currentPhone) willWin = false;
+
+        const plate = document.getElementById(`p_${idx}`);
+        const chicken = document.getElementById('mainChicken');
+        
+        chicken.style.left = (plate.offsetLeft + 15) + "px";
+        document.getElementById('roadArea').style.transform = `translateX(-${idx * 140}px)`;
+
+        setTimeout(() => {
+            if(willWin){
+                plate.classList.add('win');
+                pendingMult = multipliers[currentMode][idx];
+                currentStep++;
+                document.getElementById('cashoutBtn').innerText = `CASHOUT (₹${(document.getElementById('betAmount').value * pendingMult).toFixed(2)})`;
+            } else {
+                gameState = 'loss';
+                triggerDeath(plate);
+            }
+        }, 400);
+    }
+
+    function triggerDeath(plate) {
+        const truck = document.createElement('img');
+        truck.src = "https://cdn-icons-png.flaticon.com/512/1995/1995471.png";
+        truck.style = "position:absolute; width:120px; top:-200px; left:"+(plate.offsetLeft+100)+"px; transition: top 0.3s ease-in; z-index:150;";
+        document.getElementById('roadArea').appendChild(truck);
+
+        setTimeout(() => {
+            truck.style.top = "80px";
+            plate.classList.add('loss');
+            document.getElementById('mainChicken').src = "https://cdn-icons-png.flaticon.com/512/3233/3233514.png";
+            showPopup("GAME OVER", "You were hit by a Truck!", "loss");
+            logHistory("LOST ₹" + document.getElementById('betAmount').value);
+        }, 50);
+    }
+
+    window.cashout = async () => {
+        if(gameState !== 'playing' || pendingMult === 0) return;
+        const win = document.getElementById('betAmount').value * pendingMult;
+        await update(ref(db, `users/${currentPhone}`), { balance: increment(win) });
+        showPopup("VICTORY!", `Cashed Out ₹${win.toFixed(2)}`, "win");
+        logHistory("WON ₹" + win.toFixed(2));
+        reset();
+    };
+
+    function showPopup(t, s, type){
+        document.getElementById('popupTitle').innerText = t;
+        document.getElementById('popupTitle').style.color = type === 'win' ? 'var(--win)' : 'var(--loss)';
+        document.getElementById('popupSubtext').innerText = s;
+        document.getElementById('gamePopup').classList.add('active');
+    }
+
+    window.closePopup = () => {
+        document.getElementById('gamePopup').classList.remove('active');
+        if(gameState === 'loss') reset();
+    };
+
+    function reset() {
+        gameState = 'idle';
+        document.getElementById('playBtn').style.display = 'block';
+        document.getElementById('cashoutBtn').style.display = 'none';
+        generatePlates();
+    }
+
+    function logHistory(msg) {
+        const div = document.createElement('div');
+        div.innerHTML = `> ${msg}`;
+        document.getElementById('logContent').prepend(div);
+    }
+
+    // Auto-Link
+    const saved = localStorage.getItem('activePhone');
+    if(saved) { currentPhone = saved; sync(); } else { document.getElementById('authOverlay').style.display = 'flex'; }
+    generatePlates();
+
+</script>
+</body>
+</html>
