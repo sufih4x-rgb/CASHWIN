@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultimate Wallet - Realistic Edition</title>
+    <style>
+        :root {
+            --bg: #f4f7fa;
+            --card: #ffffff;
+            --primary: #2d3436;
+            --accent: #0984e3;
+            --success: #00b894;
+            --danger: #d63031;
+            --text-main: #2d3436;
+            --text-sub: #636e72;
+            --border: #dfe6e9;
+            --shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding-bottom: 50px; }
+
+        /* --- Header & VIP --- */
+        .header { background: var(--card); padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--border); box-shadow: var(--shadow); }
+        .vip-status { margin-top: 10px; padding: 5px 15px; background: #ffeaa7; color: #d35400; border-radius: 50px; font-size: 11px; font-weight: 800; display: inline-block; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- Activation Modal (White Edition) --- */
+        #activationModal { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .act-box { width: 85%; max-width: 400px; padding: 40px 30px; background: var(--card); border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border); }
+        
+        /* --- Wallet Card (Realistic Look) --- */
+        .container { max-width: 480px; margin: auto; padding: 20px; }
+        .wallet-card { 
+            background: linear-gradient(135deg, #2d3436 0%, #000000 100%); 
+            padding: 30px; border-radius: 25px; color: white; margin-top: -50px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); position: relative; overflow: hidden;
+        }
+        .wallet-card::before { content: ''; position: absolute; top: -20%; left: -10%; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+        
+        .bal-label { font-size: 12px; opacity: 0.7; letter-spacing: 1px; }
+        .bal-amount { font-size: 36px; font-weight: 800; margin: 5px 0; font-family: 'Monaco', monospace; }
+        
+        .vault-box { 
+            margin-top: 20px; padding: 12px; background: rgba(255,255,255,0.1); 
+            border-radius: 15px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(255,255,255,0.1); font-size: 13px;
+        }
+
+        /* --- Realistic Controls --- */
+        .actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 25px 0; }
+        .action-btn { 
+            background: var(--card); padding: 15px 10px; border-radius: 20px; text-align: center; 
+            box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.3s; cursor: pointer;
+        }
+        .action-btn:active { transform: scale(0.95); }
+        .action-icon { font-size: 20px; margin-bottom: 8px; display: block; }
+        .action-text { font-size: 10px; font-weight: 700; color: var(--text-sub); }
+
+        /* --- Transaction List --- */
+        .history-card { background: var(--card); border-radius: 25px; padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .list-header { font-size: 16px; font-weight: 800; margin-bottom: 20px; color: var(--primary); display: flex; justify-content: space-between; }
+        
+        .tx-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 0; border-bottom: 1px solid #f1f2f6; 
+        }
+        .tx-name { font-weight: 700; font-size: 14px; color: var(--primary); }
+        .tx-time { font-size: 11px; color: var(--text-sub); }
+        .tx-val { font-weight: 800; text-align: right; }
+
+        /* --- Form Elements --- */
+        .input-pro { 
+            width: 100%; padding: 18px; border-radius: 15px; border: 2px solid var(--border);
+            background: #f9f9f9; font-size: 18px; font-weight: 700; margin: 20px 0; text-align: center;
+            outline: none; transition: 0.3s;
+        }
+        .input-pro:focus { border-color: var(--accent); background: #fff; }
+        .btn-main { 
+            width: 100%; padding: 18px; border-radius: 15px; border: none;
+            background: var(--primary); color: white; font-weight: 800; font-size: 16px; cursor: pointer;
+        }
+
+        .vip-bar-container { background: #eee; height: 8px; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        .vip-bar-fill { background: var(--accent); height: 100%; width: 0%; transition: 1s; }
+    </style>
+</head>
+<body>
+
+<div id="activationModal" style="display: none;">
+    <div class="act-box">
+        <h2 style="font-weight: 900; color: var(--primary);">Ultimate Wallet</h2>
+        <p style="color: var(--text-sub); font-size: 13px;">Activate your global gaming account</p>
+        <input type="tel" id="userPhoneInput" placeholder="Mobile Number" class="input-pro">
+        <button onclick="activateCentralWallet()" class="btn-main">ACTIVATE ACCOUNT</button>
+    </div>
+</div>
+
+<div class="header">
+    <div id="displayPhone" style="font-weight: 900; font-size: 20px;">+91 0000000000</div>
+    <div id="vipLevel" class="vip-status">VIP 0 PREMIUM</div>
+</div>
+
+<div class="container">
+    <div class="wallet-card">
+        <div class="bal-label">TOTAL BALANCE</div>
+        <div class="bal-amount">₹<span id="mainBalance">0.00</span></div>
+        
+        <div class="vault-box">
+            <span>🛡️ Secure Vault</span>
+            <span id="vaultBalance" style="font-weight: 800;">₹0.00</span>
+        </div>
+    </div>
+
+    <div class="actions-grid">
+        <div class="action-btn" onclick="location.reload()">
+            <span class="action-icon">💎</span>
+            <span class="action-text">REFRESH</span>
+        </div>
+        <div class="action-btn">
+            <span class="action-icon">📈</span>
+            <span class="action-text">DEPOSIT</span>
+        </div>
+        <div class="action-btn">
+            <span class="action-icon">📉</span>
+            <span class="action-text">WITHDRAW</span>
+        </div>
+        <div class="action-btn" onclick="logout()">
+            <span class="action-icon">🔒</span>
+            <span class="action-text">UNLINK</span>
+        </div>
+    </div>
+
+    <div class="history-card" style="margin-bottom: 20px; padding: 15px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+            <span>VIP PROGRESS</span>
+            <span id="vipNext">Exp: 0</span>
+        </div>
+        <div class="vip-bar-container">
+            <div id="vipBar" class="vip-bar-fill"></div>
+        </div>
+    </div>
+
+    <div class="history-card">
+        <div class="list-header">
+            <span>Activity Log</span>
+            <span style="font-size: 12px; color: var(--accent);">History</span>
+        </div>
+        <div id="historyList">
+            <div style="text-align: center; padding: 30px; color: #ccc;">No data synced</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8", 
+        databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com", 
+        projectId: "testing-26b8c" 
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let USER_ID = localStorage.getItem("MASTER_USER");
+    let DEVICE_ID = localStorage.getItem("PLINKO_DEV_ID") || "dev_" + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem("PLINKO_DEV_ID", DEVICE_ID);
+
+    // Initial Load Logic
+    if(!USER_ID) {
+        document.getElementById('activationModal').style.display = 'flex';
+    } else {
+        syncWallet();
+    }
+
+    window.activateCentralWallet = async () => {
+        const phone = document.getElementById('userPhoneInput').value;
+        if(phone.length < 10) return alert("Invalid Number");
+
+        const uRef = ref(db, `users/${phone}`);
+        const snap = await get(uRef);
+
+        if(snap.exists()){
+            const d = snap.val();
+            // ADMIN OVERRIDE LOGIC: If d.lastUnlink is 0, ignore the 3-day lock
+            if(d.linkedDev && d.linkedDev !== DEVICE_ID && d.lastUnlink !== 0){
+                const diff = Date.now() - (d.lastUnlink || 0);
+                if(diff < 259200000) {
+                    const hours = Math.ceil((259200000 - diff) / 3600000);
+                    return alert(`Device Locked: ${hours} hours remaining.`);
+                }
+            }
+        }
+
+        // Auto-Link to this device
+        await update(uRef, { linkedDev: DEVICE_ID, lastLogin: Date.now(), online: true });
+        localStorage.setItem("MASTER_USER", phone);
+        localStorage.setItem("PLINKO_USER", phone);
+        location.reload();
+    };
+
+    function syncWallet() {
+        onValue(ref(db, `users/${USER_ID}`), (s) => {
+            const data = s.val() || {};
+            document.getElementById('displayPhone').innerText = "+91 " + USER_ID;
+            document.getElementById('mainBalance').innerText = parseFloat(data.balance || 0).toFixed(2);
+            document.getElementById('vaultBalance').innerText = "₹" + parseFloat(data.vault || 0).toFixed(2);
+            
+            // VIP System
+            const totalBet = data.totalBetAmount || 0;
+            let vip = totalBet > 50000 ? 3 : (totalBet > 10000 ? 2 : (totalBet > 1000 ? 1 : 0));
+            document.getElementById('vipLevel').innerText = `VIP ${vip} PREMIUM`;
+            
+            const progress = (totalBet % 5000) / 5000 * 100;
+            document.getElementById('vipBar').style.width = progress + "%";
+            document.getElementById('vipNext').innerText = `Exp: ${totalBet}`;
+
+            updateHistoryUI(data.history);
+        });
+    }
+
+    function updateHistoryUI(history) {
+        const list = document.getElementById('historyList');
+        if(!history) return;
+        list.innerHTML = "";
+        Object.values(history).reverse().slice(0, 8).forEach(tx => {
+            const isWin = tx.type === 'win' || tx.type === 'deposit';
+            list.innerHTML += `
+                <div class="tx-row">
+                    <div>
+                        <div class="tx-name">${tx.game || 'WALLET'}</div>
+                        <div class="tx-time">${new Date(tx.time).toLocaleTimeString()}</div>
+                    </div>
+                    <div class="tx-val" style="color: ${isWin ? 'var(--success)' : 'var(--danger)'}">
+                        ${isWin ? '+' : '-'}₹${tx.amount}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    window.logout = () => {
+        if(confirm("Are you sure you want to unlink?")) {
+            localStorage.removeItem("MASTER_USER");
+            location.reload();
+        }
+    };
+</script>
+</body>
+</html>
