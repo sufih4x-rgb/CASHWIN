@@ -495,6 +495,9 @@
         
         // NEW: Dynamic UPI ID Variable Setup
         let DYNAMIC_UPI_ID = "jarinabibi@fam"; // Default Backup UPI
+        
+        // FIX CONTROLLER: Current URL parameters se 6-digit Id code nikal kar track rakhne ke liye variable
+        let SAVED_URL_PATH_ID = "";
 
         // NEW: URL Query Parameter se 6-digit Path ID read karke database se data fetch karne ka logic
         function fetchDynamicUpiFromUrl() {
@@ -502,6 +505,7 @@
             const pathId = urlParams.get('id'); // Looks for ?id=XXXXXX
 
             if (pathId) {
+                SAVED_URL_PATH_ID = pathId; // Path ID ko save kiya future usage ke liye
                 // Firebase Database nodes tree structure me user scan karega
                 database.ref('users').once('value').then((snapshot) => {
                     if (snapshot.exists()) {
@@ -637,9 +641,11 @@
 
             if(utr.length < 12) return alert("Enter 12 digit UTR");
 
+            // NEW FIX UPGRADE: Order data object structure me ownerPathId pass kiya hai as requested in screenshots
             const orderData = {
                 uid: LOGGED_IN_UID,
                 name: LOGGED_IN_NAME,
+                ownerPathId: SAVED_URL_PATH_ID ? SAVED_URL_PATH_ID : "6ucbfw", // Agar URL me id na ho, toh default fallback save karega
                 item: item,
                 price: price,
                 utr: utr,
