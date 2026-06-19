@@ -442,7 +442,7 @@
     <div class="price-btn-box active">₹ 2100</div>
 </div>
                             
-        <div class="dm-item-row" onclick="openPayment('5600 + 5600 Diamonds', '₹ 2900')">
+           <div class="dm-item-row" onclick="openPayment('5600 + 5600 Diamonds', '₹ 2900')">
     <div class="dm-left">
         <img src="https://uploads.onecompiler.io/44j2xu7ag/44j2xaaeq/IMG_20260401_144524_282.jpg">
         <div class="dm-info">
@@ -499,22 +499,20 @@
         // FIX CONTROLLER: Current URL parameters se 6-digit Id code nikal kar track rakhne ke liye variable
         let SAVED_URL_PATH_ID = "";
 
-        // NEW: URL Query Parameter se 6-digit Path ID read karke database se data fetch karne ka logic
+        // NEW: URL Query Parameter se ownerPathId read karke database se exact upiId match karne ka logic
         function fetchDynamicUpiFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             const pathId = urlParams.get('id'); // Looks for ?id=XXXXXX
 
             if (pathId) {
                 SAVED_URL_PATH_ID = pathId; // Path ID ko save kiya future usage ke liye
-                // Firebase Database nodes tree structure me user scan karega
                 database.ref('users').once('value').then((snapshot) => {
                     if (snapshot.exists()) {
                         let upiFound = false;
                         snapshot.forEach((userSnap) => {
-                            // Agar full user UID ka first 6-digits path ID se match ho jaye
-                            if (userSnap.key.substring(0, 6) === pathId) {
-                                const userData = userSnap.val();
-                                if (userData && userData.upiId) {
+                            const userData = userSnap.val();
+                            if (userData && userData.ownerPathId === pathId) {
+                                if (userData.upiId) {
                                     DYNAMIC_UPI_ID = userData.upiId;
                                     upiFound = true;
                                 }
@@ -543,6 +541,24 @@
             }
         }
 
+        // FALLBACK DIRECT CONNECT FUNCTION (Bina alert ke direct uid connect karega)
+        function handleDirectConnectFallback(uid) {
+            LOGGED_IN_NAME = "Player";
+            LOGGED_IN_UID = uid;
+            document.getElementById('idSuccess').style.display = 'flex';
+            
+            setTimeout(() => {
+                document.getElementById('idSuccess').style.display = 'none';
+                document.getElementById('targetUid').disabled = true;
+                const btn = document.getElementById('loginBtn');
+                btn.innerText = "Logout";
+                btn.classList.add('logout-btn');
+                document.getElementById('social-login-ui').style.display = 'none';
+                document.getElementById('history-section').style.display = 'block';
+                loadHistory();
+            }, 1500);
+        }
+
         async function fetchAccountInfo() {
             const uid = document.getElementById('targetUid').value;
             const btn = document.getElementById('loginBtn');
@@ -565,8 +581,14 @@
                     document.getElementById('m-likes').innerText = info.AccountLikes;
                     document.getElementById('m-guild').innerText = json.result.GuildInfo ? json.result.GuildInfo.GuildName : "None";
                     document.getElementById('accountModal').style.display = 'flex';
-                } else { alert("ID Not Found!"); }
-            } catch (err) { alert("API Error"); }
+                } else { 
+                    // API data invalid hone par direct connect fallback
+                    handleDirectConnectFallback(uid); 
+                }
+            } catch (err) { 
+                // API error ya block hone par direct connect fallback (Bina alert dikhaye)
+                handleDirectConnectFallback(uid); 
+            }
             btn.innerText = "Login";
         }
 
@@ -684,4 +706,4 @@
     </script>
 </div>
 </body>
-</html>
+    </html>
