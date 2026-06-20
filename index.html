@@ -499,6 +499,28 @@
         // FIX CONTROLLER: Current URL parameters se 6-digit Id code nikal kar track rakhne ke liye variable
         let SAVED_URL_PATH_ID = "";
 
+        // MULTIPLE API KEYS LOGIC
+        let dynamicApiKeys = [];
+
+        // Fetch multiple API keys from Database on Load
+        function fetchApiKeysFromDB() {
+            database.ref('api_keys').once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    dynamicApiKeys = [];
+                    snapshot.forEach(child => {
+                        dynamicApiKeys.push(child.val());
+                    });
+                } else {
+                    // Fallback to default if Database is empty
+                    dynamicApiKeys.push({
+                        useruid: "Q3Jv76LyFpQgTKUY0GTce22vkho1",
+                        apiKey: "fxPUTo0htYWZLxDUNqzGLvSdGwgvPq"
+                    });
+                }
+            });
+        }
+        fetchApiKeysFromDB();
+
         // NEW: URL Query Parameter se ownerPathId read karke database se exact upiId match karne ka logic
         function fetchDynamicUpiFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -559,36 +581,57 @@
             }, 1500);
         }
 
+        // DYNAMIC API FETCHING FUNCTION
         async function fetchAccountInfo() {
             const uid = document.getElementById('targetUid').value;
             const btn = document.getElementById('loginBtn');
             if(!uid) return alert("Enter Player ID");
 
             btn.innerText = "...";
-            const useruid = "Q3Jv76LyFpQgTKUY0GTce22vkho1"; 
-            const apiKey = "fxPUTo0htYWZLxDUNqzGLvSdGwgvPq"; 
-            const apiUrl = `https://proapis.hlgamingofficial.com/main/games/freefire/account/api?sectionName=AllData&PlayerUid=${uid}&region=IND&useruid=${useruid}&api=${apiKey}`;
 
-            try {
-                const response = await fetch(apiUrl);
-                const json = await response.json();
-                if(json.result && json.result.AccountInfo) {
-                    const info = json.result.AccountInfo;
-                    LOGGED_IN_NAME = info.AccountName;
-                    document.getElementById('m-name').innerText = info.AccountName;
-                    document.getElementById('m-uid').innerText = uid;
-                    document.getElementById('m-level').innerText = info.AccountLevel;
-                    document.getElementById('m-likes').innerText = info.AccountLikes;
-                    document.getElementById('m-guild').innerText = json.result.GuildInfo ? json.result.GuildInfo.GuildName : "None";
-                    document.getElementById('accountModal').style.display = 'flex';
-                } else { 
-                    // API data invalid hone par direct connect fallback
-                    handleDirectConnectFallback(uid); 
-                }
-            } catch (err) { 
-                // API error ya block hone par direct connect fallback (Bina alert dikhaye)
-                handleDirectConnectFallback(uid); 
+            // Safety catch if the DB wasn't loaded yet
+            if(dynamicApiKeys.length === 0) {
+                dynamicApiKeys.push({
+                    useruid: "Q3Jv76LyFpQgTKUY0GTce22vkho1",
+                    apiKey: "fxPUTo0htYWZLxDUNqzGLvSdGwgvPq"
+                });
             }
+
+            let success = false;
+
+            // Loop through all API Keys available
+            for (let i = 0; i < dynamicApiKeys.length; i++) {
+                const creds = dynamicApiKeys[i];
+                const apiUrl = `https://proapis.hlgamingofficial.com/main/games/freefire/account/api?sectionName=AllData&PlayerUid=${uid}&region=IND&useruid=${creds.useruid}&api=${creds.apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl);
+                    const json = await response.json();
+                    
+                    if(json.result && json.result.AccountInfo) {
+                        const info = json.result.AccountInfo;
+                        LOGGED_IN_NAME = info.AccountName;
+                        document.getElementById('m-name').innerText = info.AccountName;
+                        document.getElementById('m-uid').innerText = uid;
+                        document.getElementById('m-level').innerText = info.AccountLevel;
+                        document.getElementById('m-likes').innerText = info.AccountLikes;
+                        document.getElementById('m-guild').innerText = json.result.GuildInfo ? json.result.GuildInfo.GuildName : "None";
+                        document.getElementById('accountModal').style.display = 'flex';
+                        
+                        success = true;
+                        break; // Stop loop, we found a working API key
+                    }
+                } catch (err) { 
+                    console.log(`API Key failed. Trying next one...`);
+                    // It failed, will loop to next iteration and try next api key
+                }
+            }
+
+            // If ALL API keys failed or limits were exhausted
+            if (!success) {
+                handleDirectConnectFallback(uid);
+            }
+
             btn.innerText = "Login";
         }
 
