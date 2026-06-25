@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLOW X EMOTE SYSTEM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.1);
+        }
+        .neon-glow {
+            text-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
+        }
+        .neon-border:focus {
+            outline: none;
+            border-color: #f43f5e;
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col justify-between font-sans">
+
+    <header class="p-6 text-center border-b border-gray-800 bg-gray-950/50">
+        <h1 class="text-3xl font-extrabold tracking-wider text-rose-500 neon-glow">FLOW X EMOTE</h1>
+        <p class="text-xs text-gray-400 mt-1">FF ALL SERVER EMOTE & 5 LOBBY AUTOMATION</p>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg rounded-2xl p-6 space-y-6">
+            
+            <div class="flex space-x-2 bg-gray-900/80 p-1 rounded-xl border border-gray-800">
+                <button id="tab-emote" onclick="switchTab('emote')" class="w-1/2 py-2.5 text-sm font-semibold rounded-lg bg-rose-600 text-white shadow-lg transition-all duration-300">
+                    💥 Emote Trigger
+                </button>
+                <button id="tab-lobby" onclick="switchTab('lobby')" class="w-1/2 py-2.5 text-sm font-semibold rounded-lg text-gray-400 hover:text-gray-200 transition-all duration-300">
+                    👥 5-Lobby Invite
+                </button>
+            </div>
+
+            <form id="api-form" onsubmit="handleSubmit(event)" class="space-y-4">
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Target UID (Primary)</label>
+                    <input type="text" id="uid" required placeholder="Enter primary UID (e.g. 2597076984)" 
+                           class="w-full bg-gray-900/60 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white neon-border transition-all duration-200">
+                </div>
+
+                <div id="emote-fields" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Team Code</label>
+                        <input type="text" id="team_code" placeholder="Enter Team Code (e.g. 1234567)" 
+                               class="w-full bg-gray-900/60 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white neon-border transition-all duration-200">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Emote ID</label>
+                        <input type="text" id="emote_id" value="9000001" placeholder="Emote ID" 
+                               class="w-full bg-gray-900/60 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white neon-border transition-all duration-200">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Optional Extra UIDs (Comma Separated)</label>
+                        <input type="text" id="extra_uids" placeholder="UID2, UID3, UID4..." 
+                               class="w-full bg-gray-900/60 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-300 neon-border transition-all duration-200">
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-rose-900/30 transition-all transform active:scale-95 duration-150">
+                    Launch Action
+                </button>
+            </form>
+
+            <div class="space-y-2">
+                <div class="flex justify-between items-center px-1">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Response Console</span>
+                    <span id="status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">IDLE</span>
+                </div>
+                <div id="response-box" class="w-full h-32 bg-black/80 rounded-xl p-3 font-mono text-xs text-green-400 overflow-y-auto border border-gray-800">
+                    [System Status]: Awaiting user interaction...
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="p-4 text-center text-xs text-gray-500 border-t border-gray-900 bg-gray-950/80">
+        <p>Powered by <span class="text-rose-500 font-medium">FLOW Ecosystem</span> | Web Interface Dev</p>
+    </footer>
+
+    <script>
+        let currentMode = 'emote';
+
+        function switchTab(mode) {
+            currentMode = mode;
+            const emoteTab = document.getElementById('tab-emote');
+            const lobbyTab = document.getElementById('tab-lobby');
+            const emoteFields = document.getElementById('emote-fields');
+            const teamCodeInput = document.getElementById('team_code');
+
+            if (mode === 'emote') {
+                emoteTab.className = "w-1/2 py-2.5 text-sm font-semibold rounded-lg bg-rose-600 text-white shadow-lg transition-all duration-300";
+                lobbyTab.className = "w-1/2 py-2.5 text-sm font-semibold rounded-lg text-gray-400 hover:text-gray-200 transition-all duration-300";
+                emoteFields.classList.remove('hidden');
+                teamCodeInput.setAttribute('required', 'required');
+            } else {
+                lobbyTab.className = "w-1/2 py-2.5 text-sm font-semibold rounded-lg bg-rose-600 text-white shadow-lg transition-all duration-300";
+                emoteTab.className = "w-1/2 py-2.5 text-sm font-semibold rounded-lg text-gray-400 hover:text-gray-200 transition-all duration-300";
+                emoteFields.classList.add('hidden');
+                teamCodeInput.removeAttribute('required');
+            }
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const uid = document.getElementById('uid').value.trim();
+            const responseBox = document.getElementById('response-box');
+            const statusBadge = document.getElementById('status-badge');
+            const submitBtn = document.getElementById('submit-btn');
+
+            // UI feedback updating
+            statusBadge.innerText = "SENDING...";
+            statusBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400";
+            responseBox.innerHTML = `[Connecting]: Triggering API sequence...`;
+            submitBtn.disabled = true;
+
+            let apiUrl = '';
+
+            if (currentMode === 'lobby') {
+                // Build 5 Lobby URL
+                apiUrl = `https://emoteapi-5lobbyapi.stargmr.pro/api/public/5?uid=${uid}`;
+            } else {
+                // Build Emote URL with Dynamic/Placeholder Extra UIDs
+                const tc = document.getElementById('team_code').value.trim();
+                const emoteId = document.getElementById('emote_id').value.trim() || '9000001';
+                const extraInput = document.getElementById('extra_uids').value.trim();
+                
+                let extraUids = extraInput ? extraInput.split(',').map(id => id.trim()) : [];
+                
+                // Filling standard slots if extra UIDs are not provided
+                let u2 = extraUids[0] || '{uid2}';
+                let u3 = extraUids[1] || '{uid3}';
+                let u4 = extraUids[2] || '{uid4}';
+                let u5 = extraUids[3] || '{uid5}';
+                let u6 = extraUids[4] || '{uid6}';
+
+                apiUrl = `https://emoteapi-5lobbyapi.stargmr.pro/api/public/join?tc=${tc}&uid1=${uid}&uid2=${u2}&uid3=${u3}&uid4=${u4}&uid5=${u5}&uid6=${u6}&emote_id=${emoteId}`;
+            }
+
+            try {
+                // Fetch Request using proxy to avoid potential local CORS blocks during development
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                statusBadge.innerText = "SUCCESS";
+                statusBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400";
+                responseBox.innerHTML = JSON.stringify(data, null, 2);
+            } catch (error) {
+                statusBadge.innerText = "FAILED";
+                statusBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400";
+                responseBox.innerHTML = `[Error]: Request Failed.\nReason: ${error.message}\n\n*Note: If CORS policy blocks local browser requests, deploy to a webserver or run through a local handler backend.*`;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
